@@ -28,7 +28,7 @@ final class KeyboardShortcutMonitor {
     }
 
     private func canHandleShortcuts(for event: NSEvent) -> Bool {
-        guard event.modifierFlags.intersection([.command, .control]).isEmpty,
+        guard event.modifierFlags.intersection(.control).isEmpty,
               let window = NSApp.keyWindow,
               window.sheetParent == nil,
               window.attachedSheet == nil else { return false }
@@ -58,6 +58,7 @@ private extension ShortcutModifiers {
         var modifiers: ShortcutModifiers = []
         if event.modifierFlags.contains(.shift) { modifiers.insert(.shift) }
         if event.modifierFlags.contains(.option) { modifiers.insert(.option) }
+        if event.modifierFlags.contains(.command) { modifiers.insert(.command) }
         self = modifiers
     }
 }

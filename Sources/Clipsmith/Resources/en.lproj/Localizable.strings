@@ -132,3 +132,9 @@
 "inspector.visual.fill" = "Fill";
 "inspector.visual.fit.hint" = "The whole clip is visible; empty areas stay black.";
 "inspector.visual.fill.hint" = "The clip covers the canvas; what sticks out is cropped.";
+"shortcut.trimStart" = "Trim start to playhead";
+"shortcut.trimEnd" = "Trim end to playhead";
+"shortcut.copy" = "Copy clip";
+"shortcut.cut" = "Cut clip";
+"shortcut.paste" = "Paste at playhead";
+"shortcut.duplicate" = "Duplicate clip";

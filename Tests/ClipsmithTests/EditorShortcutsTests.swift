@@ -52,11 +52,21 @@ final class EditorShortcutsTests: XCTestCase {
         let keys: [ShortcutKey] = [
             .space, .delete, .leftArrow, .rightArrow, .home, .end, .escape,
             .character("s"), .character("t"), .character("m"), .character("="), .character("-"),
+            .character("q"), .character("w"), .character("c"), .character("x"), .character("v"), .character("d"),
         ]
-        let modifiers: [ShortcutModifiers] = [[], .shift, .option]
+        let modifiers: [ShortcutModifiers] = [[], .shift, .option, .command]
         let reachable = Set(keys.flatMap { key in modifiers.compactMap { EditorShortcuts.action(for: key, modifiers: $0) } })
 
         XCTAssertEqual(reachable, Set(EditorAction.allCases))
+    }
+
+    func testCommandShortcutsMapToClipboardActions() {
+        XCTAssertEqual(EditorShortcuts.action(for: .character("c"), modifiers: .command), .copy)
+        XCTAssertEqual(EditorShortcuts.action(for: .character("x"), modifiers: .command), .cut)
+        XCTAssertEqual(EditorShortcuts.action(for: .character("v"), modifiers: .command), .paste)
+        XCTAssertEqual(EditorShortcuts.action(for: .character("d"), modifiers: .command), .duplicate)
+        XCTAssertNil(EditorShortcuts.action(for: .character("s"), modifiers: .command))
+        XCTAssertNil(EditorShortcuts.action(for: .character("c"), modifiers: []))
     }
 
     func testOnlyNavigationAndZoomRepeatWhenHeld() {

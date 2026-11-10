@@ -78,6 +78,7 @@ struct PreviewView: View {
                 )
             }
             .disabled(!canPlay)
+            .help("\(localized(controller.isPlaying ? "preview.pause" : "preview.play")) (\(EditorShortcuts.displayKeys(for: .togglePlayback)))")
             Text("\(store.playheadInSeconds.clockString) / \(store.project.durationInSeconds.clockString)")
                 .monospacedDigit()
                 .foregroundStyle(.secondary)

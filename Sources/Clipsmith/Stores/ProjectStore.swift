@@ -27,6 +27,7 @@ final class ProjectStore {
     private var redoStack: [Project] = []
     @ObservationIgnored private var lastMutationKey: String?
     @ObservationIgnored private var lastMutationDate = Date.distantPast
+    @ObservationIgnored private var clipboard: (clip: Clip, trackID: Track.ID)?
     @ObservationIgnored private let now: () -> Date
 
     init(project: Project, now: @escaping () -> Date = Date.init) {
@@ -247,6 +248,45 @@ final class ProjectStore {
         guard let id = selectedClipID else { return }
         mutate { $0.rippleDeleteClip(id) }
         selectedClipID = nil
+    }
+
+    func trimToPlayhead(edge: ClipEdge) {
+        let time = playheadInSeconds
+        let targets = splitTargetIDs()
+        mutate { project in targets.forEach { project.trimClip($0, edge: edge, to: time) } }
+    }
+
+    func copySelectedClip() {
+        guard let id = selectedClipID, let position = project.location(of: id) else { return }
+        let track = project.tracks[position.track]
+        clipboard = (track.clips[position.clip], track.id)
+    }
+
+    func cutSelectedClip() {
+        copySelectedClip()
+        deleteSelectedClip()
+    }
+
+    func pasteAtPlayhead() {
+        guard let (copied, trackID) = clipboard else { return }
+        place(copied, preferredTrack: trackID, at: playheadInSeconds)
+    }
+
+    func duplicateSelectedClip() {
+        guard let clip = selectedClip, let position = project.location(of: clip.id) else { return }
+        place(clip, preferredTrack: project.tracks[position.track].id, at: clip.endInSeconds)
+    }
+
+    private func place(_ source: Clip, preferredTrack: Track.ID, at start: TimeInterval) {
+        var copy = source
+        copy.id = UUID()
+        copy.startInSeconds = start
+        let trackID = project.tracks.first { $0.id == preferredTrack }?.id
+            ?? project.track(withRole: Track.Role.preferred(for: copy.mediaKind))?.id
+        guard let trackID else { return }
+        var added = false
+        mutate { added = $0.addClip(copy, toTrack: trackID) }
+        if added { selectedClipID = copy.id }
     }
 
     private func canvasFittingFirstClip(_ item: MediaItem) -> CanvasFormat? {

@@ -32,6 +32,13 @@ struct TimelineView: View {
             toolbarButton("timeline.addText", systemImage: "textformat", shortcut: .addText, action: store.addTextAtPlayhead)
             toolbarButton("timeline.addMarker", systemImage: "bookmark", shortcut: .addMarker, action: store.toggleMarkerAtPlayhead)
             toolbarButton("timeline.split", systemImage: "scissors", shortcut: .split, action: store.splitAtPlayhead)
+            toolbarButton("shortcut.trimStart", systemImage: "arrow.right.to.line", shortcut: .trimStartToPlayhead) {
+                store.trimToPlayhead(edge: .leading)
+            }
+            toolbarButton("shortcut.trimEnd", systemImage: "arrow.left.to.line.compact", shortcut: .trimEndToPlayhead) {
+                store.trimToPlayhead(edge: .trailing)
+            }
+            toolbarButton("shortcut.duplicate", systemImage: "plus.square.on.square", shortcut: .duplicate, action: store.duplicateSelectedClip)
             toolbarButton("timeline.delete", systemImage: "trash", shortcut: .delete, action: store.deleteSelectedClip)
             toolbarButton(
                 "timeline.rippleDelete", systemImage: "arrow.left.to.line",
