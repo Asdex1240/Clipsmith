@@ -25,6 +25,8 @@ struct MediaItem: Codable, Identifiable, Equatable {
     var url: URL
     var kind: MediaKind
     var durationInSeconds: TimeInterval
+    /// Displayed size in pixels (rotation applied) of videos and images; nil for audio or when unknown.
+    var pixelSize: CGSize?
 
     var name: String { url.lastPathComponent }
 }

@@ -31,6 +31,10 @@ final class ExportController {
         ExportPreset.matching(settings: settings, canvas: store.project.canvas)
     }
 
+    var outputSize: CGSize {
+        settings.resolution.renderSize(for: store.project.canvas)
+    }
+
     var defaultFileName: String {
         store.project.name + ".mp4"
     }

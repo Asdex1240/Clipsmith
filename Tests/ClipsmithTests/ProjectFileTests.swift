@@ -3,6 +3,14 @@ import XCTest
 
 final class ProjectFileTests: XCTestCase {
     func testFormatVersionOneStillDecodes() throws {
+        let decoded = try ProjectFileCoding.decode(Data(GoldenProjectFixture.legacyJSON.utf8))
+
+        var expected = GoldenProjectFixture.expectedFile
+        expected.version = 1
+        XCTAssertEqual(decoded, expected)
+    }
+
+    func testCurrentFormatDecodes() throws {
         let decoded = try ProjectFileCoding.decode(Data(GoldenProjectFixture.json.utf8))
 
         XCTAssertEqual(decoded, GoldenProjectFixture.expectedFile)

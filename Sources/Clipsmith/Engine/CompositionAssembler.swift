@@ -84,7 +84,8 @@ final class CompositionAssembler {
             transform: FitTransform.make(
                 naturalSize: naturalSize,
                 preferredTransform: preferredTransform,
-                renderSize: renderSize
+                renderSize: renderSize,
+                mode: clip.fitMode
             )
         )
     }
@@ -118,7 +119,7 @@ final class CompositionAssembler {
         guard clip.mediaKind == .image else {
             return (AVURLAsset(url: url), clip.sourceStartInSeconds, false)
         }
-        let stillURL = try await stillImages.makeVideo(from: url, size: renderSize)
+        let stillURL = try await stillImages.makeVideo(from: url, size: renderSize, mode: clip.fitMode)
         return (AVURLAsset(url: stillURL), 0, true)
     }
 

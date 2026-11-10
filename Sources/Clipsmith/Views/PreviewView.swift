@@ -70,7 +70,7 @@ struct PreviewView: View {
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
             Spacer()
-            canvasPicker
+            CanvasPicker(store: store)
             modePicker
         }
         .padding(8)
@@ -100,16 +100,5 @@ struct PreviewView: View {
                 }
             }
         )
-    }
-
-    private var canvasPicker: some View {
-        Picker("", selection: Binding(get: { store.project.canvas }, set: store.setCanvas)) {
-            Text(localized("canvas.landscape")).tag(CanvasFormat.landscape)
-            Text(localized("canvas.portrait")).tag(CanvasFormat.portrait)
-        }
-        .pickerStyle(.segmented)
-        .labelsHidden()
-        .fixedSize()
-        .help(localized("canvas.help"))
     }
 }

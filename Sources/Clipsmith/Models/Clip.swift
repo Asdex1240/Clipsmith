@@ -15,6 +15,7 @@ struct Clip: Codable, Identifiable, Equatable {
     var fadeInDurationInSeconds: TimeInterval = 0
     var fadeOutDurationInSeconds: TimeInterval = 0
     var textLayer: TextLayer?
+    var fitMode = FitMode.fit
 
     var displayName: String {
         textLayer?.content ?? sourceURL?.lastPathComponent ?? ""
@@ -116,5 +117,51 @@ struct Clip: Codable, Identifiable, Equatable {
         clip.fadeInDurationInSeconds = min(fadeInDurationInSeconds, durationInSeconds)
         clip.fadeOutDurationInSeconds = min(fadeOutDurationInSeconds, durationInSeconds - clip.fadeInDurationInSeconds)
         return clip
+    }
+
+    func settingFitMode(_ mode: FitMode) -> Clip {
+        var clip = self
+        clip.fitMode = mode
+        return clip
+    }
+}
+
+extension Clip {
+    private enum CodingKeys: String, CodingKey {
+        case id, sourceURL, mediaKind, startInSeconds, sourceStartInSeconds, sourceEndInSeconds
+        case sourceDurationInSeconds, volume, fadeInDurationInSeconds, fadeOutDurationInSeconds
+        case textLayer, fitMode
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        sourceURL = try container.decodeIfPresent(URL.self, forKey: .sourceURL)
+        mediaKind = try container.decode(MediaKind.self, forKey: .mediaKind)
+        startInSeconds = try container.decode(TimeInterval.self, forKey: .startInSeconds)
+        sourceStartInSeconds = try container.decode(TimeInterval.self, forKey: .sourceStartInSeconds)
+        sourceEndInSeconds = try container.decode(TimeInterval.self, forKey: .sourceEndInSeconds)
+        sourceDurationInSeconds = try container.decodeIfPresent(TimeInterval.self, forKey: .sourceDurationInSeconds)
+        volume = try container.decodeIfPresent(Double.self, forKey: .volume) ?? 1
+        fadeInDurationInSeconds = try container.decodeIfPresent(TimeInterval.self, forKey: .fadeInDurationInSeconds) ?? 0
+        fadeOutDurationInSeconds = try container.decodeIfPresent(TimeInterval.self, forKey: .fadeOutDurationInSeconds) ?? 0
+        textLayer = try container.decodeIfPresent(TextLayer.self, forKey: .textLayer)
+        fitMode = try container.decodeIfPresent(FitMode.self, forKey: .fitMode) ?? .fit
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encodeIfPresent(sourceURL, forKey: .sourceURL)
+        try container.encode(mediaKind, forKey: .mediaKind)
+        try container.encode(startInSeconds, forKey: .startInSeconds)
+        try container.encode(sourceStartInSeconds, forKey: .sourceStartInSeconds)
+        try container.encode(sourceEndInSeconds, forKey: .sourceEndInSeconds)
+        try container.encodeIfPresent(sourceDurationInSeconds, forKey: .sourceDurationInSeconds)
+        try container.encode(volume, forKey: .volume)
+        try container.encode(fadeInDurationInSeconds, forKey: .fadeInDurationInSeconds)
+        try container.encode(fadeOutDurationInSeconds, forKey: .fadeOutDurationInSeconds)
+        try container.encodeIfPresent(textLayer, forKey: .textLayer)
+        try container.encode(fitMode, forKey: .fitMode)
     }
 }

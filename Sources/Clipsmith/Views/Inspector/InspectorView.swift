@@ -18,6 +18,9 @@ struct InspectorView: View {
         if let clip = store.selectedClip {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
+                    if hasVisualControls(for: clip) {
+                        VisualInspector(store: store, clip: clip)
+                    }
                     if clip.textLayer != nil {
                         TextInspector(store: store, clip: clip)
                     }
@@ -36,6 +39,12 @@ struct InspectorView: View {
                     .padding()
             }
         }
+    }
+
+    private func hasVisualControls(for clip: Clip) -> Bool {
+        guard clip.mediaKind == .video || clip.mediaKind == .image else { return false }
+        let role = store.project.trackRole(ofClip: clip.id)
+        return role == .main || role == .broll
     }
 
     private func hasAudioControls(for clip: Clip) -> Bool {

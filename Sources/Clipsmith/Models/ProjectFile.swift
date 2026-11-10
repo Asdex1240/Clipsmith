@@ -1,7 +1,7 @@
 import Foundation
 
 struct ProjectFile: Codable, Equatable {
-    static let currentVersion = 1
+    static let currentVersion = 2
 
     var version = ProjectFile.currentVersion
     var project: Project

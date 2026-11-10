@@ -11,10 +11,11 @@ Planned for the first release:
 - **Projects** — create, save and open projects (`.clipsmith` files, JSON), with undo/redo, autosave recovery and relinking of moved or missing media.
 - **Media library** — import video, audio and images with thumbnails and durations.
 - **Timeline** — move, trim, split and delete clips, with a B-roll track, zoom, a draggable playhead and snapping.
+- **Canvas** — the project's work area: presets (16:9, 9:16, 1:1, 4:5, 3:4, 4:3, 21:9), any custom width × height, a resolution shortcut (720p–4K) and automatic matching to the first clip you add. Each clip can be framed as *Fit* (bars) or *Fill* (crop).
 - **Preview** — real-time playback and scrubbing.
 - **Text** — text layers with font, size, color and position.
 - **Audio** — per-clip volume, fade in/out and visible waveforms.
-- **Export** — MP4 (H.264 / HEVC) with configurable resolution and frame rate, including 16:9 and 9:16 presets.
+- **Export** — MP4 (H.264 / HEVC) at 720p, 1080p, 1440p, 4K or exactly the canvas size, with configurable frame rate and 16:9 / 9:16 presets.
 
 Everything runs locally; there is no backend and no account.
 

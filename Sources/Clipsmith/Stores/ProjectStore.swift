@@ -127,6 +127,14 @@ final class ProjectStore {
         mutate { $0.canvas = format }
     }
 
+    func setAutoFitCanvas(_ enabled: Bool) {
+        mutate { $0.autoFitCanvas = enabled }
+    }
+
+    func setFitMode(of id: Clip.ID, to mode: FitMode) {
+        mutate { $0.setFitMode(of: id, to: mode) }
+    }
+
     func replaceMedia(from original: URL, to replacement: URL) {
         mutate { $0.remapSources([original: replacement]) }
     }
@@ -163,8 +171,12 @@ final class ProjectStore {
     func addMedia(_ item: MediaItem, toTrack trackID: Track.ID, at proposedStart: TimeInterval) {
         let start = snappedStart(proposedStart, duration: item.durationInSeconds, excluding: nil)
         let clip = Clip(item: item, startInSeconds: start)
+        let fittedCanvas = canvasFittingFirstClip(item)
         var added = false
-        mutate { added = $0.addClip(clip, toTrack: trackID) }
+        mutate {
+            added = $0.addClip(clip, toTrack: trackID)
+            if added, let fittedCanvas { $0.canvas = fittedCanvas }
+        }
         if added { selectedClipID = clip.id }
     }
 
@@ -196,6 +208,13 @@ final class ProjectStore {
         guard let id = selectedClipID else { return }
         mutate { $0.rippleDeleteClip(id) }
         selectedClipID = nil
+    }
+
+    private func canvasFittingFirstClip(_ item: MediaItem) -> CanvasFormat? {
+        guard project.autoFitCanvas, !project.hasVisualClips,
+              item.kind == .video || item.kind == .image,
+              let size = item.pixelSize else { return nil }
+        return CanvasFormat.fitting(size)
     }
 
     private var editPoints: [TimeInterval] {

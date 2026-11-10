@@ -44,6 +44,9 @@ struct ExportView: View {
                     ForEach(ExportSettings.supportedFrameRates, id: \.self) { Text("\($0) fps").tag($0) }
                 }
             }
+            Text("\(localized("export.output")): \(Int(controller.outputSize.width))×\(Int(controller.outputSize.height))")
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
             HStack {
                 Spacer()
                 Button(localized("export.cancel")) { dismiss() }
@@ -134,11 +137,14 @@ private extension ExportPreset {
     }
 }
 
-private extension ExportResolution {
+extension ExportResolution {
     var title: String {
         switch self {
+        case .hd720: return localized("export.resolution.hd720")
         case .hd1080: return localized("export.resolution.hd1080")
+        case .qhd1440: return localized("export.resolution.qhd1440")
         case .uhd4K: return localized("export.resolution.uhd4K")
+        case .canvasSize: return localized("export.resolution.canvasSize")
         }
     }
 }

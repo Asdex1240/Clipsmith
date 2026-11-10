@@ -7,23 +7,24 @@ enum VideoCodec: String, Codable, CaseIterable, Identifiable {
 }
 
 enum ExportResolution: String, Codable, CaseIterable, Identifiable {
-    case hd1080, uhd4K
+    case hd720, hd1080, qhd1440, uhd4K, canvasSize
 
     var id: String { rawValue }
 
-    func renderSize(for canvas: CanvasFormat) -> CGSize {
-        let landscape = landscapeSize
-        switch canvas {
-        case .landscape: return landscape
-        case .portrait: return CGSize(width: landscape.height, height: landscape.width)
+    /// Pixels of the shorter side of the output; nil exports at exactly the canvas size.
+    var shortSide: Int? {
+        switch self {
+        case .hd720: return 720
+        case .hd1080: return 1080
+        case .qhd1440: return 1440
+        case .uhd4K: return 2160
+        case .canvasSize: return nil
         }
     }
 
-    private var landscapeSize: CGSize {
-        switch self {
-        case .hd1080: return CGSize(width: 1920, height: 1080)
-        case .uhd4K: return CGSize(width: 3840, height: 2160)
-        }
+    func renderSize(for canvas: CanvasFormat) -> CGSize {
+        guard let shortSide else { return canvas.renderSize }
+        return canvas.scaled(toShortSide: shortSide).renderSize
     }
 }
 
@@ -53,6 +54,6 @@ enum ExportPreset: String, CaseIterable, Identifiable {
     }
 
     static func matching(settings: ExportSettings, canvas: CanvasFormat) -> ExportPreset? {
-        allCases.first { $0.settings == settings && $0.canvas == canvas }
+        allCases.first { $0.settings == settings && $0.canvas.aspectLabel == canvas.aspectLabel }
     }
 }

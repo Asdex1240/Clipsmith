@@ -17,6 +17,14 @@ extension Project {
         updateClip(id) { $0.settingFadeOut(seconds) }
     }
 
+    mutating func setFitMode(of id: Clip.ID, to mode: FitMode) {
+        updateClip(id) { $0.settingFitMode(mode) }
+    }
+
+    var hasVisualClips: Bool {
+        tracks.contains { $0.clips.contains { $0.mediaKind == .video || $0.mediaKind == .image } }
+    }
+
     mutating func updateTextLayer(of id: Clip.ID, _ change: (inout TextLayer) -> Void) {
         updateClip(id) { clip in
             guard var layer = clip.textLayer else { return clip }

@@ -1,4 +1,5 @@
 import AVFoundation
+import ImageIO
 
 enum ImportError: Error, LocalizedError {
     case unsupportedFormat(URL)
@@ -20,13 +21,15 @@ protocol MediaLoading {
 
 struct AVMediaLoader: MediaLoading {
     static let stillImageDurationInSeconds: TimeInterval = 5
+    private static let firstOrientationThatSwapsAxes = 5
 
     func loadItem(from url: URL) async throws -> MediaItem {
         guard let kind = MediaKind(url: url) else {
             throw ImportError.unsupportedFormat(url)
         }
         let duration = try await loadDuration(of: url, kind: kind)
-        return MediaItem(url: url, kind: kind, durationInSeconds: duration)
+        let pixelSize = await loadPixelSize(of: url, kind: kind)
+        return MediaItem(url: url, kind: kind, durationInSeconds: duration, pixelSize: pixelSize)
     }
 
     private func loadDuration(of url: URL, kind: MediaKind) async throws -> TimeInterval {
@@ -40,5 +43,33 @@ struct AVMediaLoader: MediaLoading {
         } catch {
             throw ImportError.unreadable(url)
         }
+    }
+
+    private func loadPixelSize(of url: URL, kind: MediaKind) async -> CGSize? {
+        switch kind {
+        case .video: return await videoSize(of: url)
+        case .image: return imageSize(of: url)
+        case .audio, .text: return nil
+        }
+    }
+
+    private func videoSize(of url: URL) async -> CGSize? {
+        let asset = AVURLAsset(url: url)
+        guard let track = try? await asset.loadTracks(withMediaType: .video).first,
+              let (natural, transform) = try? await track.load(.naturalSize, .preferredTransform) else { return nil }
+        let oriented = CGRect(origin: .zero, size: natural).applying(transform)
+        return oriented.width > 0 && oriented.height > 0 ? CGSize(width: oriented.width, height: oriented.height) : nil
+    }
+
+    private func imageSize(of url: URL) -> CGSize? {
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+              let width = properties[kCGImagePropertyPixelWidth] as? Double,
+              let height = properties[kCGImagePropertyPixelHeight] as? Double,
+              width > 0, height > 0 else { return nil }
+        let orientation = properties[kCGImagePropertyOrientation] as? Int ?? 1
+        return orientation >= Self.firstOrientationThatSwapsAxes
+            ? CGSize(width: height, height: width)
+            : CGSize(width: width, height: height)
     }
 }
