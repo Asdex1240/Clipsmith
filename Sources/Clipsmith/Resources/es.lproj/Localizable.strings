@@ -1,6 +1,5 @@
 "project.untitled" = "Proyecto sin título";
 "panel.library" = "Biblioteca de medios";
-"panel.preview" = "Preview";
 "panel.inspector" = "Inspector";
 "library.import" = "Importar…";
 "library.empty" = "Arrastra videos, audio o imágenes aquí, o usa Importar.";
@@ -90,3 +89,15 @@
 "relink.locate" = "Localizar…";
 "relink.continue" = "Continuar";
 "relink.panel.message" = "Elige el archivo que sustituirá a «%@»";
+"menu.shortcuts" = "Atajos de teclado";
+"shortcuts.title" = "Atajos de teclado";
+"shortcut.togglePlayback" = "Reproducir / pausar";
+"shortcut.stepBackward" = "Fotograma anterior";
+"shortcut.stepForward" = "Fotograma siguiente";
+"shortcut.jumpBackward" = "Retroceder 1 segundo";
+"shortcut.jumpForward" = "Avanzar 1 segundo";
+"shortcut.previousEdit" = "Corte anterior";
+"shortcut.nextEdit" = "Corte siguiente";
+"shortcut.goToStart" = "Ir al inicio";
+"shortcut.goToEnd" = "Ir al final";
+"shortcut.deselect" = "Deseleccionar";

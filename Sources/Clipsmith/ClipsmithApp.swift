@@ -10,6 +10,8 @@ struct ClipsmithApp: App {
     @State private var exporter: ExportController
     @State private var document: DocumentController
     private let documentActions: DocumentActions
+    private let shortcutMonitor: KeyboardShortcutMonitor
+    @State private var isShortcutsPresented = false
     @State private var waveforms = WaveformStore()
     private let thumbnails = CachedThumbnailGenerator()
 
@@ -22,6 +24,8 @@ struct ClipsmithApp: App {
         _library = State(initialValue: library)
         _document = State(initialValue: document)
         documentActions = DocumentActions(document: document)
+        let runner = EditorShortcutRunner(store: store, player: player)
+        shortcutMonitor = KeyboardShortcutMonitor(perform: runner.perform)
         _player = State(initialValue: player)
         _previewer = State(initialValue: TimelinePreviewer(store: store, player: player))
         _exporter = State(initialValue: ExportController(store: store))
@@ -32,7 +36,11 @@ struct ClipsmithApp: App {
             ContentView(store: store, library: library, player: player, previewer: previewer, exporter: exporter, document: document,
                 documentActions: documentActions, thumbnails: thumbnails, waveforms: waveforms)
                 .frame(minWidth: 1100, minHeight: 700)
-                .onAppear { appDelegate.shouldAllowTermination = documentActions.confirmDiscardingChanges }
+                .onAppear {
+                    appDelegate.shouldAllowTermination = documentActions.confirmDiscardingChanges
+                    shortcutMonitor.start()
+                }
+                .sheet(isPresented: $isShortcutsPresented) { ShortcutsView() }
         }
         .commands {
             CommandGroup(replacing: .newItem) {
@@ -43,6 +51,10 @@ struct ClipsmithApp: App {
                 Button(localized("menu.save")) { documentActions.save() }.keyboardShortcut("s")
                 Button(localized("menu.saveAs")) { documentActions.saveAs() }
                     .keyboardShortcut("s", modifiers: [.command, .shift])
+            }
+            CommandGroup(replacing: .help) {
+                Button(localized("menu.shortcuts")) { isShortcutsPresented = true }
+                    .keyboardShortcut("/")
             }
             CommandGroup(replacing: .undoRedo) {
                 Button(localized("menu.undo"), action: store.undo)

@@ -28,16 +28,16 @@ struct TimelineView: View {
             Text(store.project.name).font(.headline)
             Text(store.playheadInSeconds.clockString).monospacedDigit().foregroundStyle(.secondary)
             Spacer()
-            toolbarButton("timeline.addText", systemImage: "textformat", shortcut: "t", action: store.addTextAtPlayhead)
-            toolbarButton("timeline.split", systemImage: "scissors", shortcut: "s", action: store.splitAtPlayhead)
+            toolbarButton("timeline.addText", systemImage: "textformat", shortcut: .addText, action: store.addTextAtPlayhead)
+            toolbarButton("timeline.split", systemImage: "scissors", shortcut: .split, action: store.splitAtPlayhead)
             toolbarButton("timeline.delete", systemImage: "trash", shortcut: .delete, action: store.deleteSelectedClip)
             toolbarButton(
                 "timeline.rippleDelete", systemImage: "arrow.left.to.line",
-                shortcut: .delete, modifiers: .shift, action: store.rippleDeleteSelectedClip
+                shortcut: .rippleDelete, action: store.rippleDeleteSelectedClip
             )
             Divider().frame(height: 16)
-            toolbarButton("timeline.zoomOut", systemImage: "minus.magnifyingglass", shortcut: "-", action: store.zoomOut)
-            toolbarButton("timeline.zoomIn", systemImage: "plus.magnifyingglass", shortcut: "=", action: store.zoomIn)
+            toolbarButton("timeline.zoomOut", systemImage: "minus.magnifyingglass", shortcut: .zoomOut, action: store.zoomOut)
+            toolbarButton("timeline.zoomIn", systemImage: "plus.magnifyingglass", shortcut: .zoomIn, action: store.zoomIn)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
@@ -46,13 +46,11 @@ struct TimelineView: View {
     private func toolbarButton(
         _ key: String.LocalizationValue,
         systemImage: String,
-        shortcut: KeyEquivalent,
-        modifiers: EventModifiers = [],
+        shortcut: EditorAction,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) { Image(systemName: systemImage) }
-            .help(localized(key))
-            .keyboardShortcut(shortcut, modifiers: modifiers)
+            .help("\(localized(key)) (\(EditorShortcuts.displayKeys(for: shortcut)))")
     }
 
     private var trackLabels: some View {

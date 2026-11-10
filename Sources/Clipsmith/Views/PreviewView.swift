@@ -65,7 +65,6 @@ struct PreviewView: View {
                     systemImage: controller.isPlaying ? "pause.fill" : "play.fill"
                 )
             }
-            .keyboardShortcut(.space, modifiers: [])
             .disabled(!canPlay)
             Text("\(store.playheadInSeconds.clockString) / \(store.project.durationInSeconds.clockString)")
                 .monospacedDigit()

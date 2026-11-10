@@ -1,6 +1,5 @@
 "project.untitled" = "Untitled project";
 "panel.library" = "Media library";
-"panel.preview" = "Preview";
 "panel.inspector" = "Inspector";
 "library.import" = "Import…";
 "library.empty" = "Drop videos, audio or images here, or use Import.";
@@ -90,3 +89,15 @@
 "relink.locate" = "Locate…";
 "relink.continue" = "Continue";
 "relink.panel.message" = "Choose the file to use instead of “%@”";
+"menu.shortcuts" = "Keyboard Shortcuts";
+"shortcuts.title" = "Keyboard shortcuts";
+"shortcut.togglePlayback" = "Play / pause";
+"shortcut.stepBackward" = "Previous frame";
+"shortcut.stepForward" = "Next frame";
+"shortcut.jumpBackward" = "Back 1 second";
+"shortcut.jumpForward" = "Forward 1 second";
+"shortcut.previousEdit" = "Previous cut";
+"shortcut.nextEdit" = "Next cut";
+"shortcut.goToStart" = "Go to start";
+"shortcut.goToEnd" = "Go to end";
+"shortcut.deselect" = "Deselect";

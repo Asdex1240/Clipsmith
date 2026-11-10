@@ -11,6 +11,9 @@ final class ProjectStore {
     static let snapThresholdInPoints = 8.0
     static let defaultTextDurationInSeconds: TimeInterval = 3
     static let maximumUndoSteps = 100
+    static let frameDurationInSeconds: TimeInterval = 1.0 / 30
+    static let jumpDurationInSeconds: TimeInterval = 1
+    private static let editPointToleranceInSeconds: TimeInterval = 1e-6
     static let coalescingWindowInSeconds: TimeInterval = 1
 
     private(set) var project: Project {
@@ -80,6 +83,36 @@ final class ProjectStore {
 
     func followPlayback(at time: TimeInterval) {
         playheadInSeconds = max(0, time)
+    }
+
+    func movePlayhead(to time: TimeInterval) {
+        playheadInSeconds = min(max(0, time), project.durationInSeconds)
+    }
+
+    func stepPlayhead(byFrames frames: Int) {
+        movePlayhead(to: playheadInSeconds + Double(frames) * Self.frameDurationInSeconds)
+    }
+
+    func jumpPlayhead(bySeconds seconds: TimeInterval) {
+        movePlayhead(to: playheadInSeconds + seconds)
+    }
+
+    func goToStart() {
+        movePlayhead(to: 0)
+    }
+
+    func goToEnd() {
+        movePlayhead(to: project.durationInSeconds)
+    }
+
+    func goToPreviousEdit() {
+        let tolerance = Self.editPointToleranceInSeconds
+        movePlayhead(to: editPoints.last { $0 < playheadInSeconds - tolerance } ?? 0)
+    }
+
+    func goToNextEdit() {
+        let tolerance = Self.editPointToleranceInSeconds
+        movePlayhead(to: editPoints.first { $0 > playheadInSeconds + tolerance } ?? project.durationInSeconds)
     }
 
     func zoomIn() {
@@ -163,6 +196,10 @@ final class ProjectStore {
         guard let id = selectedClipID else { return }
         mutate { $0.rippleDeleteClip(id) }
         selectedClipID = nil
+    }
+
+    private var editPoints: [TimeInterval] {
+        Array(Set(project.snapPoints(excluding: nil, playhead: 0))).sorted()
     }
 
     private var snapThresholdInSeconds: TimeInterval {
