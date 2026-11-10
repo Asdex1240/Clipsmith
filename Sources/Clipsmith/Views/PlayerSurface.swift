@@ -4,7 +4,7 @@ import SwiftUI
 struct PlayerSurface: NSViewRepresentable {
     let player: AVPlayer
     var overlay: TextOverlay?
-    var revision = 0
+    var time: TimeInterval = 0
 
     func makeNSView(context: Context) -> AVPlayerView {
         let view = AVPlayerView()
@@ -19,7 +19,7 @@ struct PlayerSurface: NSViewRepresentable {
 
     func updateNSView(_ view: AVPlayerView, context: Context) {
         view.player = player
-        context.coordinator.host?.show(overlay, for: player.currentItem)
+        context.coordinator.host?.show(overlay, at: time)
     }
 
     func makeCoordinator() -> Coordinator {
@@ -32,45 +32,48 @@ struct PlayerSurface: NSViewRepresentable {
 }
 
 final class TextOverlayHostView: NSView {
-    private var synchronizedLayer: AVSynchronizedLayer?
+    private let container = CALayer()
     private var shownOverlay: TextOverlay?
-    private weak var shownItem: AVPlayerItem?
+    private var entries: [(clip: Clip, layer: CALayer)] = []
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         wantsLayer = true
+        container.anchorPoint = .zero
+        layer?.addSublayer(container)
     }
 
     required init?(coder: NSCoder) {
         nil
     }
 
-    func show(_ overlay: TextOverlay?, for item: AVPlayerItem?) {
+    func show(_ overlay: TextOverlay?, at time: TimeInterval) {
         let visibleOverlay = overlay.flatMap { $0.isEmpty ? nil : $0 }
-        guard visibleOverlay != shownOverlay || item !== shownItem else { return }
-        shownOverlay = visibleOverlay
-        shownItem = item
-        synchronizedLayer?.removeFromSuperlayer()
-        synchronizedLayer = nil
-        guard let visibleOverlay, let item else { return }
-        let layer = AVSynchronizedLayer(playerItem: item)
-        layer.anchorPoint = .zero
-        layer.bounds = CGRect(origin: .zero, size: visibleOverlay.renderSize)
-        layer.addSublayer(TextOverlayLayers.makeContainer(for: visibleOverlay))
-        self.layer?.addSublayer(layer)
-        synchronizedLayer = layer
-        needsLayout = true
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        if visibleOverlay != shownOverlay {
+            shownOverlay = visibleOverlay
+            entries.forEach { $0.layer.removeFromSuperlayer() }
+            entries = visibleOverlay.map(TextOverlayLayers.makeStaticLayers) ?? []
+            entries.forEach { container.addSublayer($0.layer) }
+            container.bounds = CGRect(origin: .zero, size: visibleOverlay?.renderSize ?? .zero)
+            needsLayout = true
+        }
+        for entry in entries {
+            entry.layer.opacity = entry.clip.startInSeconds <= time && time < entry.clip.endInSeconds ? 1 : 0
+        }
+        CATransaction.commit()
     }
 
     override func layout() {
         super.layout()
-        guard let synchronizedLayer, let size = shownOverlay?.renderSize, size.width > 0, size.height > 0 else { return }
+        guard let size = shownOverlay?.renderSize, size.width > 0, size.height > 0 else { return }
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        synchronizedLayer.position = .zero
-        synchronizedLayer.setAffineTransform(
-            CGAffineTransform(scaleX: bounds.width / size.width, y: bounds.height / size.height)
-        )
+        // Uniform scale, centered: the overlay view can be larger than the letterboxed video.
+        let scale = min(bounds.width / size.width, bounds.height / size.height)
+        container.position = CGPoint(x: (bounds.width - size.width * scale) / 2, y: (bounds.height - size.height * scale) / 2)
+        container.setAffineTransform(CGAffineTransform(scaleX: scale, y: scale))
         CATransaction.commit()
     }
 }

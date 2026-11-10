@@ -24,9 +24,20 @@ enum TextOverlayLayers {
             guard let text = clip.textLayer, let layer = makeLayer(for: clip, text: text, renderSize: overlay.renderSize) else {
                 continue
             }
+            layer.opacity = 0
+            layer.add(visibilityAnimation(for: clip), forKey: "visibility")
             container.addSublayer(layer)
         }
         return container
+    }
+
+    /// Layers for the live preview: not tied to any player item, shown or hidden by the caller via `opacity`.
+    static func makeStaticLayers(for overlay: TextOverlay) -> [(clip: Clip, layer: CALayer)] {
+        overlay.clips.compactMap { clip in
+            guard let text = clip.textLayer,
+                  let layer = makeLayer(for: clip, text: text, renderSize: overlay.renderSize) else { return nil }
+            return (clip, layer)
+        }
     }
 
     static func attach(_ overlay: TextOverlay, to videoComposition: AVMutableVideoComposition) {
@@ -52,9 +63,19 @@ enum TextOverlayLayers {
         layer.contents = image
         layer.bounds = CGRect(x: 0, y: 0, width: image.width, height: image.height)
         layer.position = CGPoint(x: text.positionX * renderSize.width, y: (1 - text.positionY) * renderSize.height)
-        layer.opacity = 0
-        layer.add(visibilityAnimation(for: clip), forKey: "visibility")
         return layer
+    }
+
+    /// Size of the visible text in render-space points, used for hit-testing in the preview.
+    static func textSize(of text: TextLayer, renderSize: CGSize) -> CGSize {
+        let scale = min(renderSize.width, renderSize.height) / TextLayer.referenceShortSide
+        let fontSize = text.fontSize * scale
+        let font = NSFont(name: text.fontName, size: fontSize) ?? NSFont.boldSystemFont(ofSize: fontSize)
+        let measured = NSAttributedString(string: text.content, attributes: [.font: font]).boundingRect(
+            with: CGSize(width: renderSize.width * maximumWidthFraction, height: .greatestFiniteMagnitude),
+            options: [.usesLineFragmentOrigin, .usesFontLeading]
+        )
+        return CGSize(width: ceil(measured.width), height: ceil(measured.height))
     }
 
     private static func renderImage(of text: TextLayer, scale: Double, maximumWidth: CGFloat) -> CGImage? {

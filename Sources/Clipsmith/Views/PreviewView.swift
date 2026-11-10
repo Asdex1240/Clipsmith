@@ -28,13 +28,21 @@ struct PreviewView: View {
         if controller.hasTimeline {
             PlayerSurface(
                 player: controller.player,
-                overlay: controller.timelineOverlay,
-                revision: controller.timelineRevision
+                overlay: liveOverlay,
+                time: store.playheadInSeconds
             )
             .background(.black)
+            .overlay { TextDragOverlay(store: store, renderSize: controller.timelineOverlay?.renderSize) }
         } else {
             emptyState(localized("preview.timelineEmpty"))
         }
+    }
+
+    /// Text from the current project, so edits show instantly without waiting for a composition rebuild.
+    private var liveOverlay: TextOverlay? {
+        guard let renderSize = controller.timelineOverlay?.renderSize else { return nil }
+        let clips = store.project.tracks.filter { $0.role == .text }.flatMap(\.clips)
+        return TextOverlay(clips: clips, renderSize: renderSize)
     }
 
     @ViewBuilder
