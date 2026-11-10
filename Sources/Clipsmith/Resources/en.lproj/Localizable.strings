@@ -144,3 +144,11 @@
 "inspector.speed.section" = "Speed";
 "inspector.speed.rate" = "Playback speed";
 "inspector.speed.duration" = "Duration on the timeline: %@";
+"inspector.visual.opacity" = "Opacity";
+"inspector.keyframes.section" = "Animation";
+"inspector.keyframes.hint" = "Add a keyframe, move the playhead and change the position, size, rotation or opacity to animate the clip.";
+"inspector.keyframes.hint.active" = "Changes made at the playhead are stored in a keyframe there; the values in between move smoothly.";
+"inspector.keyframes.add" = "Add keyframe at playhead";
+"inspector.keyframes.clear" = "Remove all";
+"inspector.keyframes.go" = "Go to keyframe";
+"inspector.keyframes.remove" = "Remove keyframe";

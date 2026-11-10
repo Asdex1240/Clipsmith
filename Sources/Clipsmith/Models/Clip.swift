@@ -28,6 +28,10 @@ struct Clip: Codable, Identifiable, Equatable {
     var rotationInDegrees = 0.0
     /// Playback rate of a video or audio clip: 2 plays twice as fast, 0.5 at half speed.
     var speed = 1.0
+    /// Fixed opacity of a visual clip; with keyframes the animated value is used instead.
+    var opacity = 1.0
+    /// Values the visual look moves through over the clip; empty when the clip is not animated.
+    var keyframes: [Keyframe] = []
 
     var displayName: String {
         textLayer?.content ?? sourceURL?.lastPathComponent ?? ""
@@ -78,6 +82,7 @@ struct Clip: Codable, Identifiable, Equatable {
         guard lower <= upper else { return self }
         let newStart = min(max(time, lower), upper)
         var trimmed = self
+        trimmed.keyframes = shiftingKeyframes(by: startInSeconds - newStart)
         trimmed.sourceStartInSeconds += (newStart - startInSeconds) * speed
         trimmed.startInSeconds = newStart
         return trimmed.clampingFades()
@@ -104,6 +109,14 @@ struct Clip: Codable, Identifiable, Equatable {
         var right = self
         right.id = UUID()
         right.startInSeconds = time
+        if isAnimated {
+            // Each half keeps the animation it had at the cut, so the picture does not jump.
+            let cut = time - startInSeconds
+            let state = visualState(atClipTime: cut)
+            left.keyframes = keyframes.filter { $0.timeInSeconds < cut } + [Keyframe(timeInSeconds: cut, state: state)]
+            right.keyframes = [Keyframe(timeInSeconds: 0, state: state)]
+                + shiftingKeyframes(by: -cut).filter { $0.timeInSeconds > 0 }
+        }
         right.sourceStartInSeconds = left.sourceEndInSeconds
         right.fadeInDurationInSeconds = 0
         return (left.clampingFades(), right.clampingFades())
@@ -173,7 +186,7 @@ extension Clip {
     private enum CodingKeys: String, CodingKey {
         case id, sourceURL, mediaKind, startInSeconds, sourceStartInSeconds, sourceEndInSeconds
         case sourceDurationInSeconds, volume, fadeInDurationInSeconds, fadeOutDurationInSeconds
-        case textLayer, fitMode, offsetX, offsetY, isAudioDetached, scale, rotationInDegrees, speed
+        case textLayer, fitMode, offsetX, offsetY, isAudioDetached, scale, rotationInDegrees, speed, opacity, keyframes
     }
 
     init(from decoder: Decoder) throws {
@@ -196,6 +209,8 @@ extension Clip {
         scale = try container.decodeIfPresent(Double.self, forKey: .scale) ?? 1
         rotationInDegrees = try container.decodeIfPresent(Double.self, forKey: .rotationInDegrees) ?? 0
         speed = try container.decodeIfPresent(Double.self, forKey: .speed) ?? 1
+        opacity = try container.decodeIfPresent(Double.self, forKey: .opacity) ?? 1
+        keyframes = try container.decodeIfPresent([Keyframe].self, forKey: .keyframes) ?? []
     }
 
     func encode(to encoder: Encoder) throws {
@@ -218,5 +233,7 @@ extension Clip {
         if scale != 1 { try container.encode(scale, forKey: .scale) }
         if rotationInDegrees != 0 { try container.encode(rotationInDegrees, forKey: .rotationInDegrees) }
         if speed != 1 { try container.encode(speed, forKey: .speed) }
+        if opacity != 1 { try container.encode(opacity, forKey: .opacity) }
+        if !keyframes.isEmpty { try container.encode(keyframes, forKey: .keyframes) }
     }
 }

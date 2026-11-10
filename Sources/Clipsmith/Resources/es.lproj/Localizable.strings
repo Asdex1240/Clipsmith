@@ -144,3 +144,11 @@
 "inspector.speed.section" = "Velocidad";
 "inspector.speed.rate" = "Velocidad de reproducción";
 "inspector.speed.duration" = "Duración en el timeline: %@";
+"inspector.visual.opacity" = "Opacidad";
+"inspector.keyframes.section" = "Animación";
+"inspector.keyframes.hint" = "Añade un fotograma clave, mueve el cursor y cambia posición, tamaño, giro u opacidad para animar el clip.";
+"inspector.keyframes.hint.active" = "Los cambios hechos en el cursor se guardan en un fotograma clave allí; los valores intermedios se mueven suavemente.";
+"inspector.keyframes.add" = "Añadir fotograma clave en el cursor";
+"inspector.keyframes.clear" = "Quitar todos";
+"inspector.keyframes.go" = "Ir al fotograma clave";
+"inspector.keyframes.remove" = "Quitar fotograma clave";

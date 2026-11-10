@@ -21,8 +21,30 @@ extension Project {
         updateClip(id) { $0.settingFitMode(mode) }
     }
 
-    mutating func setTransform(of id: Clip.ID, scale: Double, rotationInDegrees: Double) {
-        updateClip(id) { $0.settingTransform(scale: scale, rotationInDegrees: rotationInDegrees) }
+    /// `time` is the playhead: when the clip has keyframes, the change lands on the keyframe at that moment.
+    mutating func setTransform(of id: Clip.ID, scale: Double, rotationInDegrees: Double, at time: TimeInterval? = nil) {
+        updateClip(id) { clip in
+            clip.updatingVisual(at: time) {
+                $0.scale = scale
+                $0.rotationInDegrees = rotationInDegrees
+            }
+        }
+    }
+
+    mutating func setOpacity(of id: Clip.ID, to value: Double, at time: TimeInterval? = nil) {
+        updateClip(id) { clip in clip.updatingVisual(at: time) { $0.opacity = value } }
+    }
+
+    mutating func addKeyframe(to id: Clip.ID, atTimelineTime time: TimeInterval) {
+        updateClip(id) { $0.addingKeyframe(atClipTime: time - $0.startInSeconds) }
+    }
+
+    mutating func removeKeyframe(_ keyframeID: Keyframe.ID, from id: Clip.ID) {
+        updateClip(id) { $0.removingKeyframe(keyframeID) }
+    }
+
+    mutating func clearKeyframes(of id: Clip.ID) {
+        updateClip(id) { $0.clearingKeyframes() }
     }
 
     mutating func setSpeed(of id: Clip.ID, to value: Double) {
@@ -32,8 +54,13 @@ extension Project {
         tracks[position.track].clips[position.clip] = clip.settingSpeed(value, notEndingAfter: track.nextStart(after: clip))
     }
 
-    mutating func setOffset(of id: Clip.ID, x: Double, y: Double) {
-        updateClip(id) { $0.settingOffset(x: x, y: y) }
+    mutating func setOffset(of id: Clip.ID, x: Double, y: Double, at time: TimeInterval? = nil) {
+        updateClip(id) { clip in
+            clip.updatingVisual(at: time) {
+                $0.offsetX = x
+                $0.offsetY = y
+            }
+        }
     }
 
     /// A video on the main track whose sound can still be moved to the audio track without overlapping other audio.
@@ -59,6 +86,8 @@ extension Project {
         audio.fitMode = .fit
         audio.offsetX = 0
         audio.offsetY = 0
+        audio.opacity = 1
+        audio.keyframes = []
         tracks[position.track].clips[position.clip].isAudioDetached = true
         tracks[audioIndex].clips.append(audio)
         tracks[audioIndex].clips.sort { $0.startInSeconds < $1.startInSeconds }

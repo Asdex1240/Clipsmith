@@ -89,7 +89,7 @@ struct CanvasDragOverlay: View {
                 .filter { $0.startInSeconds <= time && time < $0.endInSeconds }
         }
         // Bottom to top, matching how the composition stacks them.
-        let visuals = (active(.main) + active(.broll)).compactMap { clip -> Target? in
+        let visuals = (active(.main) + active(.broll)).map { $0.presented(atTimelineTime: time) }.compactMap { clip -> Target? in
             guard let base = visualFrames[clip.id] else { return nil }
             return Target(
                 id: clip.id, isText: false,
@@ -208,7 +208,7 @@ struct CanvasDragOverlay: View {
 
     private func beginSession(for target: Target) -> Session? {
         if let session { return session }
-        guard let clip = store.project.clip(withID: target.id) else { return nil }
+        guard let clip = store.project.clip(withID: target.id)?.presented(atTimelineTime: store.playheadInSeconds) else { return nil }
         store.selectClip(target.id)
         let started = Session(
             offsetX: target.isText ? clip.textLayer?.positionX ?? 0 : clip.offsetX,

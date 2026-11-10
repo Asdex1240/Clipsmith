@@ -19,7 +19,7 @@ struct InspectorView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     if hasVisualControls(for: clip) {
-                        VisualInspector(store: store, clip: clip)
+                        VisualInspector(store: store, clip: clip.presented(atTimelineTime: store.playheadInSeconds))
                     }
                     if clip.textLayer != nil {
                         TextInspector(store: store, clip: clip)

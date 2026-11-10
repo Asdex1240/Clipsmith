@@ -147,19 +147,42 @@ final class ProjectStore {
     }
 
     func setTransform(of id: Clip.ID, scale: Double, rotationInDegrees: Double) {
-        mutate(coalescingKey: "transform-\(id)") { $0.setTransform(of: id, scale: scale, rotationInDegrees: rotationInDegrees) }
+        let time = playheadInSeconds
+        mutate(coalescingKey: "transform-\(id)") {
+            $0.setTransform(of: id, scale: scale, rotationInDegrees: rotationInDegrees, at: time)
+        }
+    }
+
+    func setOpacity(of id: Clip.ID, to value: Double) {
+        let time = playheadInSeconds
+        mutate(coalescingKey: "opacity-\(id)") { $0.setOpacity(of: id, to: value, at: time) }
+    }
+
+    func addKeyframeAtPlayhead(to id: Clip.ID) {
+        let time = playheadInSeconds
+        mutate { $0.addKeyframe(to: id, atTimelineTime: time) }
+    }
+
+    func removeKeyframe(_ keyframeID: Keyframe.ID, from id: Clip.ID) {
+        mutate { $0.removeKeyframe(keyframeID, from: id) }
+    }
+
+    func clearKeyframes(of id: Clip.ID) {
+        mutate { $0.clearKeyframes(of: id) }
     }
 
     /// Puts a visual clip back in the middle of the canvas at its natural size and orientation.
     func resetTransform(of id: Clip.ID) {
         mutate {
+            $0.clearKeyframes(of: id)
             $0.setOffset(of: id, x: 0, y: 0)
             $0.setTransform(of: id, scale: 1, rotationInDegrees: 0)
         }
     }
 
     func setOffset(of id: Clip.ID, x: Double, y: Double) {
-        mutate(coalescingKey: "offset-\(id)") { $0.setOffset(of: id, x: x, y: y) }
+        let time = playheadInSeconds
+        mutate(coalescingKey: "offset-\(id)") { $0.setOffset(of: id, x: x, y: y, at: time) }
     }
 
     func toggleMarkerAtPlayhead() {

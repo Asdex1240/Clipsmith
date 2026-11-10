@@ -11,7 +11,9 @@ enum CompositionError: Error {
 final class CompositionAssembler {
     private struct Placement {
         let trackID: CMPersistentTrackID
-        let transform: CGAffineTransform
+        let naturalSize: CGSize
+        let preferredTransform: CGAffineTransform
+        let clip: Clip
     }
 
     private static let scaleToleranceInSeconds: TimeInterval = 1e-6
@@ -85,16 +87,7 @@ final class CompositionAssembler {
         }
         let (naturalSize, preferredTransform) = try await assetTrack.load(.naturalSize, .preferredTransform)
         placements[clip.id] = Placement(
-            trackID: target.trackID,
-            transform: FitTransform.make(
-                naturalSize: naturalSize,
-                preferredTransform: preferredTransform,
-                renderSize: renderSize,
-                mode: clip.fitMode,
-                offset: CGPoint(x: clip.offsetX * renderSize.width, y: clip.offsetY * renderSize.height),
-                scale: clip.scale,
-                rotationInDegrees: clip.rotationInDegrees
-            )
+            trackID: target.trackID, naturalSize: naturalSize, preferredTransform: preferredTransform, clip: clip
         )
         visualFrames[clip.id] = contentFrame(of: clip, naturalSize: naturalSize, preferredTransform: preferredTransform)
     }
@@ -220,15 +213,46 @@ final class CompositionAssembler {
         let instruction = AVMutableVideoCompositionInstruction()
         instruction.timeRange = CMTimeRange(start: segment.startInSeconds.cmTime, end: end)
         instruction.backgroundColor = CGColor(gray: 0, alpha: 1)
-        instruction.layerInstructions = segment.clipIDsTopFirst.compactMap(layerInstruction(for:))
+        instruction.layerInstructions = segment.clipIDsTopFirst.compactMap { layerInstruction(for: $0, in: segment) }
         return instruction
     }
 
-    private func layerInstruction(for clipID: Clip.ID) -> AVVideoCompositionLayerInstruction? {
+    private func layerInstruction(for clipID: Clip.ID, in segment: PlannedSegment) -> AVVideoCompositionLayerInstruction? {
         guard let placement = placements[clipID],
               let track = composition.track(withTrackID: placement.trackID) else { return nil }
         let layer = AVMutableVideoCompositionLayerInstruction(assetTrack: track)
-        layer.setTransform(placement.transform, at: .zero)
+        let clip = placement.clip
+        guard clip.needsAnimatedLayer else {
+            layer.setTransform(transform(of: placement, at: clip.startInSeconds), at: .zero)
+            return layer
+        }
+        let points = LayerAnimation.samplePoints(for: clip, from: segment.startInSeconds, to: segment.endInSeconds)
+        for (from, to) in zip(points, points.dropFirst()) {
+            let range = CMTimeRange(start: from.cmTime, end: to.cmTime)
+            layer.setTransformRamp(
+                fromStart: transform(of: placement, at: from), toEnd: transform(of: placement, at: to), timeRange: range
+            )
+            layer.setOpacityRamp(
+                fromStartOpacity: opacity(of: clip, at: from), toEndOpacity: opacity(of: clip, at: to), timeRange: range
+            )
+        }
         return layer
+    }
+
+    private func transform(of placement: Placement, at time: TimeInterval) -> CGAffineTransform {
+        let state = placement.clip.visualState(atClipTime: time - placement.clip.startInSeconds)
+        return FitTransform.make(
+            naturalSize: placement.naturalSize,
+            preferredTransform: placement.preferredTransform,
+            renderSize: renderSize,
+            mode: placement.clip.fitMode,
+            offset: CGPoint(x: state.offsetX * renderSize.width, y: state.offsetY * renderSize.height),
+            scale: state.scale,
+            rotationInDegrees: state.rotationInDegrees
+        )
+    }
+
+    private func opacity(of clip: Clip, at time: TimeInterval) -> Float {
+        Float(clip.visualState(atClipTime: time - clip.startInSeconds).opacity)
     }
 }
