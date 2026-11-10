@@ -2,6 +2,10 @@ import SwiftUI
 
 struct ContentView: View {
     @Binding var project: Project
+    let library: MediaLibrary
+    let player: PlayerController
+    let thumbnails: ThumbnailGenerating
+    @State private var selection: MediaItem.ID?
 
     private enum Layout {
         static let libraryMinWidth: CGFloat = 220
@@ -15,9 +19,9 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 0) {
             HSplitView {
-                placeholder(localized("panel.library"))
+                LibraryView(library: library, thumbnails: thumbnails, selection: $selection)
                     .frame(minWidth: Layout.libraryMinWidth, idealWidth: Layout.libraryIdealWidth)
-                placeholder(localized("panel.preview"))
+                PreviewView(controller: player)
                     .frame(minWidth: Layout.previewMinWidth)
                 placeholder(localized("panel.inspector"))
                     .frame(minWidth: Layout.inspectorMinWidth, idealWidth: Layout.inspectorIdealWidth)
@@ -26,10 +30,24 @@ struct ContentView: View {
             placeholder(String(format: localized("panel.timeline"), project.name))
                 .frame(height: Layout.timelineHeight)
         }
+        .onChange(of: selection, selectionDidChange)
+        .alert(localized("alert.error.title"), isPresented: errorIsPresented) {
+            Button(localized("alert.ok"), action: library.dismissError)
+        } message: {
+            Text(library.lastErrorMessage ?? "")
+        }
     }
 
-    private func localized(_ key: String.LocalizationValue) -> String {
-        String(localized: key, bundle: .module)
+    private var errorIsPresented: Binding<Bool> {
+        Binding(
+            get: { library.lastErrorMessage != nil },
+            set: { if !$0 { library.dismissError() } }
+        )
+    }
+
+    private func selectionDidChange() {
+        guard let item = library.items.first(where: { $0.id == selection }) else { return }
+        player.load(item)
     }
 
     private func placeholder(_ title: String) -> some View {

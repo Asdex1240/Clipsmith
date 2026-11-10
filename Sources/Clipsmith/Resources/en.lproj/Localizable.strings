@@ -3,3 +3,12 @@
 "panel.preview" = "Preview";
 "panel.inspector" = "Inspector";
 "panel.timeline" = "Timeline — %@";
+"library.import" = "Import…";
+"library.empty" = "Drop videos, audio or images here, or use Import.";
+"preview.empty" = "Select a media item to preview it";
+"preview.play" = "Play";
+"preview.pause" = "Pause";
+"alert.error.title" = "Could not import";
+"alert.ok" = "OK";
+"error.import.unsupported" = "“%@” is not a supported media format.";
+"error.import.unreadable" = "“%@” could not be read.";

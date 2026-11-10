@@ -3,11 +3,14 @@ import SwiftUI
 @main
 struct ClipsmithApp: App {
     @NSApplicationDelegateAdaptor(DockActivatingAppDelegate.self) private var appDelegate
-    @State private var project = Project(name: String(localized: "project.untitled", bundle: .module))
+    @State private var project = Project(name: localized("project.untitled"))
+    @State private var library = MediaLibrary()
+    @State private var player = PlayerController()
+    private let thumbnails = CachedThumbnailGenerator()
 
     var body: some Scene {
         WindowGroup("Clipsmith") {
-            ContentView(project: $project)
+            ContentView(project: $project, library: library, player: player, thumbnails: thumbnails)
                 .frame(minWidth: 1100, minHeight: 700)
         }
     }
