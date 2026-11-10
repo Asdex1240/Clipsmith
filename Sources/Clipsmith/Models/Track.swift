@@ -1,6 +1,6 @@
 import Foundation
 
-struct Track: Codable, Identifiable {
+struct Track: Codable, Identifiable, Equatable {
     enum Role: String, Codable {
         case broll, main, audio, text
 

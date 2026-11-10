@@ -4,6 +4,7 @@ struct TimelineView: View {
     let store: ProjectStore
     let library: MediaLibrary
     let waveforms: WaveformStore
+    let missingMedia: Set<URL>
 
     private var pointsPerSecond: Double { store.pointsPerSecond }
 
@@ -102,6 +103,7 @@ struct TimelineView: View {
                     pointsPerSecond: pointsPerSecond,
                     isSelected: store.selectedClipID == clip.id,
                     waveformPeaks: waveformPeaks(for: clip, in: track),
+                    isMissing: clip.sourceURL.map(missingMedia.contains) ?? false,
                     onSelect: { store.selectClip(clip.id) },
                     onMove: { start, laneOffset in move(clip, from: index, near: start, laneOffset: laneOffset) },
                     onTrim: { edge, time in store.trimClip(clip.id, edge: edge, near: time) }

@@ -18,6 +18,14 @@ final class MediaLibrary {
         }
     }
 
+    func replaceItems(_ newItems: [MediaItem]) {
+        items = newItems
+    }
+
+    func remapSources(_ replacements: [URL: URL]) {
+        items = items.map { $0.remapped(replacements) }
+    }
+
     func dismissError() {
         lastErrorMessage = nil
     }

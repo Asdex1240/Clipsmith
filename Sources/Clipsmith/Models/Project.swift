@@ -1,6 +1,6 @@
 import Foundation
 
-struct Project: Codable, Identifiable {
+struct Project: Codable, Identifiable, Equatable {
     var id = UUID()
     var name: String
     var canvas: CanvasFormat = .landscape

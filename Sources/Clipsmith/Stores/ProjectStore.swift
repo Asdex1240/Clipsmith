@@ -10,6 +10,8 @@ final class ProjectStore {
     static let zoomFactor = 1.25
     static let snapThresholdInPoints = 8.0
     static let defaultTextDurationInSeconds: TimeInterval = 3
+    static let maximumUndoSteps = 100
+    static let coalescingWindowInSeconds: TimeInterval = 1
 
     private(set) var project: Project {
         didSet { projectRevision += 1 }
@@ -18,13 +20,52 @@ final class ProjectStore {
     private(set) var selectedClipID: Clip.ID?
     private(set) var playheadInSeconds: TimeInterval = 0
     private(set) var pointsPerSecond = ProjectStore.defaultPointsPerSecond
+    private var undoStack: [Project] = []
+    private var redoStack: [Project] = []
+    @ObservationIgnored private var lastMutationKey: String?
+    @ObservationIgnored private var lastMutationDate = Date.distantPast
+    @ObservationIgnored private let now: () -> Date
 
-    init(project: Project) {
+    init(project: Project, now: @escaping () -> Date = Date.init) {
         self.project = project
+        self.now = now
     }
 
     var selectedClip: Clip? {
         selectedClipID.flatMap { project.clip(withID: $0) }
+    }
+
+    var canUndo: Bool {
+        !undoStack.isEmpty
+    }
+
+    var canRedo: Bool {
+        !redoStack.isEmpty
+    }
+
+    func load(_ newProject: Project) {
+        project = newProject
+        undoStack = []
+        redoStack = []
+        lastMutationKey = nil
+        selectedClipID = nil
+        playheadInSeconds = 0
+    }
+
+    func setProjectName(_ name: String) {
+        project.name = name
+    }
+
+    func undo() {
+        guard let previous = undoStack.popLast() else { return }
+        redoStack.append(project)
+        restore(previous)
+    }
+
+    func redo() {
+        guard let next = redoStack.popLast() else { return }
+        undoStack.append(project)
+        restore(next)
     }
 
     func selectClip(_ id: Clip.ID?) {
@@ -37,35 +78,8 @@ final class ProjectStore {
         playheadInSeconds = max(0, snapped)
     }
 
-    func addTextAtPlayhead() {
-        let layer = TextLayer(content: localized("text.default"))
-        if let id = project.addTextClip(layer, at: playheadInSeconds, duration: Self.defaultTextDurationInSeconds) {
-            selectedClipID = id
-        }
-    }
-
-    func updateTextLayer(of id: Clip.ID, _ change: (inout TextLayer) -> Void) {
-        project.updateTextLayer(of: id, change)
-    }
-
-    func setVolume(of id: Clip.ID, to value: Double) {
-        project.setVolume(of: id, to: value)
-    }
-
-    func setFadeIn(of id: Clip.ID, to seconds: TimeInterval) {
-        project.setFadeIn(of: id, to: seconds)
-    }
-
-    func setFadeOut(of id: Clip.ID, to seconds: TimeInterval) {
-        project.setFadeOut(of: id, to: seconds)
-    }
-
     func followPlayback(at time: TimeInterval) {
         playheadInSeconds = max(0, time)
-    }
-
-    func setCanvas(_ format: CanvasFormat) {
-        project.canvas = format
     }
 
     func zoomIn() {
@@ -76,6 +90,37 @@ final class ProjectStore {
         setZoom(pointsPerSecond / Self.zoomFactor)
     }
 
+    func setCanvas(_ format: CanvasFormat) {
+        mutate { $0.canvas = format }
+    }
+
+    func replaceMedia(from original: URL, to replacement: URL) {
+        mutate { $0.remapSources([original: replacement]) }
+    }
+
+    func addTextAtPlayhead() {
+        let layer = TextLayer(content: localized("text.default"))
+        var addedID: Clip.ID?
+        mutate { addedID = $0.addTextClip(layer, at: playheadInSeconds, duration: Self.defaultTextDurationInSeconds) }
+        if let addedID { selectedClipID = addedID }
+    }
+
+    func updateTextLayer(of id: Clip.ID, field: String = "", _ change: (inout TextLayer) -> Void) {
+        mutate(coalescingKey: "text-\(id)-\(field)") { $0.updateTextLayer(of: id, change) }
+    }
+
+    func setVolume(of id: Clip.ID, to value: Double) {
+        mutate(coalescingKey: "volume-\(id)") { $0.setVolume(of: id, to: value) }
+    }
+
+    func setFadeIn(of id: Clip.ID, to seconds: TimeInterval) {
+        mutate(coalescingKey: "fadeIn-\(id)") { $0.setFadeIn(of: id, to: seconds) }
+    }
+
+    func setFadeOut(of id: Clip.ID, to seconds: TimeInterval) {
+        mutate(coalescingKey: "fadeOut-\(id)") { $0.setFadeOut(of: id, to: seconds) }
+    }
+
     func appendToTimeline(_ item: MediaItem) {
         let role = Track.Role.preferred(for: item.kind)
         guard let track = project.track(withRole: role) else { return }
@@ -83,44 +128,76 @@ final class ProjectStore {
     }
 
     func addMedia(_ item: MediaItem, toTrack trackID: Track.ID, at proposedStart: TimeInterval) {
-        let clip = Clip(item: item, startInSeconds: snappedStart(proposedStart, duration: item.durationInSeconds, excluding: nil))
-        if project.addClip(clip, toTrack: trackID) {
-            selectedClipID = clip.id
-        }
+        let start = snappedStart(proposedStart, duration: item.durationInSeconds, excluding: nil)
+        let clip = Clip(item: item, startInSeconds: start)
+        var added = false
+        mutate { added = $0.addClip(clip, toTrack: trackID) }
+        if added { selectedClipID = clip.id }
     }
 
     func moveClip(_ id: Clip.ID, toTrack trackID: Track.ID, near proposedStart: TimeInterval) {
         guard let clip = project.clip(withID: id) else { return }
         let start = snappedStart(proposedStart, duration: clip.durationInSeconds, excluding: id)
-        project.moveClip(id, toTrack: trackID, startingAt: start)
+        mutate { $0.moveClip(id, toTrack: trackID, startingAt: start) }
     }
 
     func trimClip(_ id: Clip.ID, edge: ClipEdge, near proposedTime: TimeInterval) {
         let candidates = project.snapPoints(excluding: id, playhead: playheadInSeconds)
         let time = Snapping.snap(proposedTime, to: candidates, within: snapThresholdInSeconds)
-        project.trimClip(id, edge: edge, to: time)
+        mutate(coalescingKey: "trim-\(id)-\(edge)") { $0.trimClip(id, edge: edge, to: time) }
     }
 
     func splitAtPlayhead() {
-        for id in splitTargetIDs() {
-            project.splitClip(id, at: playheadInSeconds)
-        }
+        let targets = splitTargetIDs()
+        let time = playheadInSeconds
+        mutate { project in targets.forEach { project.splitClip($0, at: time) } }
     }
 
     func deleteSelectedClip() {
         guard let id = selectedClipID else { return }
-        project.deleteClip(id)
+        mutate { $0.deleteClip(id) }
         selectedClipID = nil
     }
 
     func rippleDeleteSelectedClip() {
         guard let id = selectedClipID else { return }
-        project.rippleDeleteClip(id)
+        mutate { $0.rippleDeleteClip(id) }
         selectedClipID = nil
     }
 
     private var snapThresholdInSeconds: TimeInterval {
         Self.snapThresholdInPoints / pointsPerSecond
+    }
+
+    private func mutate(coalescingKey: String? = nil, _ change: (inout Project) -> Void) {
+        var updated = project
+        change(&updated)
+        guard updated != project else { return }
+        recordUndoStep(coalescingKey: coalescingKey)
+        project = updated
+    }
+
+    private func recordUndoStep(coalescingKey: String?) {
+        let timestamp = now()
+        defer {
+            lastMutationKey = coalescingKey
+            lastMutationDate = timestamp
+        }
+        if let coalescingKey, coalescingKey == lastMutationKey,
+           timestamp.timeIntervalSince(lastMutationDate) <= Self.coalescingWindowInSeconds {
+            return
+        }
+        undoStack.append(project)
+        if undoStack.count > Self.maximumUndoSteps { undoStack.removeFirst() }
+        redoStack.removeAll()
+    }
+
+    private func restore(_ snapshot: Project) {
+        var restored = snapshot
+        restored.name = project.name
+        project = restored
+        lastMutationKey = nil
+        if selectedClip == nil { selectedClipID = nil }
     }
 
     private func setZoom(_ proposed: Double) {

@@ -5,6 +5,7 @@ struct ClipBlockView: View {
     let pointsPerSecond: Double
     let isSelected: Bool
     let waveformPeaks: [Float]?
+    let isMissing: Bool
     let onSelect: () -> Void
     let onMove: (_ proposedStart: TimeInterval, _ laneOffset: Int) -> Void
     let onTrim: (_ edge: ClipEdge, _ proposedTime: TimeInterval) -> Void
@@ -18,10 +19,10 @@ struct ClipBlockView: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: Self.cornerRadius)
-                .fill(fillColor)
+                .fill(isMissing ? Color.red.opacity(0.45) : fillColor)
                 .overlay(border)
             waveform
-            Text(clip.displayName)
+            Text(isMissing ? "⚠︎ " + clip.displayName : clip.displayName)
                 .font(.caption)
                 .lineLimit(1)
                 .padding(.horizontal, TimelineMetrics.trimHandleWidth + 2)

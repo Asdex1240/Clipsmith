@@ -8,7 +8,7 @@ A fast, local video editor for macOS, inspired by CapCut and built for editing v
 
 Planned for the first release:
 
-- **Projects** — create, save and open projects, with undo/redo.
+- **Projects** — create, save and open projects (`.clipsmith` files, JSON), with undo/redo, autosave recovery and relinking of moved or missing media.
 - **Media library** — import video, audio and images with thumbnails and durations.
 - **Timeline** — move, trim, split and delete clips, with a B-roll track, zoom, a draggable playhead and snapping.
 - **Preview** — real-time playback and scrubbing.

@@ -44,7 +44,9 @@ struct TextInspector: View {
     private func binding<Value>(_ keyPath: WritableKeyPath<TextLayer, Value>) -> Binding<Value> {
         Binding(
             get: { layer[keyPath: keyPath] },
-            set: { newValue in store.updateTextLayer(of: clip.id) { $0[keyPath: keyPath] = newValue } }
+            set: { newValue in
+                store.updateTextLayer(of: clip.id, field: String(describing: keyPath)) { $0[keyPath: keyPath] = newValue }
+            }
         )
     }
 
@@ -53,7 +55,7 @@ struct TextInspector: View {
             get: { Color(.sRGB, red: layer.color.red, green: layer.color.green, blue: layer.color.blue, opacity: layer.color.alpha) },
             set: { newColor in
                 let resolved = NSColor(newColor).usingColorSpace(.sRGB) ?? .white
-                store.updateTextLayer(of: clip.id) {
+                store.updateTextLayer(of: clip.id, field: "color") {
                     $0.color = RGBAColor(
                         red: resolved.redComponent, green: resolved.greenComponent,
                         blue: resolved.blueComponent, alpha: resolved.alphaComponent
