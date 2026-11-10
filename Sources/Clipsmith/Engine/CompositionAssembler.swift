@@ -19,7 +19,7 @@ final class CompositionAssembler {
         let assetTrack: AVAssetTrack
         let startInSeconds: TimeInterval
         let isStill: Bool
-        let role: Track.Role
+        let trackID: Track.ID
     }
 
     private let composition = AVMutableComposition()
@@ -27,17 +27,17 @@ final class CompositionAssembler {
     private let framesPerSecond: Int32
     private let stillImages: StillImageVideoMaking
     private let logger = Logger(subsystem: "Clipsmith", category: "composition")
-    private var videoTracks: [Track.Role: AVMutableCompositionTrack] = [:]
-    private var audioTracks: [Track.Role: AVMutableCompositionTrack] = [:]
+    private var videoTracks: [Track.ID: AVMutableCompositionTrack] = [:]
+    private var audioTracks: [Track.ID: AVMutableCompositionTrack] = [:]
     private var placements: [Clip.ID: RenderLayer] = [:]
     private var videoSources: [Clip.ID: VideoSource] = [:]
-    private var transitionTracks: [Track.Role: AVMutableCompositionTrack] = [:]
+    private var transitionTracks: [Track.ID: AVMutableCompositionTrack] = [:]
     /// The held-over end of the outgoing clip, keyed by the incoming clip it blends into.
     private var tailPlacements: [Clip.ID: RenderLayer] = [:]
     private var skippedClipIDs: [Clip.ID] = []
     private var textClips: [Clip] = []
     private var visualFrames: [Clip.ID: CGRect] = [:]
-    private var volumeSteps: [Track.Role: [VolumeStep]] = [:]
+    private var volumeSteps: [Track.ID: [VolumeStep]] = [:]
 
     init(renderSize: CGSize, framesPerSecond: Int32, stillImages: StillImageVideoMaking) {
         self.renderSize = renderSize
@@ -45,9 +45,9 @@ final class CompositionAssembler {
         self.stillImages = stillImages
     }
 
-    func add(_ clip: Clip, role: Track.Role) async {
+    func add(_ clip: Clip, in track: Track) async {
         do {
-            try await insert(clip, role: role)
+            try await insert(clip, in: track)
         } catch {
             skippedClipIDs.append(clip.id)
             logger.error("Skipped clip \(clip.displayName): \(error.localizedDescription)")
@@ -67,26 +67,26 @@ final class CompositionAssembler {
         )
     }
 
-    private func insert(_ clip: Clip, role: Track.Role) async throws {
-        switch role {
+    private func insert(_ clip: Clip, in track: Track) async throws {
+        switch track.role {
         case .main:
-            try await insertVideo(clip, role: role)
-            if !clip.isAudioDetached { await insertEmbeddedAudio(of: clip, role: role) }
+            try await insertVideo(clip, in: track.id)
+            if !clip.isAudioDetached { await insertEmbeddedAudio(of: clip, in: track.id) }
         case .broll:
-            try await insertVideo(clip, role: role)
+            try await insertVideo(clip, in: track.id)
         case .audio:
-            try await insertAudio(clip, role: role)
+            try await insertAudio(clip, in: track.id)
         case .text:
             textClips.append(clip)
         }
     }
 
-    private func insertVideo(_ clip: Clip, role: Track.Role) async throws {
+    private func insertVideo(_ clip: Clip, in trackID: Track.ID) async throws {
         let source = try await resolveVideoSource(for: clip)
         guard let assetTrack = try await source.asset.loadTracks(withMediaType: .video).first else {
             throw CompositionError.missingTrack(source.asset.url)
         }
-        let target = try videoTrack(for: role)
+        let target = try videoTrack(for: trackID)
         let insertedDuration = source.isStill ? StillImageVideoWriter.durationInSeconds : clip.sourceSpanInSeconds
         let insertedRange = CMTimeRange(start: source.startInSeconds.cmTime, duration: insertedDuration.cmTime)
         try target.insertTimeRange(insertedRange, of: assetTrack, at: clip.startInSeconds.cmTime)
@@ -96,7 +96,7 @@ final class CompositionAssembler {
         }
         let (naturalSize, preferredTransform) = try await assetTrack.load(.naturalSize, .preferredTransform)
         videoSources[clip.id] = VideoSource(
-            asset: source.asset, assetTrack: assetTrack, startInSeconds: source.startInSeconds, isStill: source.isStill, role: role
+            asset: source.asset, assetTrack: assetTrack, startInSeconds: source.startInSeconds, isStill: source.isStill, trackID: trackID
         )
         placements[clip.id] = RenderLayer(
             trackID: target.trackID, clip: clip, naturalSize: naturalSize,
@@ -125,32 +125,32 @@ final class CompositionAssembler {
         return CGSize(width: width, height: height)
     }
 
-    private func insertAudio(_ clip: Clip, role: Track.Role) async throws {
-        guard try await insertAudioTrack(of: clip, role: role) else {
+    private func insertAudio(_ clip: Clip, in trackID: Track.ID) async throws {
+        guard try await insertAudioTrack(of: clip, in: trackID) else {
             throw CompositionError.missingTrack(try sourceURL(of: clip))
         }
     }
 
-    private func insertEmbeddedAudio(of clip: Clip, role: Track.Role) async {
+    private func insertEmbeddedAudio(of clip: Clip, in trackID: Track.ID) async {
         do {
-            _ = try await insertAudioTrack(of: clip, role: role)
+            _ = try await insertAudioTrack(of: clip, in: trackID)
         } catch {
             logger.error("Audio of \(clip.displayName) not added: \(error.localizedDescription)")
         }
     }
 
-    private func insertAudioTrack(of clip: Clip, role: Track.Role) async throws -> Bool {
+    private func insertAudioTrack(of clip: Clip, in trackID: Track.ID) async throws -> Bool {
         guard clip.mediaKind != .image else { return false }
         let asset = AVURLAsset(url: try sourceURL(of: clip))
         guard let assetTrack = try await asset.loadTracks(withMediaType: .audio).first else { return false }
         let range = CMTimeRange(start: clip.sourceStartInSeconds.cmTime, duration: clip.sourceSpanInSeconds.cmTime)
-        let target = try audioTrack(for: role)
+        let target = try audioTrack(for: trackID)
         try target.insertTimeRange(range, of: assetTrack, at: clip.startInSeconds.cmTime)
         if abs(clip.sourceSpanInSeconds - clip.durationInSeconds) > Self.scaleToleranceInSeconds {
             let insertedAt = CMTimeRange(start: clip.startInSeconds.cmTime, duration: clip.sourceSpanInSeconds.cmTime)
             target.scaleTimeRange(insertedAt, toDuration: clip.durationInSeconds.cmTime)
         }
-        volumeSteps[role, default: []].append(contentsOf: VolumeAutomation.steps(for: clip))
+        volumeSteps[trackID, default: []].append(contentsOf: VolumeAutomation.steps(for: clip))
         return true
     }
 
@@ -169,8 +169,8 @@ final class CompositionAssembler {
     }
 
     private func makeAudioMix() -> AVAudioMix? {
-        let parameters = audioTracks.compactMap { role, track -> AVMutableAudioMixInputParameters? in
-            guard let steps = volumeSteps[role], !steps.isEmpty else { return nil }
+        let parameters = audioTracks.compactMap { trackID, track -> AVMutableAudioMixInputParameters? in
+            guard let steps = volumeSteps[trackID], !steps.isEmpty else { return nil }
             let inputParameters = AVMutableAudioMixInputParameters(track: track)
             for step in steps.sorted(by: { $0.startInSeconds < $1.startInSeconds }) {
                 apply(step, to: inputParameters)
@@ -192,21 +192,21 @@ final class CompositionAssembler {
         parameters.setVolumeRamp(fromStartVolume: step.startVolume, toEndVolume: step.endVolume, timeRange: range)
     }
 
-    private func videoTrack(for role: Track.Role) throws -> AVMutableCompositionTrack {
-        if let existing = videoTracks[role] { return existing }
+    private func videoTrack(for trackID: Track.ID) throws -> AVMutableCompositionTrack {
+        if let existing = videoTracks[trackID] { return existing }
         guard let created = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid) else {
             throw CompositionError.cannotCreateTrack
         }
-        videoTracks[role] = created
+        videoTracks[trackID] = created
         return created
     }
 
-    private func audioTrack(for role: Track.Role) throws -> AVMutableCompositionTrack {
-        if let existing = audioTracks[role] { return existing }
+    private func audioTrack(for trackID: Track.ID) throws -> AVMutableCompositionTrack {
+        if let existing = audioTracks[trackID] { return existing }
         guard let created = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) else {
             throw CompositionError.cannotCreateTrack
         }
-        audioTracks[role] = created
+        audioTracks[trackID] = created
         return created
     }
 
@@ -292,7 +292,7 @@ final class CompositionAssembler {
         guard let placement = placements[transition.outgoingClipID],
               let source = videoSources[transition.outgoingClipID] else { return }
         let outgoing = placement.clip
-        let target = try transitionTrack(for: source.role)
+        let target = try transitionTrack(for: source.trackID)
         let duration = transition.windowEnd - transition.windowStart
         let start = transition.windowStart.cmTime
         let availableSource = source.isStill ? 0 : (outgoing.sourceDurationInSeconds ?? 0) - outgoing.sourceEndInSeconds
@@ -316,12 +316,12 @@ final class CompositionAssembler {
         )
     }
 
-    private func transitionTrack(for role: Track.Role) throws -> AVMutableCompositionTrack {
-        if let existing = transitionTracks[role] { return existing }
+    private func transitionTrack(for trackID: Track.ID) throws -> AVMutableCompositionTrack {
+        if let existing = transitionTracks[trackID] { return existing }
         guard let created = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid) else {
             throw CompositionError.cannotCreateTrack
         }
-        transitionTracks[role] = created
+        transitionTracks[trackID] = created
         return created
     }
 }

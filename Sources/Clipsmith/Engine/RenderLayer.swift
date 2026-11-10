@@ -15,11 +15,16 @@ struct LayerBlend {
         return isOutgoing ? values.outgoing : values.incoming
     }
 
+    /// Times where the look changes direction, plus extra samples when easing curves the movement,
+    /// since the ramps between samples are straight lines.
     var breakpoints: [TimeInterval] {
-        transition.kind.breakpoints.map {
-            transition.windowStart + $0 * (transition.windowEnd - transition.windowStart)
-        }
+        let span = transition.windowEnd - transition.windowStart
+        let corners = transition.kind.breakpoints.map { transition.easing.time(forProgress: $0) }
+        let samples = transition.easing.isLinear ? [] : (1..<Self.samplesWhenEased).map { Double($0) / Double(Self.samplesWhenEased) }
+        return (corners + samples).map { transition.windowStart + $0 * span }
     }
+
+    private static let samplesWhenEased = 12
 }
 
 /// One visual clip as drawn on the canvas: where its frames come from and how its look changes over time.

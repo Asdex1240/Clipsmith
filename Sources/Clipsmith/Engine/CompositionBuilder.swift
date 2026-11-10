@@ -27,8 +27,10 @@ struct CompositionBuilder: CompositionBuilding {
             stillImages: stillImages
         )
         for role in Self.assemblyOrder {
-            for clip in project.track(withRole: role)?.clips ?? [] {
-                await assembler.add(clip, role: role)
+            for track in project.tracks(withRole: role) {
+                for clip in track.clips {
+                    await assembler.add(clip, in: track)
+                }
             }
         }
         return assembler.finish(segments: CompositionPlanner.segments(for: project))

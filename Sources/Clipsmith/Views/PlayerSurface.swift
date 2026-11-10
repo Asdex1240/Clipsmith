@@ -59,8 +59,18 @@ final class TextOverlayHostView: NSView {
             container.bounds = CGRect(origin: .zero, size: visibleOverlay?.renderSize ?? .zero)
             needsLayout = true
         }
+        let renderHeight = shownOverlay?.renderSize.height ?? 0
         for entry in entries {
-            entry.layer.opacity = entry.clip.startInSeconds <= time && time < entry.clip.endInSeconds ? 1 : 0
+            let isShown = entry.clip.startInSeconds <= time && time < entry.clip.endInSeconds
+            guard isShown, let text = entry.clip.textLayer else {
+                entry.layer.opacity = 0
+                continue
+            }
+            let state = text.animation.state(
+                atClipTime: time - entry.clip.startInSeconds, clipDuration: entry.clip.durationInSeconds
+            )
+            entry.layer.opacity = Float(state.opacity)
+            entry.layer.setAffineTransform(TextOverlayLayers.transform(for: text, state: state, renderHeight: renderHeight))
         }
         CATransaction.commit()
     }

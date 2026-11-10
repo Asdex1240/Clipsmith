@@ -84,12 +84,11 @@ struct CanvasDragOverlay: View {
 
     private func targets(renderSize: CGSize) -> [Target] {
         let time = store.playheadInSeconds
-        func active(_ role: Track.Role) -> [Clip] {
-            (store.project.track(withRole: role)?.clips ?? [])
-                .filter { $0.startInSeconds <= time && time < $0.endInSeconds }
+        func active(_ tracks: [Track]) -> [Clip] {
+            tracks.flatMap(\.clips).filter { $0.startInSeconds <= time && time < $0.endInSeconds }
         }
         // Bottom to top, matching how the composition stacks them.
-        let visuals = (active(.main) + active(.broll)).map { $0.presented(atTimelineTime: time) }.compactMap { clip -> Target? in
+        let visuals = active(store.project.videoTracksTopFirst.reversed()).map { $0.presented(atTimelineTime: time) }.compactMap { clip -> Target? in
             guard let base = visualFrames[clip.id] else { return nil }
             return Target(
                 id: clip.id, isText: false,
@@ -101,7 +100,7 @@ struct CanvasDragOverlay: View {
                 rotationInDegrees: clip.rotationInDegrees
             )
         }
-        let texts = active(.text).compactMap { clip -> Target? in
+        let texts = active(store.project.tracks(withRole: .text)).compactMap { clip -> Target? in
             guard let layer = clip.textLayer else { return nil }
             return Target(
                 id: clip.id, isText: true,

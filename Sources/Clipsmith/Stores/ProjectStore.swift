@@ -20,7 +20,9 @@ final class ProjectStore {
         didSet { projectRevision += 1 }
     }
     private(set) var projectRevision = 0
+    /// The clip the inspector and the canvas work on: the one clicked last among the selected ones.
     private(set) var selectedClipID: Clip.ID?
+    private(set) var selectedClipIDs: Set<Clip.ID> = []
     private(set) var playheadInSeconds: TimeInterval = 0
     /// When on, clips, trims and the playhead snap to clip edges, markers and the start of the timeline.
     private(set) var isSnappingEnabled = true
@@ -29,7 +31,7 @@ final class ProjectStore {
     private var redoStack: [Project] = []
     @ObservationIgnored private var lastMutationKey: String?
     @ObservationIgnored private var lastMutationDate = Date.distantPast
-    @ObservationIgnored private var clipboard: (clip: Clip, trackID: Track.ID)?
+    @ObservationIgnored private var clipboard: [(clip: Clip, trackID: Track.ID)] = []
     @ObservationIgnored private let now: () -> Date
 
     init(project: Project, now: @escaping () -> Date = Date.init) {
@@ -39,6 +41,21 @@ final class ProjectStore {
 
     var selectedClip: Clip? {
         selectedClipID.flatMap { project.clip(withID: $0) }
+    }
+
+    var hasMultipleSelected: Bool { selectedClipIDs.count > 1 }
+
+    /// The selected clips in timeline order.
+    var selectedClips: [Clip] {
+        project.tracks.flatMap(\.clips).filter { selectedClipIDs.contains($0.id) }.sorted { $0.startInSeconds < $1.startInSeconds }
+    }
+
+    var selectionIsGrouped: Bool {
+        selectedClips.contains { $0.groupID != nil }
+    }
+
+    var canGroupSelection: Bool {
+        selectedClipIDs.count >= 2
     }
 
     var canUndo: Bool {
@@ -54,7 +71,7 @@ final class ProjectStore {
         undoStack = []
         redoStack = []
         lastMutationKey = nil
-        selectedClipID = nil
+        setSelection([], primary: nil)
         playheadInSeconds = 0
     }
 
@@ -74,8 +91,35 @@ final class ProjectStore {
         restore(next)
     }
 
+    /// Selects one clip, together with the clips grouped with it.
     func selectClip(_ id: Clip.ID?) {
-        selectedClipID = id
+        guard let id else {
+            setSelection([], primary: nil)
+            return
+        }
+        setSelection(project.groupMembers(of: id), primary: id)
+    }
+
+    /// Adds the clip (and its group) to the selection, or takes it out when it is already selected.
+    func toggleSelection(of id: Clip.ID) {
+        let members = project.groupMembers(of: id)
+        guard !members.isEmpty else { return }
+        if selectedClipIDs.contains(id) {
+            let remaining = selectedClipIDs.subtracting(members)
+            setSelection(remaining, primary: remaining.contains(selectedClipID ?? id) ? selectedClipID : remaining.first)
+        } else {
+            setSelection(selectedClipIDs.union(members), primary: id)
+        }
+    }
+
+    func selectAll() {
+        let all = project.allClipIDs
+        setSelection(all, primary: selectedClipID.flatMap { all.contains($0) ? $0 : nil } ?? selectedClips.first?.id ?? all.first)
+    }
+
+    private func setSelection(_ ids: Set<Clip.ID>, primary: Clip.ID?) {
+        selectedClipIDs = ids
+        selectedClipID = primary.flatMap { ids.contains($0) ? $0 : nil } ?? ids.first
     }
 
     func setPlayhead(near proposed: TimeInterval) {
@@ -179,6 +223,10 @@ final class ProjectStore {
         mutate { $0.removeKeyframe(keyframeID, from: id) }
     }
 
+    func setKeyframeEasing(_ easing: Easing, for keyframeID: Keyframe.ID, in id: Clip.ID) {
+        mutate { $0.setKeyframeEasing(easing, for: keyframeID, in: id) }
+    }
+
     func clearKeyframes(of id: Clip.ID) {
         mutate { $0.clearKeyframes(of: id) }
     }
@@ -213,7 +261,7 @@ final class ProjectStore {
     func detachAudio(ofClip id: Clip.ID) {
         var addedID: Clip.ID?
         mutate { addedID = $0.detachAudio(ofClip: id) }
-        if let addedID { selectedClipID = addedID }
+        if let addedID { selectClip(addedID) }
     }
 
     func replaceMedia(from original: URL, to replacement: URL) {
@@ -224,13 +272,13 @@ final class ProjectStore {
         let layer = TextLayer(content: localized("text.default"))
         var addedID: Clip.ID?
         mutate { addedID = $0.addTextClip(layer, at: playheadInSeconds, duration: Self.defaultTextDurationInSeconds) }
-        if let addedID { selectedClipID = addedID }
+        if let addedID { selectClip(addedID) }
     }
 
     @discardableResult
-    func addSubtitles(_ lines: [SubtitleLine]) -> Int {
+    func addSubtitles(_ lines: [SubtitleLine], style: TextStylePreset = .classic, animation: TextAnimation = TextAnimation()) -> Int {
         var added = 0
-        mutate { added = $0.addSubtitles(lines) }
+        mutate { added = $0.addSubtitles(lines, style: style, animation: animation) }
         return added
     }
 
@@ -269,7 +317,7 @@ final class ProjectStore {
             added = $0.addClip(clip, toTrack: trackID)
             if added, let fittedCanvas { $0.canvas = fittedCanvas }
         }
-        if added { selectedClipID = clip.id }
+        if added { selectClip(clip.id) }
     }
 
     /// Where a dropped item of `duration` would start on `track`, after snapping and avoiding overlaps.
@@ -293,19 +341,63 @@ final class ProjectStore {
     func splitAtPlayhead() {
         let targets = splitTargetIDs()
         let time = playheadInSeconds
-        mutate { project in targets.forEach { project.splitClip($0, at: time) } }
+        mutate { $0.splitClips(targets, at: time) }
     }
 
     func deleteSelectedClip() {
-        guard let id = selectedClipID else { return }
-        mutate { $0.deleteClip(id) }
-        selectedClipID = nil
+        let ids = selectedClipIDs
+        guard !ids.isEmpty else { return }
+        mutate { $0.deleteClips(ids) }
+        selectClip(nil)
     }
 
     func rippleDeleteSelectedClip() {
-        guard let id = selectedClipID else { return }
-        mutate { $0.rippleDeleteClip(id) }
-        selectedClipID = nil
+        let ids = selectedClipIDs
+        guard !ids.isEmpty else { return }
+        mutate { $0.rippleDeleteClips(ids) }
+        selectClip(nil)
+    }
+
+    /// Moves every selected clip by the same amount, keeping their positions relative to each other.
+    func moveSelection(draggedClip id: Clip.ID, near proposedStart: TimeInterval) {
+        let ids = selectedClipIDs
+        guard let clip = project.clip(withID: id), ids.contains(id) else { return }
+        let candidates = project.snapPoints(excluding: ids, playhead: playheadInSeconds)
+        let start = Snapping.snapStart(max(0, proposedStart), duration: clip.durationInSeconds, to: candidates, within: snapThresholdInSeconds)
+        let delta = start - clip.startInSeconds
+        mutate { $0.moveClips(ids, by: delta) }
+    }
+
+    func groupSelection() {
+        let ids = selectedClipIDs
+        mutate { $0.group(ids) }
+    }
+
+    func ungroupSelection() {
+        let ids = selectedClipIDs
+        mutate { $0.ungroup(ids) }
+    }
+
+    func toggleGroupSelection() {
+        selectionIsGrouped ? ungroupSelection() : groupSelection()
+    }
+
+    func addTrack(role: Track.Role) {
+        mutate { $0.addTrack(role: role) }
+    }
+
+    func removeTrack(_ id: Track.ID) {
+        mutate { $0.removeTrack(id) }
+        let existing = selectedClipIDs.intersection(project.allClipIDs)
+        if existing != selectedClipIDs { setSelection(existing, primary: selectedClipID) }
+    }
+
+    func moveTrack(_ id: Track.ID, up: Bool) {
+        mutate { $0.moveTrack(id, up: up) }
+    }
+
+    func renameTrack(_ id: Track.ID, to name: String) {
+        mutate(coalescingKey: "track-name-\(id)") { $0.renameTrack(id, to: name) }
     }
 
     func trimToPlayhead(edge: ClipEdge) {
@@ -315,9 +407,11 @@ final class ProjectStore {
     }
 
     func copySelectedClip() {
-        guard let id = selectedClipID, let position = project.location(of: id) else { return }
-        let track = project.tracks[position.track]
-        clipboard = (track.clips[position.clip], track.id)
+        let entries = selectedClips.compactMap { clip -> (clip: Clip, trackID: Track.ID)? in
+            project.location(of: clip.id).map { (clip, project.tracks[$0.track].id) }
+        }
+        guard !entries.isEmpty else { return }
+        clipboard = entries
     }
 
     func cutSelectedClip() {
@@ -326,25 +420,42 @@ final class ProjectStore {
     }
 
     func pasteAtPlayhead() {
-        guard let (copied, trackID) = clipboard else { return }
-        place(copied, preferredTrack: trackID, at: playheadInSeconds)
+        guard let first = clipboard.map(\.clip.startInSeconds).min() else { return }
+        place(clipboard, shiftedBy: playheadInSeconds - first)
     }
 
+    /// Puts a copy of the selection right after it, each clip on its own track.
     func duplicateSelectedClip() {
-        guard let clip = selectedClip, let position = project.location(of: clip.id) else { return }
-        place(clip, preferredTrack: project.tracks[position.track].id, at: clip.endInSeconds)
+        let entries = selectedClips.compactMap { clip -> (clip: Clip, trackID: Track.ID)? in
+            project.location(of: clip.id).map { (clip, project.tracks[$0.track].id) }
+        }
+        guard let first = entries.map(\.clip.startInSeconds).min(), let last = entries.map(\.clip.endInSeconds).max() else { return }
+        place(entries, shiftedBy: last - first)
     }
 
-    private func place(_ source: Clip, preferredTrack: Track.ID, at start: TimeInterval) {
-        var copy = source
-        copy.id = UUID()
-        copy.startInSeconds = start
-        let trackID = project.tracks.first { $0.id == preferredTrack }?.id
-            ?? project.track(withRole: Track.Role.preferred(for: copy.mediaKind))?.id
-        guard let trackID else { return }
-        var added = false
-        mutate { added = $0.addClip(copy, toTrack: trackID) }
-        if added { selectedClipID = copy.id }
+    private func place(_ entries: [(clip: Clip, trackID: Track.ID)], shiftedBy offset: TimeInterval) {
+        var groups: [UUID: UUID] = [:]
+        let copies = entries.map { entry -> (clip: Clip, trackID: Track.ID?) in
+            var copy = entry.clip
+            copy.id = UUID()
+            copy.startInSeconds = max(0, entry.clip.startInSeconds + offset)
+            if let group = copy.groupID {
+                groups[group] = groups[group] ?? UUID()
+                copy.groupID = groups[group]
+            }
+            let trackID = project.tracks.first { $0.id == entry.trackID }?.id
+                ?? project.track(withRole: Track.Role.preferred(for: copy.mediaKind))?.id
+            return (copy, trackID)
+        }
+        var added: [Clip.ID] = []
+        mutate { project in
+            for (copy, trackID) in copies {
+                guard let trackID, project.addClip(copy, toTrack: trackID) else { continue }
+                added.append(copy.id)
+            }
+        }
+        guard let last = added.last else { return }
+        setSelection(Set(added), primary: last)
     }
 
     private func canvasFittingFirstClip(_ item: MediaItem) -> CanvasFormat? {
@@ -390,7 +501,8 @@ final class ProjectStore {
         restored.name = project.name
         project = restored
         lastMutationKey = nil
-        if selectedClip == nil { selectedClipID = nil }
+        let existing = selectedClipIDs.intersection(project.allClipIDs)
+        if existing != selectedClipIDs { setSelection(existing, primary: selectedClipID) }
     }
 
     private func setZoom(_ proposed: Double) {
@@ -403,8 +515,8 @@ final class ProjectStore {
     }
 
     private func splitTargetIDs() -> [Clip.ID] {
-        if let selectedClip {
-            return [selectedClip.id]
+        if !selectedClipIDs.isEmpty {
+            return selectedClips.map(\.id)
         }
         return project.tracks.flatMap(\.clips)
             .filter { $0.startInSeconds < playheadInSeconds && playheadInSeconds < $0.endInSeconds }

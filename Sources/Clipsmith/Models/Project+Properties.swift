@@ -79,6 +79,10 @@ extension Project {
         updateClip(id) { $0.removingKeyframe(keyframeID) }
     }
 
+    mutating func setKeyframeEasing(_ easing: Easing, for keyframeID: Keyframe.ID, in id: Clip.ID) {
+        updateClip(id) { $0.settingKeyframeEasing(easing, for: keyframeID) }
+    }
+
     mutating func clearKeyframes(of id: Clip.ID) {
         updateClip(id) { $0.clearingKeyframes() }
     }
@@ -101,21 +105,18 @@ extension Project {
 
     /// A video on the main track whose sound can still be moved to the audio track without overlapping other audio.
     func canDetachAudio(ofClip id: Clip.ID) -> Bool {
-        guard let position = location(of: id), tracks[position.track].role == .main,
-              let audio = track(withRole: .audio) else { return false }
+        guard let position = location(of: id), tracks[position.track].role == .main else { return false }
         let clip = tracks[position.track].clips[position.clip]
         guard clip.mediaKind == .video, !clip.isAudioDetached else { return false }
-        return !audio.clips.contains { other in
-            clip.startInSeconds < other.endInSeconds - Track.overlapToleranceInSeconds
-                && clip.endInSeconds > other.startInSeconds + Track.overlapToleranceInSeconds
-        }
+        return audioTrackWithRoom(for: clip) != nil
     }
 
     /// Copies the sound of a video clip to the audio track, at the same time and range, and silences the video.
     @discardableResult
     mutating func detachAudio(ofClip id: Clip.ID) -> Clip.ID? {
         guard canDetachAudio(ofClip: id), let position = location(of: id),
-              let audioIndex = tracks.firstIndex(where: { $0.role == .audio }) else { return nil }
+              let target = audioTrackWithRoom(for: tracks[position.track].clips[position.clip]),
+              let audioIndex = tracks.firstIndex(where: { $0.id == target.id }) else { return nil }
         var audio = tracks[position.track].clips[position.clip]
         audio.id = UUID()
         audio.mediaKind = .audio
@@ -148,16 +149,19 @@ extension Project {
 
     @discardableResult
     mutating func addTextClip(_ layer: TextLayer, at start: TimeInterval, duration: TimeInterval) -> Clip.ID? {
-        guard let track = track(withRole: .text) else { return nil }
+        guard let track = trackWithRoom(role: .text, start: start, duration: duration) else { return nil }
         let clip = Clip(text: layer, startInSeconds: start, durationInSeconds: duration)
         return addClip(clip, toTrack: track.id) ? clip.id : nil
     }
 
     /// Adds a text clip for each line; returns how many fit on the text track.
     @discardableResult
-    mutating func addSubtitles(_ lines: [SubtitleLine]) -> Int {
+    mutating func addSubtitles(
+        _ lines: [SubtitleLine], style: TextStylePreset = .classic, animation: TextAnimation = TextAnimation()
+    ) -> Int {
         lines.reduce(0) { added, line in
-            addTextClip(.subtitle(line.text), at: line.startInSeconds, duration: line.durationInSeconds) == nil ? added : added + 1
+            let layer = TextLayer.subtitle(line.text, style: style, animation: animation)
+            return addTextClip(layer, at: line.startInSeconds, duration: line.durationInSeconds) == nil ? added : added + 1
         }
     }
 

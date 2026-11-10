@@ -6,6 +6,8 @@ struct TimelineView: View {
     let waveforms: WaveformStore
     let missingMedia: Set<URL>
     @State private var dropPreview: DropPreview?
+    /// The clip being dragged and how far (in points), so the other selected clips can follow it.
+    @State private var drag: (clipID: Clip.ID, offset: CGFloat)?
 
     private var pointsPerSecond: Double { store.pointsPerSecond }
 
@@ -13,13 +15,16 @@ struct TimelineView: View {
         VStack(spacing: 0) {
             toolbar
             Divider()
-            HStack(alignment: .top, spacing: 0) {
-                trackLabels
-                GeometryReader { viewport in
-                    ScrollView(.horizontal) {
-                        tracksContent(contentWidth: contentWidth(viewportWidth: viewport.size.width))
+            ScrollView(.vertical) {
+                HStack(alignment: .top, spacing: 0) {
+                    trackLabels
+                    GeometryReader { viewport in
+                        ScrollView(.horizontal) {
+                            tracksContent(contentWidth: contentWidth(viewportWidth: viewport.size.width))
+                        }
                     }
                 }
+                .frame(height: contentHeight)
             }
         }
         .background(CommandScrollZoomMonitor { store.zoom(byScrollDelta: $0) })
@@ -45,6 +50,10 @@ struct TimelineView: View {
                 store.trimToPlayhead(edge: .trailing)
             }
             toolbarButton("shortcut.duplicate", systemImage: "plus.square.on.square", shortcut: .duplicate, action: store.duplicateSelectedClip)
+            toolbarButton("timeline.group", systemImage: "link", shortcut: .group, action: store.groupSelection)
+                .disabled(!store.canGroupSelection)
+            toolbarButton("timeline.ungroup", systemImage: "link.badge.plus", shortcut: .ungroup, action: store.ungroupSelection)
+                .disabled(!store.selectionIsGrouped)
             toolbarButton("timeline.delete", systemImage: "trash", shortcut: .delete, action: store.deleteSelectedClip)
             toolbarButton(
                 "timeline.rippleDelete", systemImage: "arrow.left.to.line",
@@ -68,17 +77,53 @@ struct TimelineView: View {
             .help("\(localized(key)) (\(EditorShortcuts.displayKeys(for: shortcut)))")
     }
 
+    /// Ruler, every lane and a row for the add-track button.
+    private var contentHeight: CGFloat {
+        TimelineMetrics.rulerHeight + CGFloat(store.project.tracks.count) * TimelineMetrics.laneStride + TimelineMetrics.laneHeight
+    }
+
     private var trackLabels: some View {
         VStack(alignment: .leading, spacing: TimelineMetrics.laneSpacing) {
             Spacer().frame(height: TimelineMetrics.rulerHeight)
             ForEach(store.project.tracks) { track in
-                Text(track.role.title)
+                Text(store.project.title(of: track))
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
                     .frame(width: TimelineMetrics.trackLabelWidth, height: TimelineMetrics.laneHeight, alignment: .leading)
                     .padding(.leading, 8)
+                    .contextMenu { trackMenu(for: track) }
             }
+            addTrackMenu
+                .frame(width: TimelineMetrics.trackLabelWidth, alignment: .leading)
+                .padding(.leading, 8)
         }
+    }
+
+    private var addTrackMenu: some View {
+        Menu {
+            Button(localized("track.add.video")) { store.addTrack(role: .broll) }
+            Button(localized("track.add.audio")) { store.addTrack(role: .audio) }
+            Button(localized("track.add.text")) { store.addTrack(role: .text) }
+        } label: {
+            Label(localized("track.add"), systemImage: "plus")
+                .font(.caption)
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help(localized("track.add.help"))
+    }
+
+    @ViewBuilder
+    private func trackMenu(for track: Track) -> some View {
+        Button(localized("track.moveUp")) { store.moveTrack(track.id, up: true) }
+            .disabled(!store.project.canMoveTrack(track.id, up: true))
+        Button(localized("track.moveDown")) { store.moveTrack(track.id, up: false) }
+            .disabled(!store.project.canMoveTrack(track.id, up: false))
+        Divider()
+        Button(localized("track.remove"), role: .destructive) { store.removeTrack(track.id) }
+            .disabled(!store.project.canRemoveTrack(track.id))
     }
 
     private func contentWidth(viewportWidth: CGFloat) -> CGFloat {
@@ -132,12 +177,15 @@ struct TimelineView: View {
                 ClipBlockView(
                     clip: clip,
                     pointsPerSecond: pointsPerSecond,
-                    isSelected: store.selectedClipID == clip.id,
+                    isSelected: store.selectedClipIDs.contains(clip.id),
+                    allowsLaneChange: !(store.hasMultipleSelected && store.selectedClipIDs.contains(clip.id)),
+                    companionOffset: companionOffset(for: clip),
                     waveformPeaks: waveformPeaks(for: clip, in: track),
                     isMissing: clip.sourceURL.map(missingMedia.contains) ?? false,
-                    onSelect: { store.selectClip(clip.id) },
+                    onSelect: { select(clip) },
                     onMove: { start, laneOffset in move(clip, from: index, near: start, laneOffset: laneOffset) },
-                    onTrim: { edge, time in store.trimClip(clip.id, edge: edge, near: time) }
+                    onTrim: { edge, time in store.trimClip(clip.id, edge: edge, near: time) },
+                    onDragChange: { offset in drag = offset.map { (clip.id, $0) } }
                 )
                 .task(id: clip.sourceURL) { await loadWaveform(for: clip, in: track) }
             }
@@ -184,7 +232,27 @@ struct TimelineView: View {
         await waveforms.load(url)
     }
 
+    /// Shift or command while clicking adds the clip to the selection (or takes it out); a plain click selects only it.
+    private func select(_ clip: Clip) {
+        if NSEvent.modifierFlags.intersection([.shift, .command]).isEmpty {
+            // Pressing on a clip that is already part of a multiple selection keeps it, so the whole set can be dragged.
+            if !(store.hasMultipleSelected && store.selectedClipIDs.contains(clip.id)) { store.selectClip(clip.id) }
+        } else {
+            store.toggleSelection(of: clip.id)
+        }
+    }
+
+    private func companionOffset(for clip: Clip) -> CGFloat {
+        guard let drag, drag.clipID != clip.id, store.selectedClipIDs.contains(clip.id),
+              store.selectedClipIDs.contains(drag.clipID) else { return 0 }
+        return drag.offset
+    }
+
     private func move(_ clip: Clip, from laneIndex: Int, near start: TimeInterval, laneOffset: Int) {
+        if store.hasMultipleSelected, store.selectedClipIDs.contains(clip.id) {
+            store.moveSelection(draggedClip: clip.id, near: start)
+            return
+        }
         let tracks = store.project.tracks
         let targetIndex = min(max(laneIndex + laneOffset, 0), tracks.count - 1)
         store.moveClip(clip.id, toTrack: tracks[targetIndex].id, near: start)

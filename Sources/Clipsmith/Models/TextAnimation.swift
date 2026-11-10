@@ -1,0 +1,129 @@
+import Foundation
+
+enum TextAnimationKind: String, Codable, CaseIterable {
+    case none
+    case fade
+    case slideUp
+    case slideDown
+    case pop
+}
+
+/// How a text is shifted, scaled and faded at one moment of its animation.
+struct TextAnimationState: Equatable {
+    var opacity = 1.0
+    /// Shift as a fraction of the canvas height; positive moves the text down.
+    var offsetY = 0.0
+    var scale = 1.0
+
+    static let identity = TextAnimationState()
+}
+
+/// How a text comes in and goes out. The default shows it as is.
+struct TextAnimation: Codable, Equatable {
+    static let durationRange = 0.1...2.0
+    static let defaultDuration = 0.4
+    private static let slideDistance = 0.05
+    private static let popStartScale = 0.7
+
+    var inKind = TextAnimationKind.none
+    var outKind = TextAnimationKind.none
+    var durationInSeconds = TextAnimation.defaultDuration
+
+    var isNone: Bool { inKind == .none && outKind == .none }
+
+    init(inKind: TextAnimationKind = .none, outKind: TextAnimationKind = .none, durationInSeconds: TimeInterval = defaultDuration) {
+        self.inKind = inKind
+        self.outKind = outKind
+        self.durationInSeconds = durationInSeconds
+    }
+
+    /// The same animation coming in and going out.
+    static func both(_ kind: TextAnimationKind) -> TextAnimation {
+        TextAnimation(inKind: kind, outKind: kind)
+    }
+
+    /// The state `time` seconds after the text appears, for a text shown during `clipDuration` seconds.
+    func state(atClipTime time: TimeInterval, clipDuration: TimeInterval) -> TextAnimationState {
+        guard !isNone, clipDuration > 0 else { return .identity }
+        let window = min(durationInSeconds, clipDuration / 2)
+        guard window > 0 else { return .identity }
+        let arriving = Self.effect(of: inKind, shown: Easing.easeOut.apply(time / window))
+        let leaving = Self.effect(of: outKind, shown: Easing.easeOut.apply((clipDuration - time) / window))
+        return TextAnimationState(
+            opacity: arriving.opacity * leaving.opacity,
+            offsetY: arriving.offsetY + leaving.offsetY,
+            scale: arriving.scale * leaving.scale
+        )
+    }
+
+    /// Times, relative to the start of the text, where the look changes and has to be sampled for a straight-ramp renderer.
+    func samplePoints(clipDuration: TimeInterval, framesPerSecond: Double = 30) -> [TimeInterval] {
+        let window = min(durationInSeconds, clipDuration / 2)
+        let step = 1 / framesPerSecond
+        var times: Set<TimeInterval> = [0, clipDuration]
+        if inKind != .none {
+            var time = 0.0
+            while time < window { times.insert(time); time += step }
+            times.insert(window)
+        }
+        if outKind != .none {
+            var time = clipDuration - window
+            while time < clipDuration { times.insert(time); time += step }
+            times.insert(clipDuration - window)
+        }
+        return times.sorted()
+    }
+
+    private static func effect(of kind: TextAnimationKind, shown: Double) -> TextAnimationState {
+        switch kind {
+        case .none: return .identity
+        case .fade: return TextAnimationState(opacity: shown)
+        case .slideUp: return TextAnimationState(opacity: shown, offsetY: (1 - shown) * slideDistance)
+        case .slideDown: return TextAnimationState(opacity: shown, offsetY: -(1 - shown) * slideDistance)
+        case .pop: return TextAnimationState(opacity: shown, scale: popStartScale + (1 - popStartScale) * shown)
+        }
+    }
+}
+
+extension TextAnimation {
+    private enum CodingKeys: String, CodingKey {
+        case inKind, outKind, durationInSeconds
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        inKind = try container.decodeIfPresent(TextAnimationKind.self, forKey: .inKind) ?? .none
+        outKind = try container.decodeIfPresent(TextAnimationKind.self, forKey: .outKind) ?? .none
+        durationInSeconds = try container.decodeIfPresent(TimeInterval.self, forKey: .durationInSeconds) ?? Self.defaultDuration
+    }
+}
+
+/// Ready-made looks for a text: they only set its style, never its words, size or place.
+enum TextStylePreset: String, CaseIterable {
+    case classic
+    case outlined
+    case boxed
+    case highlight
+
+    func apply(to layer: inout TextLayer) {
+        layer.color = .white
+        layer.strokeWidth = 0
+        layer.strokeColor = .black
+        layer.backgroundColor = nil
+        layer.hasShadow = true
+        switch self {
+        case .classic:
+            break
+        case .outlined:
+            layer.strokeWidth = TextLayer.outlinedStrokeWidth
+            layer.hasShadow = false
+        case .boxed:
+            layer.backgroundColor = RGBAColor(red: 0, green: 0, blue: 0, alpha: 0.65)
+            layer.hasShadow = false
+        case .highlight:
+            layer.color = RGBAColor(red: 1, green: 0.85, blue: 0.1)
+            layer.strokeWidth = TextLayer.outlinedStrokeWidth
+            layer.hasShadow = false
+        }
+    }
+}

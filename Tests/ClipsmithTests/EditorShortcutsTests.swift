@@ -52,9 +52,9 @@ final class EditorShortcutsTests: XCTestCase {
         let keys: [ShortcutKey] = [
             .space, .delete, .leftArrow, .rightArrow, .home, .end, .escape,
             .character("s"), .character("t"), .character("m"), .character("n"), .character("="), .character("-"),
-            .character("q"), .character("w"), .character("c"), .character("x"), .character("v"), .character("d"),
+            .character("q"), .character("w"), .character("c"), .character("x"), .character("v"), .character("d"), .character("a"), .character("g"),
         ]
-        let modifiers: [ShortcutModifiers] = [[], .shift, .option, .command]
+        let modifiers: [ShortcutModifiers] = [[], .shift, .option, .command, [.command, .shift]]
         let reachable = Set(keys.flatMap { key in modifiers.compactMap { EditorShortcuts.action(for: key, modifiers: $0) } })
 
         XCTAssertEqual(reachable, Set(EditorAction.allCases))

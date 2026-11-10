@@ -14,6 +14,9 @@ enum EditorAction: CaseIterable {
     case cut
     case paste
     case duplicate
+    case selectAll
+    case group
+    case ungroup
     case zoomIn
     case zoomOut
     case stepBackward
@@ -84,6 +87,9 @@ enum EditorShortcuts {
         case .cut: return "⌘X"
         case .paste: return "⌘V"
         case .duplicate: return "⌘D"
+        case .selectAll: return "⌘A"
+        case .group: return "⌘G"
+        case .ungroup: return "⇧⌘G"
         case .zoomIn: return "+"
         case .zoomOut: return "−"
         case .stepBackward: return "←"
@@ -121,8 +127,13 @@ enum EditorShortcuts {
             case "x": return .cut
             case "v": return .paste
             case "d": return .duplicate
+            case "a": return .selectAll
+            case "g": return .group
             default: return nil
             }
+        }
+        if modifiers == [.command, .shift] {
+            return character.lowercased() == "g" ? .ungroup : nil
         }
         guard modifiers.isEmpty || modifiers == .shift else { return nil }
         switch character.lowercased() {

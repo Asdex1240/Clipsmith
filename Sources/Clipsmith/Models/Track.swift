@@ -29,6 +29,8 @@ struct Track: Codable, Identifiable, Equatable {
 
     var id = UUID()
     var role: Role
+    /// A name chosen by the user; without one the track is called after its role.
+    var name: String?
     var clips: [Clip] = []
 
     var endInSeconds: TimeInterval {

@@ -4,11 +4,16 @@ struct ClipBlockView: View {
     let clip: Clip
     let pointsPerSecond: Double
     let isSelected: Bool
+    /// When several clips are selected they only slide along the timeline together, never to another track.
+    var allowsLaneChange = true
+    /// How far, in points, another selected clip is being dragged; this clip follows it.
+    var companionOffset: CGFloat = 0
     let waveformPeaks: [Float]?
     let isMissing: Bool
     let onSelect: () -> Void
     let onMove: (_ proposedStart: TimeInterval, _ laneOffset: Int) -> Void
     let onTrim: (_ edge: ClipEdge, _ proposedTime: TimeInterval) -> Void
+    var onDragChange: (CGFloat?) -> Void = { _ in }
 
     @State private var moveTranslation: CGSize = .zero
     @State private var trimOrigin: TimeInterval?
@@ -35,8 +40,16 @@ struct ClipBlockView: View {
         }
         .frame(width: max(clip.durationInSeconds * pointsPerSecond, 2), height: TimelineMetrics.laneHeight)
         .overlay(alignment: .bottomLeading) { keyframeMarks }
-        .offset(x: clip.startInSeconds * pointsPerSecond + moveTranslation.width, y: moveTranslation.height)
-        .zIndex(moveTranslation == .zero ? 0 : 1)
+        .overlay(alignment: .topTrailing) {
+            if clip.groupID != nil {
+                Image(systemName: "link")
+                    .font(.system(size: 9, weight: .bold))
+                    .padding(3)
+                    .allowsHitTesting(false)
+            }
+        }
+        .offset(x: clip.startInSeconds * pointsPerSecond + moveTranslation.width + companionOffset, y: moveTranslation.height)
+        .zIndex(moveTranslation == .zero && companionOffset == 0 ? 0 : 1)
         .onTapGesture(perform: onSelect)
         .gesture(moveGesture)
     }
@@ -79,12 +92,14 @@ struct ClipBlockView: View {
         DragGesture(minimumDistance: Self.minimumDragDistance, coordinateSpace: .global)
             .onChanged { value in
                 if !isSelected { onSelect() }
-                moveTranslation = value.translation
+                moveTranslation = CGSize(width: value.translation.width, height: allowsLaneChange ? value.translation.height : 0)
+                onDragChange(value.translation.width)
             }
             .onEnded { value in
                 let proposedStart = clip.startInSeconds + value.translation.width / pointsPerSecond
-                let laneOffset = Int((value.translation.height / TimelineMetrics.laneStride).rounded())
+                let laneOffset = allowsLaneChange ? Int((value.translation.height / TimelineMetrics.laneStride).rounded()) : 0
                 moveTranslation = .zero
+                onDragChange(nil)
                 onMove(proposedStart, laneOffset)
             }
     }

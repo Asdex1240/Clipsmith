@@ -10,7 +10,7 @@ Planned for the first release:
 
 - **Projects** — create, save and open projects (`.clipsmith` files, JSON), with undo/redo, autosave recovery and relinking of moved or missing media.
 - **Media library** — import video, audio and images with thumbnails and durations.
-- **Timeline** — move, trim, split and delete clips, with a B-roll track, zoom, a draggable playhead and snapping.
+- **Timeline** — move, trim, split and delete clips (select several with `⇧`/`⌘`-click and group them), with as many video, audio and text tracks as you need (the higher a video track, the more on top), zoom, a draggable playhead and snapping.
 - **Canvas** — the project's work area: presets (16:9, 9:16, 1:1, 4:5, 3:4, 4:3, 21:9), any custom width × height, a resolution shortcut (720p–4K) and automatic matching to the first clip you add. Each clip can be framed as *Fit* (bars) or *Fill* (crop).
 - **Preview** — real-time playback and scrubbing.
 - **Text** — text layers with font, size, color and position.
@@ -49,6 +49,7 @@ open Package.swift # open the project in Xcode
 | Add text / marker | `T` / `M` |
 | Trim start / end to playhead | `Q` / `W` |
 | Copy / cut / paste / duplicate clip | `⌘C` / `⌘X` / `⌘V` / `⌘D` |
+| Select all / group / ungroup | `⌘A` / `⌘G` / `⇧⌘G` |
 | Toggle snapping | `N` |
 | Delete / ripple delete | `⌫` / `⇧⌫` |
 | Previous / next frame | `←` / `→` |

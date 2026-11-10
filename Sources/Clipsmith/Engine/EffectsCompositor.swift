@@ -64,7 +64,7 @@ final class EffectsCompositor: NSObject, AVVideoCompositing {
             canvas = image.composited(over: canvas)
         }
         for sprite in instruction.texts where time >= sprite.startInSeconds && time < sprite.endInSeconds {
-            canvas = LayerImage.make(sprite).composited(over: canvas)
+            if let image = LayerImage.make(sprite, at: time, renderHeight: size.height) { canvas = image.composited(over: canvas) }
         }
         context.render(canvas, to: output, bounds: bounds, colorSpace: nil)
         request.finish(withComposedVideoFrame: output)
@@ -90,12 +90,22 @@ enum LayerImage {
         return image
     }
 
-    static func make(_ sprite: TextSprite) -> CIImage {
+    static func make(_ sprite: TextSprite, at time: TimeInterval, renderHeight: CGFloat) -> CIImage? {
+        let state = sprite.animation.state(
+            atClipTime: time - sprite.startInSeconds, clipDuration: sprite.endInSeconds - sprite.startInSeconds
+        )
+        guard state.opacity > 0 else { return nil }
         let size = CGSize(width: sprite.image.width, height: sprite.image.height)
+        // The canvas of Core Image points up, like Core Animation's, so a downward shift is negative.
         let placement = CGAffineTransform(translationX: -size.width / 2, y: -size.height / 2)
+            .concatenating(CGAffineTransform(scaleX: state.scale, y: state.scale))
             .concatenating(CGAffineTransform(rotationAngle: sprite.rotationInRadians))
-            .concatenating(CGAffineTransform(translationX: sprite.center.x, y: sprite.center.y))
-        return CIImage(cgImage: sprite.image).transformed(by: placement)
+            .concatenating(CGAffineTransform(translationX: sprite.center.x, y: sprite.center.y - state.offsetY * renderHeight))
+        var image = CIImage(cgImage: sprite.image).transformed(by: placement)
+        if state.opacity < 1 {
+            image = image.applyingFilter("CIColorMatrix", parameters: ["inputAVector": CIVector(x: 0, y: 0, z: 0, w: state.opacity)])
+        }
+        return image
     }
 
     private static func cropped(_ image: CIImage, to layer: RenderLayer, sourceHeight: CGFloat) -> CIImage {

@@ -24,7 +24,9 @@ final class SubtitleController {
     var isWorking: Bool { state == .working }
 
     /// Listens to the sound of a clip and adds a text clip for each spoken line, timed to the clip on the timeline.
-    func generate(for clipID: Clip.ID, locale: Locale) {
+    func generate(
+        for clipID: Clip.ID, locale: Locale, style: TextStylePreset = .classic, animation: TextAnimation = TextAnimation()
+    ) {
         guard !isWorking, let clip = store.project.clip(withID: clipID), let url = clip.sourceURL,
               clip.mediaKind == .video || clip.mediaKind == .audio else { return }
         state = .working
@@ -36,7 +38,7 @@ final class SubtitleController {
                 try Task.checkCancellation()
                 let lines = Self.timelineLines(from: SubtitleGrouper.lines(from: words), for: clip)
                 guard !lines.isEmpty else { throw SubtitleError.noSpeech }
-                let added = store.addSubtitles(lines)
+                let added = store.addSubtitles(lines, style: style, animation: animation)
                 state = .finished(lineCount: added)
             } catch is CancellationError {
                 state = .idle
