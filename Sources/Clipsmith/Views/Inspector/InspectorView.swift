@@ -20,6 +20,7 @@ struct InspectorView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     if hasVisualControls(for: clip) {
                         VisualInspector(store: store, clip: clip.presented(atTimelineTime: store.playheadInSeconds))
+                        EffectsInspector(store: store, clip: clip)
                     }
                     if clip.textLayer != nil {
                         TextInspector(store: store, clip: clip)

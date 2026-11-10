@@ -24,6 +24,15 @@ struct BuiltComposition {
 
     func attachTextOverlayForExport() {
         guard let videoComposition, let textOverlay, !textOverlay.isEmpty else { return }
+        guard videoComposition.customVideoCompositorClass == nil else {
+            // Core Animation cannot post-process frames from a custom compositor, so it draws the text itself.
+            let sprites = TextOverlayLayers.makeSprites(for: textOverlay)
+            videoComposition.instructions = videoComposition.instructions.map { instruction in
+                guard let effects = instruction as? EffectsInstruction else { return instruction }
+                return EffectsInstruction(timeRange: effects.timeRange, layers: effects.layers, texts: sprites)
+            }
+            return
+        }
         TextOverlayLayers.attach(textOverlay, to: videoComposition)
     }
 }

@@ -34,6 +34,8 @@ struct Clip: Codable, Identifiable, Equatable {
     var keyframes: [Keyframe] = []
     /// How this clip comes in after the clip right before it; ignored when nothing touches its start.
     var transition: ClipTransition?
+    var color = ColorAdjustments()
+    var crop = CropInsets()
 
     var displayName: String {
         textLayer?.content ?? sourceURL?.lastPathComponent ?? ""
@@ -189,7 +191,7 @@ extension Clip {
     private enum CodingKeys: String, CodingKey {
         case id, sourceURL, mediaKind, startInSeconds, sourceStartInSeconds, sourceEndInSeconds
         case sourceDurationInSeconds, volume, fadeInDurationInSeconds, fadeOutDurationInSeconds
-        case textLayer, fitMode, offsetX, offsetY, isAudioDetached, scale, rotationInDegrees, speed, opacity, keyframes, transition
+        case textLayer, fitMode, offsetX, offsetY, isAudioDetached, scale, rotationInDegrees, speed, opacity, keyframes, transition, color, crop
     }
 
     init(from decoder: Decoder) throws {
@@ -215,6 +217,8 @@ extension Clip {
         opacity = try container.decodeIfPresent(Double.self, forKey: .opacity) ?? 1
         keyframes = try container.decodeIfPresent([Keyframe].self, forKey: .keyframes) ?? []
         transition = try container.decodeIfPresent(ClipTransition.self, forKey: .transition)
+        color = try container.decodeIfPresent(ColorAdjustments.self, forKey: .color) ?? ColorAdjustments()
+        crop = try container.decodeIfPresent(CropInsets.self, forKey: .crop) ?? CropInsets()
     }
 
     func encode(to encoder: Encoder) throws {
@@ -240,5 +244,7 @@ extension Clip {
         if opacity != 1 { try container.encode(opacity, forKey: .opacity) }
         if !keyframes.isEmpty { try container.encode(keyframes, forKey: .keyframes) }
         try container.encodeIfPresent(transition, forKey: .transition)
+        if !color.isIdentity { try container.encode(color, forKey: .color) }
+        if !crop.isNone { try container.encode(crop, forKey: .crop) }
     }
 }

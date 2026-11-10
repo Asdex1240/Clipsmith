@@ -51,6 +51,22 @@ extension Project {
 
     static let transitionAdjacencyToleranceInSeconds: TimeInterval = 0.001
 
+    mutating func setColor(of id: Clip.ID, to adjustments: ColorAdjustments) {
+        updateClip(id) { clip in
+            var updated = clip
+            updated.color = adjustments.clamped()
+            return updated
+        }
+    }
+
+    mutating func setCrop(of id: Clip.ID, to insets: CropInsets) {
+        updateClip(id) { clip in
+            var updated = clip
+            updated.crop = insets.clamped()
+            return updated
+        }
+    }
+
     mutating func setOpacity(of id: Clip.ID, to value: Double, at time: TimeInterval? = nil) {
         updateClip(id) { clip in clip.updatingVisual(at: time) { $0.opacity = value } }
     }
@@ -107,6 +123,8 @@ extension Project {
         audio.offsetX = 0
         audio.offsetY = 0
         audio.opacity = 1
+        audio.color = ColorAdjustments()
+        audio.crop = CropInsets()
         audio.keyframes = []
         tracks[position.track].clips[position.clip].isAudioDetached = true
         tracks[audioIndex].clips.append(audio)

@@ -157,6 +157,14 @@ final class ProjectStore {
         mutate { $0.setTransition(of: id, to: transition) }
     }
 
+    func setColor(of id: Clip.ID, to adjustments: ColorAdjustments) {
+        mutate(coalescingKey: "color-\(id)") { $0.setColor(of: id, to: adjustments) }
+    }
+
+    func setCrop(of id: Clip.ID, to insets: CropInsets) {
+        mutate(coalescingKey: "crop-\(id)") { $0.setCrop(of: id, to: insets) }
+    }
+
     func setOpacity(of id: Clip.ID, to value: Double) {
         let time = playheadInSeconds
         mutate(coalescingKey: "opacity-\(id)") { $0.setOpacity(of: id, to: value, at: time) }

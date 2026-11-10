@@ -8,6 +8,9 @@ extension Clip {
         VisualState(offsetX: offsetX, offsetY: offsetY, scale: scale, rotationInDegrees: rotationInDegrees, opacity: opacity)
     }
 
+    /// True when the picture needs color correction or cropping, which the plain layer instructions cannot do.
+    var hasLookEffects: Bool { !color.isIdentity || !crop.isNone }
+
     var isAnimated: Bool { !keyframes.isEmpty }
 
     /// True when the clip needs per-frame values instead of one fixed transform.

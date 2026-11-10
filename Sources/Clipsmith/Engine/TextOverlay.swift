@@ -11,6 +11,15 @@ struct TextOverlay: Equatable {
     }
 }
 
+/// A piece of text already drawn as an image, with where and when it shows. The center is measured from the bottom left.
+struct TextSprite {
+    let startInSeconds: TimeInterval
+    let endInSeconds: TimeInterval
+    let image: CGImage
+    let center: CGPoint
+    let rotationInRadians: Double
+}
+
 enum TextOverlayLayers {
     private static let maximumWidthFraction = 0.9
     private static let shadowOpacity = 0.6
@@ -37,6 +46,24 @@ enum TextOverlayLayers {
             guard let text = clip.textLayer,
                   let layer = makeLayer(for: clip, text: text, renderSize: overlay.renderSize) else { return nil }
             return (clip, layer)
+        }
+    }
+
+    /// The text drawn ahead of time as images, for exports rendered by `EffectsCompositor` where Core Animation is unavailable.
+    static func makeSprites(for overlay: TextOverlay) -> [TextSprite] {
+        let maximumWidth = overlay.renderSize.width * maximumWidthFraction
+        let scale = min(overlay.renderSize.width, overlay.renderSize.height) / TextLayer.referenceShortSide
+        return overlay.clips.compactMap { clip in
+            guard let text = clip.textLayer, let image = renderImage(of: text, scale: scale, maximumWidth: maximumWidth) else {
+                return nil
+            }
+            return TextSprite(
+                startInSeconds: clip.startInSeconds,
+                endInSeconds: clip.endInSeconds,
+                image: image,
+                center: CGPoint(x: text.positionX * overlay.renderSize.width, y: (1 - text.positionY) * overlay.renderSize.height),
+                rotationInRadians: -text.rotationInDegrees * .pi / 180
+            )
         }
     }
 
