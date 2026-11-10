@@ -10,7 +10,10 @@ final class ProjectStore {
     static let zoomFactor = 1.25
     static let snapThresholdInPoints = 8.0
 
-    private(set) var project: Project
+    private(set) var project: Project {
+        didSet { projectRevision += 1 }
+    }
+    private(set) var projectRevision = 0
     private(set) var selectedClipID: Clip.ID?
     private(set) var playheadInSeconds: TimeInterval = 0
     private(set) var pointsPerSecond = ProjectStore.defaultPointsPerSecond
@@ -31,6 +34,14 @@ final class ProjectStore {
         let candidates = project.snapPoints(excluding: nil, playhead: -1)
         let snapped = Snapping.snap(max(0, proposed), to: candidates, within: snapThresholdInSeconds)
         playheadInSeconds = max(0, snapped)
+    }
+
+    func followPlayback(at time: TimeInterval) {
+        playheadInSeconds = max(0, time)
+    }
+
+    func setCanvas(_ format: CanvasFormat) {
+        project.canvas = format
     }
 
     func zoomIn() {

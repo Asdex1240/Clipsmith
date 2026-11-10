@@ -21,3 +21,9 @@
 "timeline.zoomIn" = "Acercar";
 "timeline.zoomOut" = "Alejar";
 "library.addToTimeline" = "Añadir al timeline";
+"preview.timelineEmpty" = "Añade clips al timeline para verlos";
+"preview.mode.source" = "Origen";
+"preview.mode.timeline" = "Timeline";
+"canvas.landscape" = "16:9";
+"canvas.portrait" = "9:16";
+"canvas.help" = "Formato del proyecto";

@@ -21,3 +21,9 @@
 "timeline.zoomIn" = "Zoom in";
 "timeline.zoomOut" = "Zoom out";
 "library.addToTimeline" = "Add to timeline";
+"preview.timelineEmpty" = "Add clips to the timeline to preview them";
+"preview.mode.source" = "Source";
+"preview.mode.timeline" = "Timeline";
+"canvas.landscape" = "16:9";
+"canvas.portrait" = "9:16";
+"canvas.help" = "Project format";

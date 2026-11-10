@@ -104,3 +104,42 @@ final class ProjectStoreTests: XCTestCase {
         XCTAssertEqual(store.pointsPerSecond, ProjectStore.minimumPointsPerSecond)
     }
 }
+
+@MainActor
+final class ProjectStorePlaybackTests: XCTestCase {
+    func testEveryProjectChangeBumpsTheRevision() {
+        let store = ProjectStore(project: Project(name: "Test"))
+        let initial = store.projectRevision
+
+        store.appendToTimeline(TestClips.mediaItem())
+        store.setCanvas(.portrait)
+
+        XCTAssertGreaterThan(store.projectRevision, initial + 1)
+    }
+
+    func testMovingThePlayheadDoesNotBumpTheRevision() {
+        let store = ProjectStore(project: Project(name: "Test"))
+        let initial = store.projectRevision
+
+        store.setPlayhead(near: 3)
+
+        XCTAssertEqual(store.projectRevision, initial)
+    }
+
+    func testFollowingPlaybackDoesNotSnap() {
+        let store = ProjectStore(project: Project(name: "Test"))
+        store.appendToTimeline(TestClips.mediaItem(duration: 10))
+
+        store.followPlayback(at: 9.99)
+
+        XCTAssertEqual(store.playheadInSeconds, 9.99)
+    }
+
+    func testCanvasFormatIsStoredInTheProject() {
+        let store = ProjectStore(project: Project(name: "Test"))
+
+        store.setCanvas(.portrait)
+
+        XCTAssertEqual(store.project.canvas, .portrait)
+    }
+}
