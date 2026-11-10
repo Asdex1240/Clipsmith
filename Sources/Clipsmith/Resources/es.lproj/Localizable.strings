@@ -2,7 +2,6 @@
 "panel.library" = "Biblioteca de medios";
 "panel.preview" = "Preview";
 "panel.inspector" = "Inspector";
-"panel.timeline" = "Timeline — %@";
 "library.import" = "Importar…";
 "library.empty" = "Arrastra videos, audio o imágenes aquí, o usa Importar.";
 "preview.empty" = "Selecciona un medio para verlo";
@@ -12,3 +11,13 @@
 "alert.ok" = "Aceptar";
 "error.import.unsupported" = "«%@» no es un formato de medio compatible.";
 "error.import.unreadable" = "No se pudo leer «%@».";
+"track.broll" = "B-roll";
+"track.main" = "Video";
+"track.audio" = "Audio";
+"track.text" = "Texto";
+"timeline.split" = "Dividir en el cursor";
+"timeline.delete" = "Eliminar";
+"timeline.rippleDelete" = "Eliminar y cerrar hueco";
+"timeline.zoomIn" = "Acercar";
+"timeline.zoomOut" = "Alejar";
+"library.addToTimeline" = "Añadir al timeline";

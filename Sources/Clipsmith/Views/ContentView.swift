@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @Binding var project: Project
+    let store: ProjectStore
     let library: MediaLibrary
     let player: PlayerController
     let thumbnails: ThumbnailGenerating
@@ -13,13 +13,18 @@ struct ContentView: View {
         static let previewMinWidth: CGFloat = 400
         static let inspectorMinWidth: CGFloat = 200
         static let inspectorIdealWidth: CGFloat = 260
-        static let timelineHeight: CGFloat = 240
+        static let timelineHeight: CGFloat = 270
     }
 
     var body: some View {
         VStack(spacing: 0) {
             HSplitView {
-                LibraryView(library: library, thumbnails: thumbnails, selection: $selection)
+                LibraryView(
+                    library: library,
+                    thumbnails: thumbnails,
+                    selection: $selection,
+                    onAddToTimeline: store.appendToTimeline
+                )
                     .frame(minWidth: Layout.libraryMinWidth, idealWidth: Layout.libraryIdealWidth)
                 PreviewView(controller: player)
                     .frame(minWidth: Layout.previewMinWidth)
@@ -27,7 +32,7 @@ struct ContentView: View {
                     .frame(minWidth: Layout.inspectorMinWidth, idealWidth: Layout.inspectorIdealWidth)
             }
             Divider()
-            placeholder(String(format: localized("panel.timeline"), project.name))
+            TimelineView(store: store, library: library)
                 .frame(height: Layout.timelineHeight)
         }
         .onChange(of: selection, selectionDidChange)

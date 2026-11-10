@@ -1,0 +1,129 @@
+import SwiftUI
+
+struct TimelineView: View {
+    let store: ProjectStore
+    let library: MediaLibrary
+
+    private var pointsPerSecond: Double { store.pointsPerSecond }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            toolbar
+            Divider()
+            HStack(alignment: .top, spacing: 0) {
+                trackLabels
+                GeometryReader { viewport in
+                    ScrollView(.horizontal) {
+                        tracksContent(contentWidth: contentWidth(viewportWidth: viewport.size.width))
+                    }
+                }
+            }
+        }
+    }
+
+    private var toolbar: some View {
+        HStack {
+            Text(store.project.name).font(.headline)
+            Text(store.playheadInSeconds.clockString).monospacedDigit().foregroundStyle(.secondary)
+            Spacer()
+            toolbarButton("timeline.split", systemImage: "scissors", shortcut: "s", action: store.splitAtPlayhead)
+            toolbarButton("timeline.delete", systemImage: "trash", shortcut: .delete, action: store.deleteSelectedClip)
+            toolbarButton(
+                "timeline.rippleDelete", systemImage: "arrow.left.to.line",
+                shortcut: .delete, modifiers: .shift, action: store.rippleDeleteSelectedClip
+            )
+            Divider().frame(height: 16)
+            toolbarButton("timeline.zoomOut", systemImage: "minus.magnifyingglass", shortcut: "-", action: store.zoomOut)
+            toolbarButton("timeline.zoomIn", systemImage: "plus.magnifyingglass", shortcut: "=", action: store.zoomIn)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+    }
+
+    private func toolbarButton(
+        _ key: String.LocalizationValue,
+        systemImage: String,
+        shortcut: KeyEquivalent,
+        modifiers: EventModifiers = [],
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) { Image(systemName: systemImage) }
+            .help(localized(key))
+            .keyboardShortcut(shortcut, modifiers: modifiers)
+    }
+
+    private var trackLabels: some View {
+        VStack(alignment: .leading, spacing: TimelineMetrics.laneSpacing) {
+            Spacer().frame(height: TimelineMetrics.rulerHeight)
+            ForEach(store.project.tracks) { track in
+                Text(track.role.title)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(width: TimelineMetrics.trackLabelWidth, height: TimelineMetrics.laneHeight, alignment: .leading)
+                    .padding(.leading, 8)
+            }
+        }
+    }
+
+    private func contentWidth(viewportWidth: CGFloat) -> CGFloat {
+        let contentSeconds = store.project.durationInSeconds + TimelineMetrics.trailingPaddingInSeconds
+        return max(contentSeconds * pointsPerSecond, viewportWidth)
+    }
+
+    private func tracksContent(contentWidth: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: TimelineMetrics.laneSpacing) {
+            TimelineRuler(pointsPerSecond: pointsPerSecond, width: contentWidth, onScrub: store.setPlayhead(near:))
+            ForEach(Array(store.project.tracks.enumerated()), id: \.element.id) { index, track in
+                lane(for: track, at: index, width: contentWidth)
+            }
+        }
+        .overlay(alignment: .topLeading) { playhead }
+    }
+
+    private var playhead: some View {
+        Rectangle()
+            .fill(Color.red)
+            .frame(width: 1.5)
+            .offset(x: store.playheadInSeconds * pointsPerSecond)
+            .allowsHitTesting(false)
+    }
+
+    private func lane(for track: Track, at index: Int, width: CGFloat) -> some View {
+        ZStack(alignment: .topLeading) {
+            Rectangle()
+                .fill(.background.secondary.opacity(0.6))
+                .frame(width: width, height: TimelineMetrics.laneHeight)
+                .onTapGesture { store.selectClip(nil) }
+            ForEach(track.clips) { clip in
+                ClipBlockView(
+                    clip: clip,
+                    pointsPerSecond: pointsPerSecond,
+                    isSelected: store.selectedClipID == clip.id,
+                    onSelect: { store.selectClip(clip.id) },
+                    onMove: { start, laneOffset in move(clip, from: index, near: start, laneOffset: laneOffset) },
+                    onTrim: { edge, time in store.trimClip(clip.id, edge: edge, near: time) }
+                )
+            }
+        }
+        .frame(width: width, height: TimelineMetrics.laneHeight, alignment: .topLeading)
+        .dropDestination(for: String.self) { identifiers, location in
+            drop(identifiers, onto: track, at: location.x / pointsPerSecond)
+        }
+    }
+
+    private func move(_ clip: Clip, from laneIndex: Int, near start: TimeInterval, laneOffset: Int) {
+        let tracks = store.project.tracks
+        let targetIndex = min(max(laneIndex + laneOffset, 0), tracks.count - 1)
+        store.moveClip(clip.id, toTrack: tracks[targetIndex].id, near: start)
+    }
+
+    private func drop(_ identifiers: [String], onto track: Track, at time: TimeInterval) -> Bool {
+        let items = identifiers.compactMap { identifier in
+            library.items.first { $0.id.uuidString == identifier }
+        }
+        for item in items {
+            store.addMedia(item, toTrack: track.id, at: time)
+        }
+        return !items.isEmpty
+    }
+}

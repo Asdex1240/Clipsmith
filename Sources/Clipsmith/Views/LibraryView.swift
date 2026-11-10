@@ -5,6 +5,7 @@ struct LibraryView: View {
     let library: MediaLibrary
     let thumbnails: ThumbnailGenerating
     @Binding var selection: MediaItem.ID?
+    let onAddToTimeline: (MediaItem) -> Void
     @State private var isImporterPresented = false
 
     private static let importableTypes: [UTType] = [.movie, .audio, .image]
@@ -46,6 +47,10 @@ struct LibraryView: View {
         } else {
             List(library.items, selection: $selection) { item in
                 MediaRow(item: item, thumbnails: thumbnails)
+                    .draggable(item.id.uuidString)
+                    .contextMenu {
+                        Button(localized("library.addToTimeline")) { onAddToTimeline(item) }
+                    }
             }
         }
     }

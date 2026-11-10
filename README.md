@@ -39,7 +39,7 @@ open Package.swift # open the project in Xcode
 ```
 Sources/Clipsmith/
 ├── Models/   # Codable project model (Project, Track, Clip): the source of truth
-├── Stores/   # Observable state: media library, player
+├── Stores/   # Observable state: project, media library, player
 ├── Engine/   # AVFoundation composition, preview and export
 └── Views/    # SwiftUI: library, preview, timeline, inspector
 Tests/ClipsmithTests/

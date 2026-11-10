@@ -4,20 +4,19 @@ import XCTest
 final class ProjectTests: XCTestCase {
     func testProjectRoundTripsThroughJSON() throws {
         var project = Project(name: "Demo")
-        project.tracks[0].clips.append(makeClip(sourceStart: 1, sourceEnd: 4))
+        let mainTrack = try XCTUnwrap(project.track(withRole: .main))
+        project.addClip(TestClips.video(start: 0, sourceStart: 1, sourceEnd: 4), toTrack: mainTrack.id)
 
         let data = try JSONEncoder().encode(project)
         let decoded = try JSONDecoder().decode(Project.self, from: data)
 
-        XCTAssertEqual(decoded.tracks[0].clips[0].durationInSeconds, 3)
+        let decodedClip = try XCTUnwrap(decoded.track(withRole: .main)?.clips.first)
+        XCTAssertEqual(decodedClip.durationInSeconds, 3)
     }
 
-    private func makeClip(sourceStart: TimeInterval, sourceEnd: TimeInterval) -> Clip {
-        Clip(
-            sourceURL: URL(fileURLWithPath: "/tmp/a.mp4"),
-            startInSeconds: 0,
-            sourceStartInSeconds: sourceStart,
-            sourceEndInSeconds: sourceEnd
-        )
+    func testNewProjectHasBrollMainAndAudioTracksInThatOrder() {
+        let project = Project(name: "Demo")
+
+        XCTAssertEqual(project.tracks.map(\.role), [.broll, .main, .audio])
     }
 }
