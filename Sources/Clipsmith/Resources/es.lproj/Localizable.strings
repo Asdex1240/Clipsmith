@@ -141,3 +141,6 @@
 "timeline.snapping" = "Imán (pegado)";
 "timeline.snapping.on" = "Imán activado: los clips se pegan a los bordes (clic para desactivar)";
 "timeline.snapping.off" = "Imán desactivado: colocación libre (clic para activar)";
+"inspector.speed.section" = "Velocidad";
+"inspector.speed.rate" = "Velocidad de reproducción";
+"inspector.speed.duration" = "Duración en el timeline: %@";

@@ -17,6 +17,8 @@ struct BuiltComposition {
         let item = AVPlayerItem(asset: composition)
         item.videoComposition = videoComposition
         item.audioMix = audioMix
+        // Sped-up or slowed-down audio keeps its pitch.
+        item.audioTimePitchAlgorithm = .spectral
         return item
     }
 

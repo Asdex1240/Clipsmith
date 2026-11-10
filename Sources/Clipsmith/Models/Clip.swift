@@ -4,6 +4,7 @@ struct Clip: Codable, Identifiable, Equatable {
     static let minimumDurationInSeconds: TimeInterval = 0.1
     static let maximumVolume = 2.0
     static let scaleRange = 0.1...5.0
+    static let speedRange = 0.25...4.0
 
     var id = UUID()
     var sourceURL: URL?
@@ -25,12 +26,17 @@ struct Clip: Codable, Identifiable, Equatable {
     /// Size of a visual clip relative to its framed size, and its rotation in degrees (clockwise), both around the canvas center.
     var scale = 1.0
     var rotationInDegrees = 0.0
+    /// Playback rate of a video or audio clip: 2 plays twice as fast, 0.5 at half speed.
+    var speed = 1.0
 
     var displayName: String {
         textLayer?.content ?? sourceURL?.lastPathComponent ?? ""
     }
 
-    var durationInSeconds: TimeInterval { sourceEndInSeconds - sourceStartInSeconds }
+    /// How much of the source the clip plays, regardless of its speed.
+    var sourceSpanInSeconds: TimeInterval { sourceEndInSeconds - sourceStartInSeconds }
+    var durationInSeconds: TimeInterval { sourceSpanInSeconds / speed }
+    var supportsSpeed: Bool { mediaKind == .video || mediaKind == .audio }
     var endInSeconds: TimeInterval { startInSeconds + durationInSeconds }
 
     init(item: MediaItem, startInSeconds: TimeInterval) {
@@ -72,19 +78,19 @@ struct Clip: Codable, Identifiable, Equatable {
         guard lower <= upper else { return self }
         let newStart = min(max(time, lower), upper)
         var trimmed = self
-        trimmed.sourceStartInSeconds += newStart - startInSeconds
+        trimmed.sourceStartInSeconds += (newStart - startInSeconds) * speed
         trimmed.startInSeconds = newStart
         return trimmed.clampingFades()
     }
 
     func trimmedTrailing(to time: TimeInterval, notAfter ceiling: TimeInterval) -> Clip {
         let sourceLimit = sourceDurationInSeconds
-            .map { startInSeconds + ($0 - sourceStartInSeconds) } ?? .infinity
+            .map { startInSeconds + ($0 - sourceStartInSeconds) / speed } ?? .infinity
         let upper = min(ceiling, sourceLimit)
         let lower = startInSeconds + Self.minimumDurationInSeconds
         guard lower <= upper else { return self }
         var trimmed = self
-        trimmed.sourceEndInSeconds = sourceStartInSeconds + (min(max(time, lower), upper) - startInSeconds)
+        trimmed.sourceEndInSeconds = sourceStartInSeconds + (min(max(time, lower), upper) - startInSeconds) * speed
         return trimmed.clampingFades()
     }
 
@@ -93,7 +99,7 @@ struct Clip: Codable, Identifiable, Equatable {
         let latest = endInSeconds - Self.minimumDurationInSeconds
         guard time >= earliest, time <= latest else { return nil }
         var left = self
-        left.sourceEndInSeconds = sourceStartInSeconds + (time - startInSeconds)
+        left.sourceEndInSeconds = sourceStartInSeconds + (time - startInSeconds) * speed
         left.fadeOutDurationInSeconds = 0
         var right = self
         right.id = UUID()
@@ -135,6 +141,20 @@ struct Clip: Codable, Identifiable, Equatable {
         return clip
     }
 
+    /// Changes the playback rate, keeping the start; the clip grows or shrinks on the timeline.
+    /// `ceiling` is the latest time the clip may end at, so it never runs into the next clip.
+    func settingSpeed(_ value: Double, notEndingAfter ceiling: TimeInterval = .infinity) -> Clip {
+        guard supportsSpeed else { return self }
+        var clip = self
+        var proposed = min(max(value, Self.speedRange.lowerBound), Self.speedRange.upperBound)
+        let room = ceiling - startInSeconds
+        if room.isFinite, room > 0 {
+            proposed = max(proposed, min(sourceSpanInSeconds / room, Self.speedRange.upperBound))
+        }
+        clip.speed = proposed
+        return clip.clampingFades()
+    }
+
     func settingOffset(x: Double, y: Double) -> Clip {
         var clip = self
         clip.offsetX = x
@@ -153,7 +173,7 @@ extension Clip {
     private enum CodingKeys: String, CodingKey {
         case id, sourceURL, mediaKind, startInSeconds, sourceStartInSeconds, sourceEndInSeconds
         case sourceDurationInSeconds, volume, fadeInDurationInSeconds, fadeOutDurationInSeconds
-        case textLayer, fitMode, offsetX, offsetY, isAudioDetached, scale, rotationInDegrees
+        case textLayer, fitMode, offsetX, offsetY, isAudioDetached, scale, rotationInDegrees, speed
     }
 
     init(from decoder: Decoder) throws {
@@ -175,6 +195,7 @@ extension Clip {
         isAudioDetached = try container.decodeIfPresent(Bool.self, forKey: .isAudioDetached) ?? false
         scale = try container.decodeIfPresent(Double.self, forKey: .scale) ?? 1
         rotationInDegrees = try container.decodeIfPresent(Double.self, forKey: .rotationInDegrees) ?? 0
+        speed = try container.decodeIfPresent(Double.self, forKey: .speed) ?? 1
     }
 
     func encode(to encoder: Encoder) throws {
@@ -196,5 +217,6 @@ extension Clip {
         if isAudioDetached { try container.encode(isAudioDetached, forKey: .isAudioDetached) }
         if scale != 1 { try container.encode(scale, forKey: .scale) }
         if rotationInDegrees != 0 { try container.encode(rotationInDegrees, forKey: .rotationInDegrees) }
+        if speed != 1 { try container.encode(speed, forKey: .speed) }
     }
 }

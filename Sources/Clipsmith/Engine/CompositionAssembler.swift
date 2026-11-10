@@ -14,6 +14,8 @@ final class CompositionAssembler {
         let transform: CGAffineTransform
     }
 
+    private static let scaleToleranceInSeconds: TimeInterval = 1e-6
+
     private let composition = AVMutableComposition()
     private let renderSize: CGSize
     private let framesPerSecond: Int32
@@ -74,12 +76,12 @@ final class CompositionAssembler {
             throw CompositionError.missingTrack(source.asset.url)
         }
         let target = try videoTrack(for: role)
-        let insertedDuration = source.isStill ? StillImageVideoWriter.durationInSeconds : clip.durationInSeconds
+        let insertedDuration = source.isStill ? StillImageVideoWriter.durationInSeconds : clip.sourceSpanInSeconds
         let insertedRange = CMTimeRange(start: source.startInSeconds.cmTime, duration: insertedDuration.cmTime)
         try target.insertTimeRange(insertedRange, of: assetTrack, at: clip.startInSeconds.cmTime)
-        if source.isStill {
-            let stillRange = CMTimeRange(start: clip.startInSeconds.cmTime, duration: insertedDuration.cmTime)
-            target.scaleTimeRange(stillRange, toDuration: clip.durationInSeconds.cmTime)
+        if abs(insertedDuration - clip.durationInSeconds) > Self.scaleToleranceInSeconds {
+            let insertedAt = CMTimeRange(start: clip.startInSeconds.cmTime, duration: insertedDuration.cmTime)
+            target.scaleTimeRange(insertedAt, toDuration: clip.durationInSeconds.cmTime)
         }
         let (naturalSize, preferredTransform) = try await assetTrack.load(.naturalSize, .preferredTransform)
         placements[clip.id] = Placement(
@@ -135,8 +137,13 @@ final class CompositionAssembler {
         guard clip.mediaKind != .image else { return false }
         let asset = AVURLAsset(url: try sourceURL(of: clip))
         guard let assetTrack = try await asset.loadTracks(withMediaType: .audio).first else { return false }
-        let range = CMTimeRange(start: clip.sourceStartInSeconds.cmTime, duration: clip.durationInSeconds.cmTime)
-        try audioTrack(for: role).insertTimeRange(range, of: assetTrack, at: clip.startInSeconds.cmTime)
+        let range = CMTimeRange(start: clip.sourceStartInSeconds.cmTime, duration: clip.sourceSpanInSeconds.cmTime)
+        let target = try audioTrack(for: role)
+        try target.insertTimeRange(range, of: assetTrack, at: clip.startInSeconds.cmTime)
+        if abs(clip.sourceSpanInSeconds - clip.durationInSeconds) > Self.scaleToleranceInSeconds {
+            let insertedAt = CMTimeRange(start: clip.startInSeconds.cmTime, duration: clip.sourceSpanInSeconds.cmTime)
+            target.scaleTimeRange(insertedAt, toDuration: clip.durationInSeconds.cmTime)
+        }
         volumeSteps[role, default: []].append(contentsOf: VolumeAutomation.steps(for: clip))
         return true
     }

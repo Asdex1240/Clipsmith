@@ -141,3 +141,6 @@
 "timeline.snapping" = "Snapping";
 "timeline.snapping.on" = "Snapping on: clips stick to edges (click to unlock)";
 "timeline.snapping.off" = "Snapping off: free placement (click to lock)";
+"inspector.speed.section" = "Speed";
+"inspector.speed.rate" = "Playback speed";
+"inspector.speed.duration" = "Duration on the timeline: %@";

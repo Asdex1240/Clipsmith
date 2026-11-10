@@ -196,6 +196,10 @@ final class ProjectStore {
         mutate(coalescingKey: "text-\(id)-\(field)") { $0.updateTextLayer(of: id, change) }
     }
 
+    func setSpeed(of id: Clip.ID, to value: Double) {
+        mutate(coalescingKey: "speed-\(id)") { $0.setSpeed(of: id, to: value) }
+    }
+
     func setVolume(of id: Clip.ID, to value: Double) {
         mutate(coalescingKey: "volume-\(id)") { $0.setVolume(of: id, to: value) }
     }

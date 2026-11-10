@@ -25,6 +25,13 @@ extension Project {
         updateClip(id) { $0.settingTransform(scale: scale, rotationInDegrees: rotationInDegrees) }
     }
 
+    mutating func setSpeed(of id: Clip.ID, to value: Double) {
+        guard let position = location(of: id) else { return }
+        let track = tracks[position.track]
+        let clip = track.clips[position.clip]
+        tracks[position.track].clips[position.clip] = clip.settingSpeed(value, notEndingAfter: track.nextStart(after: clip))
+    }
+
     mutating func setOffset(of id: Clip.ID, x: Double, y: Double) {
         updateClip(id) { $0.settingOffset(x: x, y: y) }
     }
