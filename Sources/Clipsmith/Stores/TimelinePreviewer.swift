@@ -40,6 +40,9 @@ final class TimelinePreviewer {
 
     private static func withoutText(_ project: Project) -> Project {
         var copy = project
+        // Markers and the name do not affect what is played, so changing them must not rebuild the preview.
+        copy.markers = []
+        copy.name = ""
         for index in copy.tracks.indices where copy.tracks[index].role == .text {
             copy.tracks[index].clips = []
         }
