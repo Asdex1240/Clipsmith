@@ -53,3 +53,7 @@ Swift, SwiftUI, AVFoundation, Metal / Core Image.
 ## Contributing
 
 Issues and pull requests are welcome. Please run `swift test` before submitting changes.
+
+## License
+
+Released under the [MIT License](LICENSE).
