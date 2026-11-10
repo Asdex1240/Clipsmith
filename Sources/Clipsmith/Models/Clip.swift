@@ -32,6 +32,8 @@ struct Clip: Codable, Identifiable, Equatable {
     var opacity = 1.0
     /// Values the visual look moves through over the clip; empty when the clip is not animated.
     var keyframes: [Keyframe] = []
+    /// How this clip comes in after the clip right before it; ignored when nothing touches its start.
+    var transition: ClipTransition?
 
     var displayName: String {
         textLayer?.content ?? sourceURL?.lastPathComponent ?? ""
@@ -109,6 +111,7 @@ struct Clip: Codable, Identifiable, Equatable {
         var right = self
         right.id = UUID()
         right.startInSeconds = time
+        right.transition = nil
         if isAnimated {
             // Each half keeps the animation it had at the cut, so the picture does not jump.
             let cut = time - startInSeconds
@@ -186,7 +189,7 @@ extension Clip {
     private enum CodingKeys: String, CodingKey {
         case id, sourceURL, mediaKind, startInSeconds, sourceStartInSeconds, sourceEndInSeconds
         case sourceDurationInSeconds, volume, fadeInDurationInSeconds, fadeOutDurationInSeconds
-        case textLayer, fitMode, offsetX, offsetY, isAudioDetached, scale, rotationInDegrees, speed, opacity, keyframes
+        case textLayer, fitMode, offsetX, offsetY, isAudioDetached, scale, rotationInDegrees, speed, opacity, keyframes, transition
     }
 
     init(from decoder: Decoder) throws {
@@ -211,6 +214,7 @@ extension Clip {
         speed = try container.decodeIfPresent(Double.self, forKey: .speed) ?? 1
         opacity = try container.decodeIfPresent(Double.self, forKey: .opacity) ?? 1
         keyframes = try container.decodeIfPresent([Keyframe].self, forKey: .keyframes) ?? []
+        transition = try container.decodeIfPresent(ClipTransition.self, forKey: .transition)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -235,5 +239,6 @@ extension Clip {
         if speed != 1 { try container.encode(speed, forKey: .speed) }
         if opacity != 1 { try container.encode(opacity, forKey: .opacity) }
         if !keyframes.isEmpty { try container.encode(keyframes, forKey: .keyframes) }
+        try container.encodeIfPresent(transition, forKey: .transition)
     }
 }

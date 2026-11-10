@@ -152,3 +152,10 @@
 "inspector.keyframes.clear" = "Quitar todos";
 "inspector.keyframes.go" = "Ir al fotograma clave";
 "inspector.keyframes.remove" = "Quitar fotograma clave";
+"transition.none" = "Sin transición";
+"transition.add" = "Añadir una transición entre estos clips";
+"transition.dissolve" = "Disolvencia";
+"transition.fadeBlack" = "Fundido a negro";
+"transition.slideLeft" = "Deslizar a la izquierda";
+"transition.slideRight" = "Deslizar a la derecha";
+"transition.duration" = "Duración";

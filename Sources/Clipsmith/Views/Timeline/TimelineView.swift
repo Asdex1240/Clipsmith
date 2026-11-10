@@ -141,6 +141,13 @@ struct TimelineView: View {
                 )
                 .task(id: clip.sourceURL) { await loadWaveform(for: clip, in: track) }
             }
+            ForEach(track.clips) { clip in
+                if store.project.clipBeforeAndTouching(clip.id) != nil {
+                    TransitionButton(store: store, clip: clip)
+                        .offset(x: clip.startInSeconds * pointsPerSecond - TransitionButton.size / 2, y: 2)
+                        .zIndex(2)
+                }
+            }
         }
         .frame(width: width, height: TimelineMetrics.laneHeight, alignment: .topLeading)
         .overlay(alignment: .topLeading) {

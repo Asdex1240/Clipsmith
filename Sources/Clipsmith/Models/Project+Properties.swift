@@ -31,6 +31,26 @@ extension Project {
         }
     }
 
+    mutating func setTransition(of id: Clip.ID, to transition: ClipTransition?) {
+        updateClip(id) { clip in
+            var updated = clip
+            updated.transition = transition
+            return updated
+        }
+    }
+
+    /// The visual clip that ends exactly where `id` starts on the same track, if any.
+    func clipBeforeAndTouching(_ id: Clip.ID) -> Clip? {
+        guard let position = location(of: id), [.main, .broll].contains(tracks[position.track].role) else { return nil }
+        let track = tracks[position.track]
+        let clip = track.clips[position.clip]
+        return track.clips
+            .filter { $0.id != id && abs($0.endInSeconds - clip.startInSeconds) <= Self.transitionAdjacencyToleranceInSeconds }
+            .first
+    }
+
+    static let transitionAdjacencyToleranceInSeconds: TimeInterval = 0.001
+
     mutating func setOpacity(of id: Clip.ID, to value: Double, at time: TimeInterval? = nil) {
         updateClip(id) { clip in clip.updatingVisual(at: time) { $0.opacity = value } }
     }

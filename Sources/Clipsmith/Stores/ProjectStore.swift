@@ -153,6 +153,10 @@ final class ProjectStore {
         }
     }
 
+    func setTransition(of id: Clip.ID, to transition: ClipTransition?) {
+        mutate { $0.setTransition(of: id, to: transition) }
+    }
+
     func setOpacity(of id: Clip.ID, to value: Double) {
         let time = playheadInSeconds
         mutate(coalescingKey: "opacity-\(id)") { $0.setOpacity(of: id, to: value, at: time) }

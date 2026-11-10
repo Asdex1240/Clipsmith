@@ -9,10 +9,11 @@ enum LayerAnimation {
     /// Times (in timeline seconds) between `start` and `end` at which a layer's look is sampled.
     /// Neighbouring samples are joined by straight ramps, so turns and zooms get extra samples
     /// to keep the in-between frames from shrinking or skewing.
-    static func samplePoints(for clip: Clip, from start: TimeInterval, to end: TimeInterval) -> [TimeInterval] {
+    static func samplePoints(
+        for clip: Clip, from start: TimeInterval, to end: TimeInterval, extraAnchors: [TimeInterval] = []
+    ) -> [TimeInterval] {
         guard end > start else { return [start] }
-        let anchors = clip.keyframes
-            .map { clip.startInSeconds + $0.timeInSeconds }
+        let anchors = (clip.keyframes.map { clip.startInSeconds + $0.timeInSeconds } + extraAnchors)
             .filter { $0 > start + edgeToleranceInSeconds && $0 < end - edgeToleranceInSeconds }
         let corners = ([start] + anchors + [end]).sorted()
         var points: [TimeInterval] = [start]

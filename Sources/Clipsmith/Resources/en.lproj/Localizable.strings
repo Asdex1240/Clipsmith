@@ -152,3 +152,10 @@
 "inspector.keyframes.clear" = "Remove all";
 "inspector.keyframes.go" = "Go to keyframe";
 "inspector.keyframes.remove" = "Remove keyframe";
+"transition.none" = "No transition";
+"transition.add" = "Add a transition between these clips";
+"transition.dissolve" = "Dissolve";
+"transition.fadeBlack" = "Fade through black";
+"transition.slideLeft" = "Slide left";
+"transition.slideRight" = "Slide right";
+"transition.duration" = "Duration";
