@@ -2,6 +2,7 @@ import SwiftUI
 
 struct InspectorView: View {
     let store: ProjectStore
+    let subtitles: SubtitleController
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -19,13 +20,20 @@ struct InspectorView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     if hasVisualControls(for: clip) {
-                        VisualInspector(store: store, clip: clip)
+                        VisualInspector(store: store, clip: clip.presented(atTimelineTime: store.playheadInSeconds))
+                        EffectsInspector(store: store, clip: clip)
                     }
                     if clip.textLayer != nil {
                         TextInspector(store: store, clip: clip)
                     }
+                    if hasSpeedControls(for: clip) {
+                        SpeedInspector(store: store, clip: clip)
+                    }
                     if hasAudioControls(for: clip) {
                         AudioInspector(store: store, clip: clip)
+                    }
+                    if hasAudioControls(for: clip) {
+                        SubtitleInspector(subtitles: subtitles, clip: clip)
                     }
                     if clip.isAudioDetached {
                         Text(localized("inspector.audio.detached"))
@@ -50,6 +58,11 @@ struct InspectorView: View {
         guard clip.mediaKind == .video || clip.mediaKind == .image else { return false }
         let role = store.project.trackRole(ofClip: clip.id)
         return role == .main || role == .broll
+    }
+
+    private func hasSpeedControls(for clip: Clip) -> Bool {
+        guard clip.supportsSpeed else { return false }
+        return store.project.trackRole(ofClip: clip.id).map { [.main, .broll, .audio].contains($0) } ?? false
     }
 
     private func hasAudioControls(for clip: Clip) -> Bool {

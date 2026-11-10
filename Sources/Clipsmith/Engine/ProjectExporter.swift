@@ -61,6 +61,7 @@ struct ProjectExporter: Exporting {
         built.attachTextOverlayForExport()
         session.videoComposition = built.videoComposition
         session.audioMix = built.audioMix
+        session.audioTimePitchAlgorithm = .spectral
         session.shouldOptimizeForNetworkUse = true
 
         nonisolated(unsafe) let sharedSession = session

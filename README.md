@@ -15,6 +15,11 @@ Planned for the first release:
 - **Preview** — real-time playback and scrubbing.
 - **Text** — text layers with font, size, color and position.
 - **Audio** — per-clip volume, fade in/out and visible waveforms.
+- **Speed** — play a clip from 0.25× to 4×; its length on the timeline follows.
+- **Animation** — keyframes for position, size, rotation and opacity, edited at the playhead.
+- **Transitions** — dissolve, fade through black or slide between touching clips.
+- **Color and crop** — brightness, contrast, saturation, temperature, one-click looks and a per-side crop.
+- **Subtitles** — generate text clips from the speech in a clip, on device where the language allows (needs the packaged app, see below).
 - **Export** — MP4 (H.264 / HEVC) at 720p, 1080p, 1440p, 4K or exactly the canvas size, with configurable frame rate and 16:9 / 9:16 presets.
 
 Everything runs locally; there is no backend and no account.
@@ -41,13 +46,16 @@ open Package.swift # open the project in Xcode
 |--------|-----|
 | Play / pause | `Space` |
 | Split at playhead | `S` |
-| Add text | `T` |
+| Add text / marker | `T` / `M` |
+| Trim start / end to playhead | `Q` / `W` |
+| Copy / cut / paste / duplicate clip | `⌘C` / `⌘X` / `⌘V` / `⌘D` |
+| Toggle snapping | `N` |
 | Delete / ripple delete | `⌫` / `⇧⌫` |
 | Previous / next frame | `←` / `→` |
 | Back / forward 1 second | `⇧←` / `⇧→` |
 | Previous / next cut | `⌥←` / `⌥→` |
 | Go to start / end | `Home` / `End` |
-| Zoom in / out | `+` / `-` |
+| Zoom in / out | `+` / `-` (or `⌘` + scroll over the timeline) |
 | Deselect | `Esc` |
 | Undo / redo | `⌘Z` / `⇧⌘Z` |
 | Export | `⌘E` |
@@ -68,6 +76,8 @@ This produces `build/Clipsmith.app` (Apple Silicon, ad-hoc signed, runs on the m
 | `BUNDLE_ID` | `dev.clipsmith.Clipsmith` | Change it to an identifier you own |
 | `SIGN_IDENTITY` | `-` (ad-hoc) | A `Developer ID Application` identity to sign for distribution |
 | `MAKE_ZIP` | `0` | Set to `1` to also create a `.zip` |
+
+Subtitles only work from this packaged app: macOS asks for speech-recognition permission the first time, and `swift run` has no app bundle to ask with.
 
 To distribute the app to other people it must be signed with a Developer ID and notarized:
 

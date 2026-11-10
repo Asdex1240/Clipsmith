@@ -57,6 +57,8 @@ final class TimelinePreviewer {
                 copy.tracks[track].clips[clip].offsetY = 0
                 copy.tracks[track].clips[clip].scale = 1
                 copy.tracks[track].clips[clip].rotationInDegrees = 0
+                copy.tracks[track].clips[clip].opacity = 1
+                copy.tracks[track].clips[clip].keyframes = []
             }
         }
         return copy

@@ -34,10 +34,23 @@ struct ClipBlockView: View {
             }
         }
         .frame(width: max(clip.durationInSeconds * pointsPerSecond, 2), height: TimelineMetrics.laneHeight)
+        .overlay(alignment: .bottomLeading) { keyframeMarks }
         .offset(x: clip.startInSeconds * pointsPerSecond + moveTranslation.width, y: moveTranslation.height)
         .zIndex(moveTranslation == .zero ? 0 : 1)
         .onTapGesture(perform: onSelect)
         .gesture(moveGesture)
+    }
+
+    private var keyframeMarks: some View {
+        ZStack(alignment: .bottomLeading) {
+            ForEach(clip.keyframes) { frame in
+                Image(systemName: "diamond.fill")
+                    .font(.system(size: 7))
+                    .foregroundStyle(.yellow)
+                    .offset(x: frame.timeInSeconds * pointsPerSecond - 3.5, y: -2)
+            }
+        }
+        .allowsHitTesting(false)
     }
 
     private var fillColor: Color {

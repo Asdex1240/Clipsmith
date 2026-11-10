@@ -9,9 +9,17 @@ enum CompositionError: Error {
 }
 
 final class CompositionAssembler {
-    private struct Placement {
-        let trackID: CMPersistentTrackID
-        let transform: CGAffineTransform
+    private static let scaleToleranceInSeconds: TimeInterval = 1e-6
+    private static let heldFrameInSeconds: TimeInterval = 1.0 / 30
+
+    /// What a visual clip was cut from, kept so a transition can borrow a little footage beyond its end.
+    private struct VideoSource {
+        /// Kept so the track below stays valid until the composition is finished.
+        let asset: AVURLAsset
+        let assetTrack: AVAssetTrack
+        let startInSeconds: TimeInterval
+        let isStill: Bool
+        let role: Track.Role
     }
 
     private let composition = AVMutableComposition()
@@ -21,7 +29,11 @@ final class CompositionAssembler {
     private let logger = Logger(subsystem: "Clipsmith", category: "composition")
     private var videoTracks: [Track.Role: AVMutableCompositionTrack] = [:]
     private var audioTracks: [Track.Role: AVMutableCompositionTrack] = [:]
-    private var placements: [Clip.ID: Placement] = [:]
+    private var placements: [Clip.ID: RenderLayer] = [:]
+    private var videoSources: [Clip.ID: VideoSource] = [:]
+    private var transitionTracks: [Track.Role: AVMutableCompositionTrack] = [:]
+    /// The held-over end of the outgoing clip, keyed by the incoming clip it blends into.
+    private var tailPlacements: [Clip.ID: RenderLayer] = [:]
     private var skippedClipIDs: [Clip.ID] = []
     private var textClips: [Clip] = []
     private var visualFrames: [Clip.ID: CGRect] = [:]
@@ -44,6 +56,7 @@ final class CompositionAssembler {
 
     func finish(segments: [PlannedSegment]) -> BuiltComposition {
         let covered = CompositionPlanner.clamp(segments, toDuration: composition.duration.seconds)
+        insertTails(for: covered.flatMap(\.transitions))
         return BuiltComposition(
             composition: composition,
             videoComposition: makeVideoComposition(covering: covered),
@@ -74,25 +87,20 @@ final class CompositionAssembler {
             throw CompositionError.missingTrack(source.asset.url)
         }
         let target = try videoTrack(for: role)
-        let insertedDuration = source.isStill ? StillImageVideoWriter.durationInSeconds : clip.durationInSeconds
+        let insertedDuration = source.isStill ? StillImageVideoWriter.durationInSeconds : clip.sourceSpanInSeconds
         let insertedRange = CMTimeRange(start: source.startInSeconds.cmTime, duration: insertedDuration.cmTime)
         try target.insertTimeRange(insertedRange, of: assetTrack, at: clip.startInSeconds.cmTime)
-        if source.isStill {
-            let stillRange = CMTimeRange(start: clip.startInSeconds.cmTime, duration: insertedDuration.cmTime)
-            target.scaleTimeRange(stillRange, toDuration: clip.durationInSeconds.cmTime)
+        if abs(insertedDuration - clip.durationInSeconds) > Self.scaleToleranceInSeconds {
+            let insertedAt = CMTimeRange(start: clip.startInSeconds.cmTime, duration: insertedDuration.cmTime)
+            target.scaleTimeRange(insertedAt, toDuration: clip.durationInSeconds.cmTime)
         }
         let (naturalSize, preferredTransform) = try await assetTrack.load(.naturalSize, .preferredTransform)
-        placements[clip.id] = Placement(
-            trackID: target.trackID,
-            transform: FitTransform.make(
-                naturalSize: naturalSize,
-                preferredTransform: preferredTransform,
-                renderSize: renderSize,
-                mode: clip.fitMode,
-                offset: CGPoint(x: clip.offsetX * renderSize.width, y: clip.offsetY * renderSize.height),
-                scale: clip.scale,
-                rotationInDegrees: clip.rotationInDegrees
-            )
+        videoSources[clip.id] = VideoSource(
+            asset: source.asset, assetTrack: assetTrack, startInSeconds: source.startInSeconds, isStill: source.isStill, role: role
+        )
+        placements[clip.id] = RenderLayer(
+            trackID: target.trackID, clip: clip, naturalSize: naturalSize,
+            preferredTransform: preferredTransform, renderSize: renderSize
         )
         visualFrames[clip.id] = contentFrame(of: clip, naturalSize: naturalSize, preferredTransform: preferredTransform)
     }
@@ -135,8 +143,13 @@ final class CompositionAssembler {
         guard clip.mediaKind != .image else { return false }
         let asset = AVURLAsset(url: try sourceURL(of: clip))
         guard let assetTrack = try await asset.loadTracks(withMediaType: .audio).first else { return false }
-        let range = CMTimeRange(start: clip.sourceStartInSeconds.cmTime, duration: clip.durationInSeconds.cmTime)
-        try audioTrack(for: role).insertTimeRange(range, of: assetTrack, at: clip.startInSeconds.cmTime)
+        let range = CMTimeRange(start: clip.sourceStartInSeconds.cmTime, duration: clip.sourceSpanInSeconds.cmTime)
+        let target = try audioTrack(for: role)
+        try target.insertTimeRange(range, of: assetTrack, at: clip.startInSeconds.cmTime)
+        if abs(clip.sourceSpanInSeconds - clip.durationInSeconds) > Self.scaleToleranceInSeconds {
+            let insertedAt = CMTimeRange(start: clip.startInSeconds.cmTime, duration: clip.sourceSpanInSeconds.cmTime)
+            target.scaleTimeRange(insertedAt, toDuration: clip.durationInSeconds.cmTime)
+        }
         volumeSteps[role, default: []].append(contentsOf: VolumeAutomation.steps(for: clip))
         return true
     }
@@ -202,26 +215,113 @@ final class CompositionAssembler {
         let videoComposition = AVMutableVideoComposition()
         videoComposition.renderSize = renderSize
         videoComposition.frameDuration = CMTime(value: 1, timescale: framesPerSecond)
+        let usesEffects = placements.values.contains { $0.clip.hasLookEffects }
+        if usesEffects { videoComposition.customVideoCompositorClass = EffectsCompositor.self }
         videoComposition.instructions = segments.enumerated().map { index, segment in
             let isLast = index == segments.count - 1
-            return instruction(for: segment, endingAt: isLast ? composition.duration : segment.endInSeconds.cmTime)
+            let end = isLast ? composition.duration : segment.endInSeconds.cmTime
+            return usesEffects ? effectsInstruction(for: segment, endingAt: end) : instruction(for: segment, endingAt: end)
         }
         return videoComposition
+    }
+
+    private func effectsInstruction(for segment: PlannedSegment, endingAt end: CMTime) -> EffectsInstruction {
+        EffectsInstruction(
+            timeRange: CMTimeRange(start: segment.startInSeconds.cmTime, end: end),
+            layers: segment.clipIDsTopFirst.flatMap { layers(for: $0, in: segment) }
+        )
     }
 
     private func instruction(for segment: PlannedSegment, endingAt end: CMTime) -> AVMutableVideoCompositionInstruction {
         let instruction = AVMutableVideoCompositionInstruction()
         instruction.timeRange = CMTimeRange(start: segment.startInSeconds.cmTime, end: end)
         instruction.backgroundColor = CGColor(gray: 0, alpha: 1)
-        instruction.layerInstructions = segment.clipIDsTopFirst.compactMap(layerInstruction(for:))
+        instruction.layerInstructions = segment.clipIDsTopFirst.flatMap { layers(for: $0, in: segment) }
+            .compactMap { layerInstruction(for: $0, in: segment) }
         return instruction
     }
 
-    private func layerInstruction(for clipID: Clip.ID) -> AVVideoCompositionLayerInstruction? {
-        guard let placement = placements[clipID],
-              let track = composition.track(withTrackID: placement.trackID) else { return nil }
-        let layer = AVMutableVideoCompositionLayerInstruction(assetTrack: track)
-        layer.setTransform(placement.transform, at: .zero)
-        return layer
+    /// A clip's layer, preceded by the held end of the clip it is blending in from while a transition runs.
+    private func layers(for clipID: Clip.ID, in segment: PlannedSegment) -> [RenderLayer] {
+        guard let incoming = placements[clipID] else { return [] }
+        guard let transition = segment.transitions.first(where: { $0.incomingClipID == clipID }),
+              let tail = tailPlacements[clipID] else { return [incoming] }
+        return [
+            tail.blending(LayerBlend(transition: transition, isOutgoing: true)),
+            incoming.blending(LayerBlend(transition: transition, isOutgoing: false)),
+        ]
+    }
+
+    private func layerInstruction(for layer: RenderLayer, in segment: PlannedSegment) -> AVVideoCompositionLayerInstruction? {
+        guard let track = composition.track(withTrackID: layer.trackID) else { return nil }
+        let instruction = AVMutableVideoCompositionLayerInstruction(assetTrack: track)
+        guard layer.needsAnimation else {
+            instruction.setTransform(layer.transform(at: layer.clip.startInSeconds), at: .zero)
+            return instruction
+        }
+        let points = LayerAnimation.samplePoints(
+            for: layer.clip, from: segment.startInSeconds, to: segment.endInSeconds,
+            extraAnchors: layer.blend?.breakpoints ?? []
+        )
+        for (from, to) in zip(points, points.dropFirst()) {
+            let range = CMTimeRange(start: from.cmTime, end: to.cmTime)
+            instruction.setTransformRamp(fromStart: layer.transform(at: from), toEnd: layer.transform(at: to), timeRange: range)
+            instruction.setOpacityRamp(
+                fromStartOpacity: Float(layer.opacity(at: from)), toEndOpacity: Float(layer.opacity(at: to)), timeRange: range
+            )
+        }
+        return instruction
+    }
+
+    // MARK: Transitions
+
+    private func insertTails(for transitions: [PlannedTransition]) {
+        var done = Set<Clip.ID>()
+        for transition in transitions where done.insert(transition.incomingClipID).inserted {
+            do {
+                try insertTail(for: transition)
+            } catch {
+                logger.error("Transition skipped: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    /// Puts the end of the outgoing clip on a spare track under the start of the incoming one: its real footage
+    /// when the source continues past the cut, otherwise its last frame held still.
+    private func insertTail(for transition: PlannedTransition) throws {
+        guard let placement = placements[transition.outgoingClipID],
+              let source = videoSources[transition.outgoingClipID] else { return }
+        let outgoing = placement.clip
+        let target = try transitionTrack(for: source.role)
+        let duration = transition.windowEnd - transition.windowStart
+        let start = transition.windowStart.cmTime
+        let availableSource = source.isStill ? 0 : (outgoing.sourceDurationInSeconds ?? 0) - outgoing.sourceEndInSeconds
+        if availableSource >= duration * outgoing.speed - Self.scaleToleranceInSeconds {
+            let range = CMTimeRange(start: outgoing.sourceEndInSeconds.cmTime, duration: (duration * outgoing.speed).cmTime)
+            try target.insertTimeRange(range, of: source.assetTrack, at: start)
+            if outgoing.speed != 1 {
+                target.scaleTimeRange(CMTimeRange(start: start, duration: range.duration), toDuration: duration.cmTime)
+            }
+        } else {
+            let held = source.isStill ? source.startInSeconds : max(outgoing.sourceEndInSeconds - Self.heldFrameInSeconds, source.startInSeconds)
+            let heldDuration = source.isStill ? StillImageVideoWriter.durationInSeconds : outgoing.sourceEndInSeconds - held
+            guard heldDuration > 0 else { return }
+            let range = CMTimeRange(start: held.cmTime, duration: heldDuration.cmTime)
+            try target.insertTimeRange(range, of: source.assetTrack, at: start)
+            target.scaleTimeRange(CMTimeRange(start: start, duration: range.duration), toDuration: duration.cmTime)
+        }
+        tailPlacements[transition.incomingClipID] = RenderLayer(
+            trackID: target.trackID, clip: outgoing, naturalSize: placement.naturalSize,
+            preferredTransform: placement.preferredTransform, renderSize: renderSize
+        )
+    }
+
+    private func transitionTrack(for role: Track.Role) throws -> AVMutableCompositionTrack {
+        if let existing = transitionTracks[role] { return existing }
+        guard let created = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid) else {
+            throw CompositionError.cannotCreateTrack
+        }
+        transitionTracks[role] = created
+        return created
     }
 }

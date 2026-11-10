@@ -21,12 +21,82 @@ extension Project {
         updateClip(id) { $0.settingFitMode(mode) }
     }
 
-    mutating func setTransform(of id: Clip.ID, scale: Double, rotationInDegrees: Double) {
-        updateClip(id) { $0.settingTransform(scale: scale, rotationInDegrees: rotationInDegrees) }
+    /// `time` is the playhead: when the clip has keyframes, the change lands on the keyframe at that moment.
+    mutating func setTransform(of id: Clip.ID, scale: Double, rotationInDegrees: Double, at time: TimeInterval? = nil) {
+        updateClip(id) { clip in
+            clip.updatingVisual(at: time) {
+                $0.scale = scale
+                $0.rotationInDegrees = rotationInDegrees
+            }
+        }
     }
 
-    mutating func setOffset(of id: Clip.ID, x: Double, y: Double) {
-        updateClip(id) { $0.settingOffset(x: x, y: y) }
+    mutating func setTransition(of id: Clip.ID, to transition: ClipTransition?) {
+        updateClip(id) { clip in
+            var updated = clip
+            updated.transition = transition
+            return updated
+        }
+    }
+
+    /// The visual clip that ends exactly where `id` starts on the same track, if any.
+    func clipBeforeAndTouching(_ id: Clip.ID) -> Clip? {
+        guard let position = location(of: id), [.main, .broll].contains(tracks[position.track].role) else { return nil }
+        let track = tracks[position.track]
+        let clip = track.clips[position.clip]
+        return track.clips
+            .filter { $0.id != id && abs($0.endInSeconds - clip.startInSeconds) <= Self.transitionAdjacencyToleranceInSeconds }
+            .first
+    }
+
+    static let transitionAdjacencyToleranceInSeconds: TimeInterval = 0.001
+
+    mutating func setColor(of id: Clip.ID, to adjustments: ColorAdjustments) {
+        updateClip(id) { clip in
+            var updated = clip
+            updated.color = adjustments.clamped()
+            return updated
+        }
+    }
+
+    mutating func setCrop(of id: Clip.ID, to insets: CropInsets) {
+        updateClip(id) { clip in
+            var updated = clip
+            updated.crop = insets.clamped()
+            return updated
+        }
+    }
+
+    mutating func setOpacity(of id: Clip.ID, to value: Double, at time: TimeInterval? = nil) {
+        updateClip(id) { clip in clip.updatingVisual(at: time) { $0.opacity = value } }
+    }
+
+    mutating func addKeyframe(to id: Clip.ID, atTimelineTime time: TimeInterval) {
+        updateClip(id) { $0.addingKeyframe(atClipTime: time - $0.startInSeconds) }
+    }
+
+    mutating func removeKeyframe(_ keyframeID: Keyframe.ID, from id: Clip.ID) {
+        updateClip(id) { $0.removingKeyframe(keyframeID) }
+    }
+
+    mutating func clearKeyframes(of id: Clip.ID) {
+        updateClip(id) { $0.clearingKeyframes() }
+    }
+
+    mutating func setSpeed(of id: Clip.ID, to value: Double) {
+        guard let position = location(of: id) else { return }
+        let track = tracks[position.track]
+        let clip = track.clips[position.clip]
+        tracks[position.track].clips[position.clip] = clip.settingSpeed(value, notEndingAfter: track.nextStart(after: clip))
+    }
+
+    mutating func setOffset(of id: Clip.ID, x: Double, y: Double, at time: TimeInterval? = nil) {
+        updateClip(id) { clip in
+            clip.updatingVisual(at: time) {
+                $0.offsetX = x
+                $0.offsetY = y
+            }
+        }
     }
 
     /// A video on the main track whose sound can still be moved to the audio track without overlapping other audio.
@@ -52,6 +122,10 @@ extension Project {
         audio.fitMode = .fit
         audio.offsetX = 0
         audio.offsetY = 0
+        audio.opacity = 1
+        audio.color = ColorAdjustments()
+        audio.crop = CropInsets()
+        audio.keyframes = []
         tracks[position.track].clips[position.clip].isAudioDetached = true
         tracks[audioIndex].clips.append(audio)
         tracks[audioIndex].clips.sort { $0.startInSeconds < $1.startInSeconds }
@@ -77,6 +151,14 @@ extension Project {
         guard let track = track(withRole: .text) else { return nil }
         let clip = Clip(text: layer, startInSeconds: start, durationInSeconds: duration)
         return addClip(clip, toTrack: track.id) ? clip.id : nil
+    }
+
+    /// Adds a text clip for each line; returns how many fit on the text track.
+    @discardableResult
+    mutating func addSubtitles(_ lines: [SubtitleLine]) -> Int {
+        lines.reduce(0) { added, line in
+            addTextClip(.subtitle(line.text), at: line.startInSeconds, duration: line.durationInSeconds) == nil ? added : added + 1
+        }
     }
 
     private mutating func updateClip(_ id: Clip.ID, _ transform: (Clip) -> Clip) {

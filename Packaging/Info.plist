@@ -46,6 +46,8 @@
     <string>public.app-category.video</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>Clipsmith listens to the audio of your clips to write subtitles. / Clipsmith escucha el audio de tus clips para escribir los subtítulos.</string>
     <key>NSHighResolutionCapable</key>
     <true/>
 </dict>
