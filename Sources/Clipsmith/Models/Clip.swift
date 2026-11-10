@@ -19,6 +19,8 @@ struct Clip: Codable, Identifiable, Equatable {
     /// Shift of a visual clip on the canvas, as a fraction of the canvas width and height.
     var offsetX = 0.0
     var offsetY = 0.0
+    /// True once the sound of a video clip was extracted onto the audio track, so the video stays silent.
+    var isAudioDetached = false
 
     var displayName: String {
         textLayer?.content ?? sourceURL?.lastPathComponent ?? ""
@@ -140,7 +142,7 @@ extension Clip {
     private enum CodingKeys: String, CodingKey {
         case id, sourceURL, mediaKind, startInSeconds, sourceStartInSeconds, sourceEndInSeconds
         case sourceDurationInSeconds, volume, fadeInDurationInSeconds, fadeOutDurationInSeconds
-        case textLayer, fitMode, offsetX, offsetY
+        case textLayer, fitMode, offsetX, offsetY, isAudioDetached
     }
 
     init(from decoder: Decoder) throws {
@@ -159,6 +161,7 @@ extension Clip {
         fitMode = try container.decodeIfPresent(FitMode.self, forKey: .fitMode) ?? .fit
         offsetX = try container.decodeIfPresent(Double.self, forKey: .offsetX) ?? 0
         offsetY = try container.decodeIfPresent(Double.self, forKey: .offsetY) ?? 0
+        isAudioDetached = try container.decodeIfPresent(Bool.self, forKey: .isAudioDetached) ?? false
     }
 
     func encode(to encoder: Encoder) throws {
@@ -177,5 +180,6 @@ extension Clip {
         try container.encode(fitMode, forKey: .fitMode)
         if offsetX != 0 { try container.encode(offsetX, forKey: .offsetX) }
         if offsetY != 0 { try container.encode(offsetY, forKey: .offsetY) }
+        if isAudioDetached { try container.encode(isAudioDetached, forKey: .isAudioDetached) }
     }
 }

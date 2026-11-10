@@ -27,6 +27,11 @@ struct AudioInspector: View {
                 range: 0...fadeRange,
                 valueText: seconds(clip.fadeOutDurationInSeconds)
             )
+            if clip.mediaKind == .video, store.project.trackRole(ofClip: clip.id) == .main {
+                Button(localized("inspector.audio.extract")) { store.detachAudio(ofClip: clip.id) }
+                    .disabled(!store.project.canDetachAudio(ofClip: clip.id))
+                    .help(localized("inspector.audio.extract.help"))
+            }
         }
     }
 

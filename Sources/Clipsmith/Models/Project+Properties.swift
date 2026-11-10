@@ -25,6 +25,35 @@ extension Project {
         updateClip(id) { $0.settingOffset(x: x, y: y) }
     }
 
+    /// A video on the main track whose sound can still be moved to the audio track without overlapping other audio.
+    func canDetachAudio(ofClip id: Clip.ID) -> Bool {
+        guard let position = location(of: id), tracks[position.track].role == .main,
+              let audio = track(withRole: .audio) else { return false }
+        let clip = tracks[position.track].clips[position.clip]
+        guard clip.mediaKind == .video, !clip.isAudioDetached else { return false }
+        return !audio.clips.contains { other in
+            clip.startInSeconds < other.endInSeconds - Track.overlapToleranceInSeconds
+                && clip.endInSeconds > other.startInSeconds + Track.overlapToleranceInSeconds
+        }
+    }
+
+    /// Copies the sound of a video clip to the audio track, at the same time and range, and silences the video.
+    @discardableResult
+    mutating func detachAudio(ofClip id: Clip.ID) -> Clip.ID? {
+        guard canDetachAudio(ofClip: id), let position = location(of: id),
+              let audioIndex = tracks.firstIndex(where: { $0.role == .audio }) else { return nil }
+        var audio = tracks[position.track].clips[position.clip]
+        audio.id = UUID()
+        audio.mediaKind = .audio
+        audio.fitMode = .fit
+        audio.offsetX = 0
+        audio.offsetY = 0
+        tracks[position.track].clips[position.clip].isAudioDetached = true
+        tracks[audioIndex].clips.append(audio)
+        tracks[audioIndex].clips.sort { $0.startInSeconds < $1.startInSeconds }
+        return audio.id
+    }
+
     var hasVisualClips: Bool {
         tracks.contains { $0.clips.contains { $0.mediaKind == .video || $0.mediaKind == .image } }
     }

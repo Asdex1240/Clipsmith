@@ -139,6 +139,12 @@ final class ProjectStore {
         mutate(coalescingKey: "offset-\(id)") { $0.setOffset(of: id, x: x, y: y) }
     }
 
+    func detachAudio(ofClip id: Clip.ID) {
+        var addedID: Clip.ID?
+        mutate { addedID = $0.detachAudio(ofClip: id) }
+        if let addedID { selectedClipID = addedID }
+    }
+
     func replaceMedia(from original: URL, to replacement: URL) {
         mutate { $0.remapSources([original: replacement]) }
     }

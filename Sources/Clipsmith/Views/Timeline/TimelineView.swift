@@ -116,7 +116,7 @@ struct TimelineView: View {
     }
 
     private func showsWaveform(_ clip: Clip, in track: Track) -> Bool {
-        track.role.playsAudio && (clip.mediaKind == .video || clip.mediaKind == .audio)
+        track.role.playsAudio && !clip.isAudioDetached && (clip.mediaKind == .video || clip.mediaKind == .audio)
     }
 
     private func waveformPeaks(for clip: Clip, in track: Track) -> [Float]? {

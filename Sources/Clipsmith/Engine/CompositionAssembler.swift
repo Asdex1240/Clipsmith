@@ -58,7 +58,7 @@ final class CompositionAssembler {
         switch role {
         case .main:
             try await insertVideo(clip, role: role)
-            await insertEmbeddedAudio(of: clip, role: role)
+            if !clip.isAudioDetached { await insertEmbeddedAudio(of: clip, role: role) }
         case .broll:
             try await insertVideo(clip, role: role)
         case .audio:

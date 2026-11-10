@@ -27,6 +27,11 @@ struct InspectorView: View {
                     if hasAudioControls(for: clip) {
                         AudioInspector(store: store, clip: clip)
                     }
+                    if clip.isAudioDetached {
+                        Text(localized("inspector.audio.detached"))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 .padding(12)
             }
@@ -48,7 +53,7 @@ struct InspectorView: View {
     }
 
     private func hasAudioControls(for clip: Clip) -> Bool {
-        guard clip.mediaKind == .video || clip.mediaKind == .audio else { return false }
+        guard clip.mediaKind == .video || clip.mediaKind == .audio, !clip.isAudioDetached else { return false }
         return store.project.trackRole(ofClip: clip.id)?.playsAudio ?? false
     }
 }

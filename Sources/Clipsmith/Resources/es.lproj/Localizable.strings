@@ -62,6 +62,9 @@
 "inspector.audio.section" = "Audio";
 "inspector.audio.volume" = "Volumen";
 "inspector.audio.fadeIn" = "Fundido de entrada";
+"inspector.audio.extract" = "Extraer audio";
+"inspector.audio.extract.help" = "Mueve el sonido a la pista de audio. La pista de audio debe estar libre bajo este clip.";
+"inspector.audio.detached" = "El sonido de este clip se extrajo a la pista de audio.";
 "inspector.audio.fadeOut" = "Fundido de salida";
 "error.file.corrupted" = "El archivo del proyecto está dañado o no es un proyecto de Clipsmith.";
 "error.file.unsupportedVersion" = "Este proyecto se creó con una versión más nueva de Clipsmith (formato %d).";

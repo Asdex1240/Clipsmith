@@ -62,6 +62,9 @@
 "inspector.audio.section" = "Audio";
 "inspector.audio.volume" = "Volume";
 "inspector.audio.fadeIn" = "Fade in";
+"inspector.audio.extract" = "Extract audio";
+"inspector.audio.extract.help" = "Moves the sound to the audio track. The audio track must be free under this clip.";
+"inspector.audio.detached" = "The sound of this clip was extracted to the audio track.";
 "inspector.audio.fadeOut" = "Fade out";
 "error.file.corrupted" = "The project file is damaged or is not a Clipsmith project.";
 "error.file.unsupportedVersion" = "This project was created with a newer version of Clipsmith (format %d).";

@@ -13,6 +13,31 @@ final class ClipPropertiesTests: XCTestCase {
         project = Project(name: "Test")
     }
 
+    func testDetachingAudioCopiesTheSoundToTheAudioTrackAndSilencesTheVideo() {
+        let clip = TestClips.video(start: 2, sourceStart: 1, sourceEnd: 6)
+        project.addClip(clip, toTrack: mainTrackID)
+
+        let audioID = project.detachAudio(ofClip: clip.id)
+
+        let audio = project.track(withRole: .audio)!.clips
+        XCTAssertEqual(audio.map(\.id), [audioID])
+        XCTAssertEqual(audio[0].mediaKind, .audio)
+        XCTAssertEqual(audio[0].startInSeconds, 2)
+        XCTAssertEqual(audio[0].sourceStartInSeconds, 1)
+        XCTAssertEqual(audio[0].sourceEndInSeconds, 6)
+        XCTAssertTrue(mainClips[0].isAudioDetached)
+        XCTAssertFalse(project.canDetachAudio(ofClip: clip.id))
+    }
+
+    func testAudioCannotBeDetachedOverExistingAudio() {
+        let clip = TestClips.video(start: 0)
+        project.addClip(clip, toTrack: mainTrackID)
+        project.addClip(TestClips.audio(start: 5, duration: 10), toTrack: project.track(withRole: .audio)!.id)
+
+        XCTAssertNil(project.detachAudio(ofClip: clip.id))
+        XCTAssertFalse(mainClips[0].isAudioDetached)
+    }
+
     func testVolumeIsClampedBetweenZeroAndTheMaximum() {
         let clip = TestClips.video(start: 0)
         project.addClip(clip, toTrack: mainTrackID)
