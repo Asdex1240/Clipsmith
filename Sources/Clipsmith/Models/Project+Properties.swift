@@ -21,6 +21,10 @@ extension Project {
         updateClip(id) { $0.settingFitMode(mode) }
     }
 
+    mutating func setTransform(of id: Clip.ID, scale: Double, rotationInDegrees: Double) {
+        updateClip(id) { $0.settingTransform(scale: scale, rotationInDegrees: rotationInDegrees) }
+    }
+
     mutating func setOffset(of id: Clip.ID, x: Double, y: Double) {
         updateClip(id) { $0.settingOffset(x: x, y: y) }
     }

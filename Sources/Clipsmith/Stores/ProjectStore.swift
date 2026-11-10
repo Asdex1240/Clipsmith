@@ -135,8 +135,33 @@ final class ProjectStore {
         mutate { $0.setFitMode(of: id, to: mode) }
     }
 
+    func setTransform(of id: Clip.ID, scale: Double, rotationInDegrees: Double) {
+        mutate(coalescingKey: "transform-\(id)") { $0.setTransform(of: id, scale: scale, rotationInDegrees: rotationInDegrees) }
+    }
+
+    /// Puts a visual clip back in the middle of the canvas at its natural size and orientation.
+    func resetTransform(of id: Clip.ID) {
+        mutate {
+            $0.setOffset(of: id, x: 0, y: 0)
+            $0.setTransform(of: id, scale: 1, rotationInDegrees: 0)
+        }
+    }
+
     func setOffset(of id: Clip.ID, x: Double, y: Double) {
         mutate(coalescingKey: "offset-\(id)") { $0.setOffset(of: id, x: x, y: y) }
+    }
+
+    func toggleMarkerAtPlayhead() {
+        let time = playheadInSeconds
+        mutate { $0.toggleMarker(at: time) }
+    }
+
+    func renameMarker(_ id: Marker.ID, to name: String) {
+        mutate(coalescingKey: "marker-\(id)") { $0.renameMarker(id, to: name) }
+    }
+
+    func removeMarker(_ id: Marker.ID) {
+        mutate { $0.removeMarker(id) }
     }
 
     func detachAudio(ofClip id: Clip.ID) {

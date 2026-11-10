@@ -3,6 +3,7 @@ import Foundation
 struct Clip: Codable, Identifiable, Equatable {
     static let minimumDurationInSeconds: TimeInterval = 0.1
     static let maximumVolume = 2.0
+    static let scaleRange = 0.1...5.0
 
     var id = UUID()
     var sourceURL: URL?
@@ -21,6 +22,9 @@ struct Clip: Codable, Identifiable, Equatable {
     var offsetY = 0.0
     /// True once the sound of a video clip was extracted onto the audio track, so the video stays silent.
     var isAudioDetached = false
+    /// Size of a visual clip relative to its framed size, and its rotation in degrees (clockwise), both around the canvas center.
+    var scale = 1.0
+    var rotationInDegrees = 0.0
 
     var displayName: String {
         textLayer?.content ?? sourceURL?.lastPathComponent ?? ""
@@ -124,6 +128,13 @@ struct Clip: Codable, Identifiable, Equatable {
         return clip
     }
 
+    func settingTransform(scale: Double, rotationInDegrees: Double) -> Clip {
+        var clip = self
+        clip.scale = min(max(scale, Self.scaleRange.lowerBound), Self.scaleRange.upperBound)
+        clip.rotationInDegrees = rotationInDegrees
+        return clip
+    }
+
     func settingOffset(x: Double, y: Double) -> Clip {
         var clip = self
         clip.offsetX = x
@@ -142,7 +153,7 @@ extension Clip {
     private enum CodingKeys: String, CodingKey {
         case id, sourceURL, mediaKind, startInSeconds, sourceStartInSeconds, sourceEndInSeconds
         case sourceDurationInSeconds, volume, fadeInDurationInSeconds, fadeOutDurationInSeconds
-        case textLayer, fitMode, offsetX, offsetY, isAudioDetached
+        case textLayer, fitMode, offsetX, offsetY, isAudioDetached, scale, rotationInDegrees
     }
 
     init(from decoder: Decoder) throws {
@@ -162,6 +173,8 @@ extension Clip {
         offsetX = try container.decodeIfPresent(Double.self, forKey: .offsetX) ?? 0
         offsetY = try container.decodeIfPresent(Double.self, forKey: .offsetY) ?? 0
         isAudioDetached = try container.decodeIfPresent(Bool.self, forKey: .isAudioDetached) ?? false
+        scale = try container.decodeIfPresent(Double.self, forKey: .scale) ?? 1
+        rotationInDegrees = try container.decodeIfPresent(Double.self, forKey: .rotationInDegrees) ?? 0
     }
 
     func encode(to encoder: Encoder) throws {
@@ -181,5 +194,7 @@ extension Clip {
         if offsetX != 0 { try container.encode(offsetX, forKey: .offsetX) }
         if offsetY != 0 { try container.encode(offsetY, forKey: .offsetY) }
         if isAudioDetached { try container.encode(isAudioDetached, forKey: .isAudioDetached) }
+        if scale != 1 { try container.encode(scale, forKey: .scale) }
+        if rotationInDegrees != 0 { try container.encode(rotationInDegrees, forKey: .rotationInDegrees) }
     }
 }

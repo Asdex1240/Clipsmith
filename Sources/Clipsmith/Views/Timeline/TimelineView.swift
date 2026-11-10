@@ -29,6 +29,7 @@ struct TimelineView: View {
             Text(store.playheadInSeconds.clockString).monospacedDigit().foregroundStyle(.secondary)
             Spacer()
             toolbarButton("timeline.addText", systemImage: "textformat", shortcut: .addText, action: store.addTextAtPlayhead)
+            toolbarButton("timeline.addMarker", systemImage: "bookmark", shortcut: .addMarker, action: store.toggleMarkerAtPlayhead)
             toolbarButton("timeline.split", systemImage: "scissors", shortcut: .split, action: store.splitAtPlayhead)
             toolbarButton("timeline.delete", systemImage: "trash", shortcut: .delete, action: store.deleteSelectedClip)
             toolbarButton(
@@ -74,6 +75,7 @@ struct TimelineView: View {
     private func tracksContent(contentWidth: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: TimelineMetrics.laneSpacing) {
             TimelineRuler(pointsPerSecond: pointsPerSecond, width: contentWidth, onScrub: store.setPlayhead(near:))
+                .overlay(alignment: .topLeading) { MarkerFlags(store: store, pointsPerSecond: pointsPerSecond) }
             ForEach(Array(store.project.tracks.enumerated()), id: \.element.id) { index, track in
                 lane(for: track, at: index, width: contentWidth)
             }

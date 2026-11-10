@@ -89,7 +89,9 @@ final class CompositionAssembler {
                 preferredTransform: preferredTransform,
                 renderSize: renderSize,
                 mode: clip.fitMode,
-                offset: CGPoint(x: clip.offsetX * renderSize.width, y: clip.offsetY * renderSize.height)
+                offset: CGPoint(x: clip.offsetX * renderSize.width, y: clip.offsetY * renderSize.height),
+                scale: clip.scale,
+                rotationInDegrees: clip.rotationInDegrees
             )
         )
         visualFrames[clip.id] = contentFrame(of: clip, naturalSize: naturalSize, preferredTransform: preferredTransform)

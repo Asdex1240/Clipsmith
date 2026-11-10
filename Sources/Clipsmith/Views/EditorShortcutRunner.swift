@@ -10,6 +10,7 @@ struct EditorShortcutRunner {
         case .togglePlayback: player.togglePlayback()
         case .split: store.splitAtPlayhead()
         case .addText: store.addTextAtPlayhead()
+        case .addMarker: store.toggleMarkerAtPlayhead()
         case .delete: store.deleteSelectedClip()
         case .rippleDelete: store.rippleDeleteSelectedClip()
         case .zoomIn: store.zoomIn()

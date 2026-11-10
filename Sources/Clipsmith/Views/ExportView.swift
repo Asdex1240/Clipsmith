@@ -133,6 +133,10 @@ private extension ExportPreset {
         case .youtube1080: return localized("export.preset.youtube1080")
         case .youtube4K: return localized("export.preset.youtube4K")
         case .vertical1080: return localized("export.preset.vertical1080")
+        case .youtube1080x60: return localized("export.preset.youtube1080x60")
+        case .landscape720: return localized("export.preset.landscape720")
+        case .instagramPost: return localized("export.preset.instagramPost")
+        case .square1080: return localized("export.preset.square1080")
         }
     }
 }

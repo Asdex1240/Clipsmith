@@ -33,6 +33,7 @@ struct TextInspector: View {
             ColorPicker(localized("inspector.text.color"), selection: colorBinding, supportsOpacity: false)
             slider("inspector.text.positionX", binding(\.positionX), 0...1, percent(layer.positionX))
             slider("inspector.text.positionY", binding(\.positionY), 0...1, percent(layer.positionY))
+            slider("inspector.text.rotation", binding(\.rotationInDegrees), -180...180, "\(Int(layer.rotationInDegrees.rounded()))°")
         }
     }
 

@@ -21,4 +21,34 @@ struct TextLayer: Codable, Equatable {
     var color = RGBAColor.white
     var positionX = 0.5
     var positionY = TextLayer.defaultPositionY
+    /// Clockwise rotation around the text's center, in degrees.
+    var rotationInDegrees = 0.0
+}
+
+extension TextLayer {
+    private enum CodingKeys: String, CodingKey {
+        case content, fontName, fontSize, color, positionX, positionY, rotationInDegrees
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        content = try container.decode(String.self, forKey: .content)
+        fontName = try container.decode(String.self, forKey: .fontName)
+        fontSize = try container.decode(Double.self, forKey: .fontSize)
+        color = try container.decode(RGBAColor.self, forKey: .color)
+        positionX = try container.decode(Double.self, forKey: .positionX)
+        positionY = try container.decode(Double.self, forKey: .positionY)
+        rotationInDegrees = try container.decodeIfPresent(Double.self, forKey: .rotationInDegrees) ?? 0
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(content, forKey: .content)
+        try container.encode(fontName, forKey: .fontName)
+        try container.encode(fontSize, forKey: .fontSize)
+        try container.encode(color, forKey: .color)
+        try container.encode(positionX, forKey: .positionX)
+        try container.encode(positionY, forKey: .positionY)
+        if rotationInDegrees != 0 { try container.encode(rotationInDegrees, forKey: .rotationInDegrees) }
+    }
 }

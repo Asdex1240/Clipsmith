@@ -6,7 +6,9 @@ enum FitTransform {
         preferredTransform: CGAffineTransform,
         renderSize: CGSize,
         mode: FitMode = .fit,
-        offset: CGPoint = .zero
+        offset: CGPoint = .zero,
+        scale userScale: Double = 1,
+        rotationInDegrees: Double = 0
     ) -> CGAffineTransform {
         let oriented = CGRect(origin: .zero, size: naturalSize).applying(preferredTransform)
         guard oriented.width > 0, oriented.height > 0 else { return preferredTransform }
@@ -15,8 +17,15 @@ enum FitTransform {
         let scale = mode == .fit ? min(widthScale, heightScale) : max(widthScale, heightScale)
         let offsetX = (renderSize.width - oriented.width * scale) / 2 - oriented.minX * scale
         let offsetY = (renderSize.height - oriented.height * scale) / 2 - oriented.minY * scale
-        return preferredTransform
+        let fitted = preferredTransform
             .concatenating(CGAffineTransform(scaleX: scale, y: scale))
-            .concatenating(CGAffineTransform(translationX: offsetX + offset.x, y: offsetY + offset.y))
+            .concatenating(CGAffineTransform(translationX: offsetX, y: offsetY))
+        // Framed content is centered on the canvas, so scaling and rotating around its center keeps it there.
+        let center = CGPoint(x: renderSize.width / 2, y: renderSize.height / 2)
+        return fitted
+            .concatenating(CGAffineTransform(translationX: -center.x, y: -center.y))
+            .concatenating(CGAffineTransform(scaleX: userScale, y: userScale))
+            .concatenating(CGAffineTransform(rotationAngle: rotationInDegrees * .pi / 180))
+            .concatenating(CGAffineTransform(translationX: center.x + offset.x, y: center.y + offset.y))
     }
 }

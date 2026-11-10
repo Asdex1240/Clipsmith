@@ -38,6 +38,33 @@ final class ClipPropertiesTests: XCTestCase {
         XCTAssertFalse(mainClips[0].isAudioDetached)
     }
 
+    func testTogglingAMarkerAddsItAndThenRemovesIt() {
+        XCTAssertNotNil(project.toggleMarker(at: 4))
+        XCTAssertNotNil(project.toggleMarker(at: 2))
+        XCTAssertEqual(project.markers.map(\.timeInSeconds), [2, 4])
+
+        XCTAssertNil(project.toggleMarker(at: 4.01))
+        XCTAssertEqual(project.markers.map(\.timeInSeconds), [2])
+    }
+
+    func testMarkersAreSnapPoints() {
+        project.toggleMarker(at: 7)
+
+        XCTAssertTrue(project.snapPoints(excluding: nil, playhead: 0).contains(7))
+    }
+
+    func testMarkersSurviveEncodingAndAreOmittedWhenEmpty() throws {
+        let id = project.toggleMarker(at: 3)
+        project.renameMarker(try XCTUnwrap(id), to: "Intro")
+
+        let decoded = try JSONDecoder().decode(Project.self, from: JSONEncoder().encode(project))
+
+        XCTAssertEqual(decoded.markers.map(\.name), ["Intro"])
+        project.removeMarker(try XCTUnwrap(id))
+        let json = try String(decoding: JSONEncoder().encode(project), as: UTF8.self)
+        XCTAssertFalse(json.contains("markers"))
+    }
+
     func testVolumeIsClampedBetweenZeroAndTheMaximum() {
         let clip = TestClips.video(start: 0)
         project.addClip(clip, toTrack: mainTrackID)

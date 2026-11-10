@@ -63,6 +63,8 @@ enum TextOverlayLayers {
         layer.contents = image
         layer.bounds = CGRect(x: 0, y: 0, width: image.width, height: image.height)
         layer.position = CGPoint(x: text.positionX * renderSize.width, y: (1 - text.positionY) * renderSize.height)
+        // Core Animation's y axis points up, so a clockwise turn is a negative angle.
+        layer.setAffineTransform(CGAffineTransform(rotationAngle: -text.rotationInDegrees * .pi / 180))
         return layer
     }
 

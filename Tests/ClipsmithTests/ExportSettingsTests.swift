@@ -24,7 +24,7 @@ final class ExportSettingsTests: XCTestCase {
 
     func testMatchingPresetIsNilForCustomSettings() {
         var settings = ExportPreset.youtube1080.settings
-        settings.framesPerSecond = 60
+        settings.framesPerSecond = 24
 
         XCTAssertNil(ExportPreset.matching(settings: settings, canvas: .landscape))
         XCTAssertNil(ExportPreset.matching(settings: ExportPreset.youtube4K.settings, canvas: .portrait))

@@ -25,7 +25,7 @@ final class TimelinePreviewer {
         let structure = Self.withoutText(project)
         guard structure != lastBuiltStructure else { return }
         // Moving a clip only changes its transform, which can be swapped in live.
-        let isMoveOnly = lastBuiltStructure.map { Self.withoutOffsets(structure) == Self.withoutOffsets($0) } ?? false
+        let isMoveOnly = lastBuiltStructure.map { Self.withoutTransforms(structure) == Self.withoutTransforms($0) } ?? false
         buildTask = Task {
             if !isMoveOnly {
                 do {
@@ -46,12 +46,14 @@ final class TimelinePreviewer {
         return copy
     }
 
-    private static func withoutOffsets(_ project: Project) -> Project {
+    private static func withoutTransforms(_ project: Project) -> Project {
         var copy = project
         for track in copy.tracks.indices {
             for clip in copy.tracks[track].clips.indices {
                 copy.tracks[track].clips[clip].offsetX = 0
                 copy.tracks[track].clips[clip].offsetY = 0
+                copy.tracks[track].clips[clip].scale = 1
+                copy.tracks[track].clips[clip].rotationInDegrees = 0
             }
         }
         return copy

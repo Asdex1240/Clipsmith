@@ -4,6 +4,7 @@ enum EditorAction: CaseIterable {
     case togglePlayback
     case split
     case addText
+    case addMarker
     case delete
     case rippleDelete
     case zoomIn
@@ -65,6 +66,7 @@ enum EditorShortcuts {
         case .togglePlayback: return "Space"
         case .split: return "S"
         case .addText: return "T"
+        case .addMarker: return "M"
         case .delete: return "⌫"
         case .rippleDelete: return "⇧⌫"
         case .zoomIn: return "+"
@@ -102,6 +104,7 @@ enum EditorShortcuts {
         switch character.lowercased() {
         case "s": return modifiers.isEmpty ? .split : nil
         case "t": return modifiers.isEmpty ? .addText : nil
+        case "m": return modifiers.isEmpty ? .addMarker : nil
         case "=", "+": return .zoomIn
         case "-", "_": return .zoomOut
         default: return nil

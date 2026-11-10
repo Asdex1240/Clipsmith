@@ -21,7 +21,7 @@ extension Project {
         let clipEdges = tracks.flatMap(\.clips)
             .filter { $0.id != excludedID }
             .flatMap { [$0.startInSeconds, $0.endInSeconds] }
-        return [0, playhead] + clipEdges
+        return [0, playhead] + clipEdges + markers.map(\.timeInSeconds)
     }
 
     @discardableResult
@@ -78,6 +78,28 @@ extension Project {
         where tracks[position.track].clips[index].startInSeconds >= removed.startInSeconds {
             tracks[position.track].clips[index].startInSeconds -= removed.durationInSeconds
         }
+    }
+
+    /// Adds a marker at `time`, or removes the one already there.
+    @discardableResult
+    mutating func toggleMarker(at time: TimeInterval) -> Marker.ID? {
+        if let existing = markers.firstIndex(where: { abs($0.timeInSeconds - time) <= Marker.toggleToleranceInSeconds }) {
+            markers.remove(at: existing)
+            return nil
+        }
+        let marker = Marker(timeInSeconds: max(0, time))
+        markers.append(marker)
+        markers.sort { $0.timeInSeconds < $1.timeInSeconds }
+        return marker.id
+    }
+
+    mutating func renameMarker(_ id: Marker.ID, to name: String) {
+        guard let index = markers.firstIndex(where: { $0.id == id }) else { return }
+        markers[index].name = name
+    }
+
+    mutating func removeMarker(_ id: Marker.ID) {
+        markers.removeAll { $0.id == id }
     }
 
     func location(of id: Clip.ID) -> (track: Int, clip: Int)? {

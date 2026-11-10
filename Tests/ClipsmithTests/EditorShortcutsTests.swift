@@ -51,7 +51,7 @@ final class EditorShortcutsTests: XCTestCase {
     func testEveryActionIsReachableFromSomeKey() {
         let keys: [ShortcutKey] = [
             .space, .delete, .leftArrow, .rightArrow, .home, .end, .escape,
-            .character("s"), .character("t"), .character("="), .character("-"),
+            .character("s"), .character("t"), .character("m"), .character("="), .character("-"),
         ]
         let modifiers: [ShortcutModifiers] = [[], .shift, .option]
         let reachable = Set(keys.flatMap { key in modifiers.compactMap { EditorShortcuts.action(for: key, modifiers: $0) } })

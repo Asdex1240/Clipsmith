@@ -7,11 +7,12 @@ struct Project: Codable, Identifiable, Equatable {
     /// When true, the canvas takes the proportion of the first video or image added to an empty timeline.
     var autoFitCanvas = true
     var tracks: [Track] = [Track(role: .text), Track(role: .broll), Track(role: .main), Track(role: .audio)]
+    var markers: [Marker] = []
 }
 
 extension Project {
     private enum CodingKeys: String, CodingKey {
-        case id, name, canvas, autoFitCanvas, tracks
+        case id, name, canvas, autoFitCanvas, tracks, markers
     }
 
     init(from decoder: Decoder) throws {
@@ -21,6 +22,7 @@ extension Project {
         canvas = try container.decode(CanvasFormat.self, forKey: .canvas)
         autoFitCanvas = try container.decodeIfPresent(Bool.self, forKey: .autoFitCanvas) ?? true
         tracks = try container.decode([Track].self, forKey: .tracks)
+        markers = try container.decodeIfPresent([Marker].self, forKey: .markers) ?? []
     }
 
     func encode(to encoder: Encoder) throws {
@@ -30,5 +32,6 @@ extension Project {
         try container.encode(canvas, forKey: .canvas)
         try container.encode(autoFitCanvas, forKey: .autoFitCanvas)
         try container.encode(tracks, forKey: .tracks)
+        if !markers.isEmpty { try container.encode(markers, forKey: .markers) }
     }
 }

@@ -5,6 +5,38 @@ final class FitTransformTests: XCTestCase {
     private let landscape = CGSize(width: 1920, height: 1080)
     private let portrait = CGSize(width: 1080, height: 1920)
 
+    func testScaleGrowsTheClipAroundTheCanvasCenter() {
+        let transform = FitTransform.make(
+            naturalSize: landscape, preferredTransform: .identity, renderSize: landscape, scale: 0.5
+        )
+
+        let rect = CGRect(origin: .zero, size: landscape).applying(transform)
+
+        assertEqual(rect, CGRect(x: 480, y: 270, width: 960, height: 540))
+    }
+
+    func testOffsetMovesTheClipAfterScaling() {
+        let transform = FitTransform.make(
+            naturalSize: landscape, preferredTransform: .identity, renderSize: landscape,
+            offset: CGPoint(x: 100, y: -50), scale: 0.5
+        )
+
+        let rect = CGRect(origin: .zero, size: landscape).applying(transform)
+
+        assertEqual(rect, CGRect(x: 580, y: 220, width: 960, height: 540))
+    }
+
+    func testNinetyDegreeRotationTurnsTheClipClockwiseAroundTheCenter() {
+        let transform = FitTransform.make(
+            naturalSize: landscape, preferredTransform: .identity, renderSize: landscape, rotationInDegrees: 90
+        )
+
+        let topLeft = CGPoint.zero.applying(transform)
+
+        XCTAssertEqual(topLeft.x, 1500, accuracy: 0.001)
+        XCTAssertEqual(topLeft.y, -420, accuracy: 0.001)
+    }
+
     func testMatchingAspectRatioFillsTheCanvas() {
         let transform = FitTransform.make(naturalSize: landscape, preferredTransform: .identity, renderSize: landscape)
 
