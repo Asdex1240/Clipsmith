@@ -82,14 +82,31 @@ struct TimelineView: View {
             }
         }
         .overlay(alignment: .topLeading) { playhead }
+        .coordinateSpace(name: Self.contentSpace)
     }
 
+    private static let contentSpace = "timelineContent"
+    private static let playheadHandleSize = CGSize(width: 14, height: 10)
+
     private var playhead: some View {
-        Rectangle()
-            .fill(Color.red)
-            .frame(width: 1.5)
-            .offset(x: store.playheadInSeconds * pointsPerSecond)
-            .allowsHitTesting(false)
+        let size = Self.playheadHandleSize
+        return ZStack(alignment: .top) {
+            Rectangle()
+                .fill(Color.red)
+                .frame(width: 1.5)
+                .allowsHitTesting(false)
+            PlayheadHandle()
+                .fill(Color.red)
+                .frame(width: size.width, height: size.height)
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture(minimumDistance: 0, coordinateSpace: .named(Self.contentSpace)).onChanged { value in
+                        store.setPlayhead(near: value.location.x / pointsPerSecond)
+                    }
+                )
+        }
+        .frame(width: size.width)
+        .offset(x: store.playheadInSeconds * pointsPerSecond - size.width / 2 + 0.75)
     }
 
     private func lane(for track: Track, at index: Int, width: CGFloat) -> some View {
@@ -146,5 +163,16 @@ struct TimelineView: View {
             store.addMedia(item, toTrack: track.id, at: time)
         }
         return !items.isEmpty
+    }
+}
+
+private struct PlayheadHandle: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
+        path.closeSubpath()
+        return path
     }
 }
