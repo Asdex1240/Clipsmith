@@ -123,6 +123,10 @@ final class ProjectStore {
         setZoom(pointsPerSecond / Self.zoomFactor)
     }
 
+    func zoom(byScrollDelta delta: Double) {
+        setZoom(pointsPerSecond * exp(delta * 0.02))
+    }
+
     func setCanvas(_ format: CanvasFormat) {
         mutate { $0.canvas = format }
     }
