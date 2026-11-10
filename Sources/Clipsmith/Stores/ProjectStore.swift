@@ -22,6 +22,8 @@ final class ProjectStore {
     private(set) var projectRevision = 0
     private(set) var selectedClipID: Clip.ID?
     private(set) var playheadInSeconds: TimeInterval = 0
+    /// When on, clips, trims and the playhead snap to clip edges, markers and the start of the timeline.
+    private(set) var isSnappingEnabled = true
     private(set) var pointsPerSecond = ProjectStore.defaultPointsPerSecond
     private var undoStack: [Project] = []
     private var redoStack: [Project] = []
@@ -114,6 +116,10 @@ final class ProjectStore {
     func goToNextEdit() {
         let tolerance = Self.editPointToleranceInSeconds
         movePlayhead(to: editPoints.first { $0 > playheadInSeconds + tolerance } ?? project.durationInSeconds)
+    }
+
+    func toggleSnapping() {
+        isSnappingEnabled.toggle()
     }
 
     func zoomIn() {
@@ -220,6 +226,12 @@ final class ProjectStore {
         if added { selectedClipID = clip.id }
     }
 
+    /// Where a dropped item of `duration` would start on `track`, after snapping and avoiding overlaps.
+    func dropStart(duration: TimeInterval, on track: Track, near proposed: TimeInterval) -> TimeInterval {
+        let snapped = snappedStart(proposed, duration: duration, excluding: nil)
+        return track.nearestFreeStart(forDuration: duration, near: snapped, excluding: nil)
+    }
+
     func moveClip(_ id: Clip.ID, toTrack trackID: Track.ID, near proposedStart: TimeInterval) {
         guard let clip = project.clip(withID: id) else { return }
         let start = snappedStart(proposedStart, duration: clip.durationInSeconds, excluding: id)
@@ -301,7 +313,7 @@ final class ProjectStore {
     }
 
     private var snapThresholdInSeconds: TimeInterval {
-        Self.snapThresholdInPoints / pointsPerSecond
+        isSnappingEnabled ? Self.snapThresholdInPoints / pointsPerSecond : 0
     }
 
     private func mutate(coalescingKey: String? = nil, _ change: (inout Project) -> Void) {

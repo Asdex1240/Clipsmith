@@ -138,3 +138,6 @@
 "shortcut.cut" = "Cut clip";
 "shortcut.paste" = "Paste at playhead";
 "shortcut.duplicate" = "Duplicate clip";
+"timeline.snapping" = "Snapping";
+"timeline.snapping.on" = "Snapping on: clips stick to edges (click to unlock)";
+"timeline.snapping.off" = "Snapping off: free placement (click to lock)";

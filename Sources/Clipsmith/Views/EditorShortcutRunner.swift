@@ -11,6 +11,7 @@ struct EditorShortcutRunner {
         case .split: store.splitAtPlayhead()
         case .addText: store.addTextAtPlayhead()
         case .addMarker: store.toggleMarkerAtPlayhead()
+        case .toggleSnapping: store.toggleSnapping()
         case .delete: store.deleteSelectedClip()
         case .rippleDelete: store.rippleDeleteSelectedClip()
         case .trimStartToPlayhead: store.trimToPlayhead(edge: .leading)

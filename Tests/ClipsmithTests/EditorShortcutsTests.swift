@@ -51,7 +51,7 @@ final class EditorShortcutsTests: XCTestCase {
     func testEveryActionIsReachableFromSomeKey() {
         let keys: [ShortcutKey] = [
             .space, .delete, .leftArrow, .rightArrow, .home, .end, .escape,
-            .character("s"), .character("t"), .character("m"), .character("="), .character("-"),
+            .character("s"), .character("t"), .character("m"), .character("n"), .character("="), .character("-"),
             .character("q"), .character("w"), .character("c"), .character("x"), .character("v"), .character("d"),
         ]
         let modifiers: [ShortcutModifiers] = [[], .shift, .option, .command]

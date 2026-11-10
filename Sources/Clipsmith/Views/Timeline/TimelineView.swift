@@ -5,6 +5,7 @@ struct TimelineView: View {
     let library: MediaLibrary
     let waveforms: WaveformStore
     let missingMedia: Set<URL>
+    @State private var dropPreview: DropPreview?
 
     private var pointsPerSecond: Double { store.pointsPerSecond }
 
@@ -29,6 +30,11 @@ struct TimelineView: View {
             Text(store.project.name).font(.headline)
             Text(store.playheadInSeconds.clockString).monospacedDigit().foregroundStyle(.secondary)
             Spacer()
+            Toggle(isOn: Binding(get: { store.isSnappingEnabled }, set: { _ in store.toggleSnapping() })) {
+                Image(systemName: "magnet")
+            }
+            .toggleStyle(.button)
+            .help("\(localized(store.isSnappingEnabled ? "timeline.snapping.on" : "timeline.snapping.off")) (\(EditorShortcuts.displayKeys(for: .toggleSnapping)))")
             toolbarButton("timeline.addText", systemImage: "textformat", shortcut: .addText, action: store.addTextAtPlayhead)
             toolbarButton("timeline.addMarker", systemImage: "bookmark", shortcut: .addMarker, action: store.toggleMarkerAtPlayhead)
             toolbarButton("timeline.split", systemImage: "scissors", shortcut: .split, action: store.splitAtPlayhead)
@@ -137,9 +143,24 @@ struct TimelineView: View {
             }
         }
         .frame(width: width, height: TimelineMetrics.laneHeight, alignment: .topLeading)
-        .dropDestination(for: String.self) { identifiers, location in
-            drop(identifiers, onto: track, at: location.x / pointsPerSecond)
+        .overlay(alignment: .topLeading) {
+            if let dropPreview, dropPreview.trackID == track.id {
+                DropGhostView(preview: dropPreview, pointsPerSecond: pointsPerSecond)
+            }
         }
+        .overlay {
+            if let dropPreview, dropPreview.trackID == track.id {
+                Rectangle()
+                    .strokeBorder((dropPreview.isValid ? Color.accentColor : Color.red).opacity(0.6), lineWidth: 1.5)
+                    .allowsHitTesting(false)
+            }
+        }
+        .onDrop(
+            of: [.plainText],
+            delegate: LaneDropDelegate(
+                track: track, store: store, library: library, pointsPerSecond: pointsPerSecond, preview: $dropPreview
+            )
+        )
     }
 
     private func showsWaveform(_ clip: Clip, in track: Track) -> Bool {
@@ -160,16 +181,6 @@ struct TimelineView: View {
         let tracks = store.project.tracks
         let targetIndex = min(max(laneIndex + laneOffset, 0), tracks.count - 1)
         store.moveClip(clip.id, toTrack: tracks[targetIndex].id, near: start)
-    }
-
-    private func drop(_ identifiers: [String], onto track: Track, at time: TimeInterval) -> Bool {
-        let items = identifiers.compactMap { identifier in
-            library.items.first { $0.id.uuidString == identifier }
-        }
-        for item in items {
-            store.addMedia(item, toTrack: track.id, at: time)
-        }
-        return !items.isEmpty
     }
 }
 

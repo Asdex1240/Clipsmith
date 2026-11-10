@@ -138,3 +138,6 @@
 "shortcut.cut" = "Cortar clip";
 "shortcut.paste" = "Pegar en el cursor";
 "shortcut.duplicate" = "Duplicar clip";
+"timeline.snapping" = "Imán (pegado)";
+"timeline.snapping.on" = "Imán activado: los clips se pegan a los bordes (clic para desactivar)";
+"timeline.snapping.off" = "Imán desactivado: colocación libre (clic para activar)";

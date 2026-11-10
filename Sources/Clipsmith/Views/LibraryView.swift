@@ -46,8 +46,14 @@ struct LibraryView: View {
             }
         } else {
             List(library.items, selection: $selection) { item in
-                MediaRow(item: item, thumbnails: thumbnails)
-                    .draggable(item.id.uuidString)
+                MediaRow(item: item, thumbnails: thumbnails, onAdd: { onAddToTimeline(item) })
+                    .onDrag {
+                        library.draggedItemID = item.id
+                        return NSItemProvider(object: item.id.uuidString as NSString)
+                    } preview: {
+                        DragPreview(item: item, thumbnails: thumbnails)
+                    }
+                    .onTapGesture(count: 2) { onAddToTimeline(item) }
                     .contextMenu {
                         Button(localized("library.addToTimeline")) { onAddToTimeline(item) }
                     }
@@ -74,7 +80,9 @@ struct LibraryView: View {
 private struct MediaRow: View {
     let item: MediaItem
     let thumbnails: ThumbnailGenerating
+    let onAdd: () -> Void
     @State private var thumbnail: NSImage?
+    @State private var isHovering = false
 
     private static let thumbnailSize = CGSize(width: 64, height: 40)
 
@@ -89,7 +97,16 @@ private struct MediaRow: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            Spacer(minLength: 0)
+            Button(action: onAdd) {
+                Image(systemName: "plus.circle.fill").font(.title3)
+            }
+            .buttonStyle(.borderless)
+            .help(localized("library.addToTimeline"))
+            .opacity(isHovering ? 1 : 0)
         }
+        .contentShape(Rectangle())
+        .onHover { isHovering = $0 }
         .task { thumbnail = await thumbnails.thumbnail(for: item) }
     }
 
@@ -104,5 +121,32 @@ private struct MediaRow: View {
                     .foregroundStyle(.secondary)
             }
         }
+    }
+}
+
+private struct DragPreview: View {
+    let item: MediaItem
+    let thumbnails: ThumbnailGenerating
+    @State private var thumbnail: NSImage?
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Group {
+                if let thumbnail {
+                    Image(nsImage: thumbnail).resizable().scaledToFill()
+                } else {
+                    Rectangle().fill(.quaternary)
+                }
+            }
+            .frame(width: 48, height: 32)
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+            VStack(alignment: .leading, spacing: 0) {
+                Text(item.name).lineLimit(1).font(.caption.bold())
+                Text(item.durationInSeconds.clockString).font(.caption2).foregroundStyle(.secondary)
+            }
+        }
+        .padding(6)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+        .task { thumbnail = await thumbnails.thumbnail(for: item) }
     }
 }

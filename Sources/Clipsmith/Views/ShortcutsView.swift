@@ -35,6 +35,7 @@ struct ShortcutsView: View {
         case .split: return localized("timeline.split")
         case .addText: return localized("timeline.addText")
         case .addMarker: return localized("timeline.addMarker")
+        case .toggleSnapping: return localized("timeline.snapping")
         case .delete: return localized("timeline.delete")
         case .rippleDelete: return localized("timeline.rippleDelete")
         case .trimStartToPlayhead: return localized("shortcut.trimStart")
