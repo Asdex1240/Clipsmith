@@ -217,3 +217,9 @@
 "textAnimation.pop" = "Aparecer con rebote";
 "inspector.subtitles.style" = "Estilo";
 "inspector.subtitles.animation" = "Animación";
+"timeline.group" = "Agrupar clips seleccionados";
+"timeline.ungroup" = "Desagrupar";
+"shortcut.selectAll" = "Seleccionar todos los clips";
+"inspector.multiple.title" = "%d clips seleccionados";
+"inspector.multiple.hint" = "Arrastra uno para mover todos. Agrúpalos para mantenerlos juntos.";
+"inspector.multiple.grouped" = "Algunos de estos clips están agrupados: siempre se seleccionan y se mueven juntos.";

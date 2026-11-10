@@ -16,7 +16,9 @@ struct InspectorView: View {
 
     @ViewBuilder
     private var content: some View {
-        if let clip = store.selectedClip {
+        if store.hasMultipleSelected {
+            multipleSelection
+        } else if let clip = store.selectedClip {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     if hasVisualControls(for: clip) {
@@ -52,6 +54,28 @@ struct InspectorView: View {
                     .padding()
             }
         }
+    }
+
+    private var multipleSelection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(String(format: localized("inspector.multiple.title"), store.selectedClipIDs.count)).font(.subheadline.bold())
+            Text(localized(store.selectionIsGrouped ? "inspector.multiple.grouped" : "inspector.multiple.hint"))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            HStack {
+                Button(localized("timeline.group"), action: store.groupSelection)
+                    .disabled(!store.canGroupSelection)
+                Button(localized("timeline.ungroup"), action: store.ungroupSelection)
+                    .disabled(!store.selectionIsGrouped)
+            }
+            HStack {
+                Button(localized("shortcut.duplicate"), action: store.duplicateSelectedClip)
+                Button(localized("timeline.delete"), role: .destructive, action: store.deleteSelectedClip)
+            }
+            Spacer()
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private func hasVisualControls(for clip: Clip) -> Bool {
