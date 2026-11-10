@@ -28,3 +28,14 @@ final class LocalizationTests: XCTestCase {
         return Set(table.keys)
     }
 }
+
+final class ResourceBundleTests: XCTestCase {
+    func testResourceBundleContainsBothLanguages() {
+        XCTAssertNotNil(Bundle.clipsmith.path(forResource: "en", ofType: "lproj"))
+        XCTAssertNotNil(Bundle.clipsmith.path(forResource: "es", ofType: "lproj"))
+    }
+
+    func testLocalizedHelperResolvesKnownKeys() {
+        XCTAssertNotEqual(localized("export.title"), "export.title")
+    }
+}
