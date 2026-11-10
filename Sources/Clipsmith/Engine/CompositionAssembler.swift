@@ -1,4 +1,5 @@
 import AVFoundation
+import ImageIO
 import OSLog
 
 enum CompositionError: Error {
@@ -23,6 +24,7 @@ final class CompositionAssembler {
     private var placements: [Clip.ID: Placement] = [:]
     private var skippedClipIDs: [Clip.ID] = []
     private var textClips: [Clip] = []
+    private var visualFrames: [Clip.ID: CGRect] = [:]
     private var volumeSteps: [Track.Role: [VolumeStep]] = [:]
 
     init(renderSize: CGSize, framesPerSecond: Int32, stillImages: StillImageVideoMaking) {
@@ -47,7 +49,8 @@ final class CompositionAssembler {
             videoComposition: makeVideoComposition(covering: covered),
             audioMix: makeAudioMix(),
             textOverlay: TextOverlay(clips: textClips, renderSize: renderSize),
-            skippedClipIDs: skippedClipIDs
+            skippedClipIDs: skippedClipIDs,
+            visualFrames: visualFrames
         )
     }
 
@@ -85,9 +88,31 @@ final class CompositionAssembler {
                 naturalSize: naturalSize,
                 preferredTransform: preferredTransform,
                 renderSize: renderSize,
-                mode: clip.fitMode
+                mode: clip.fitMode,
+                offset: CGPoint(x: clip.offsetX * renderSize.width, y: clip.offsetY * renderSize.height)
             )
         )
+        visualFrames[clip.id] = contentFrame(of: clip, naturalSize: naturalSize, preferredTransform: preferredTransform)
+    }
+
+    /// The area the picture itself covers (not the black bars), before the clip's offset.
+    private func contentFrame(of clip: Clip, naturalSize: CGSize, preferredTransform: CGAffineTransform) -> CGRect {
+        var size = naturalSize
+        var transform = preferredTransform
+        if clip.mediaKind == .image, let url = clip.sourceURL, let pixels = Self.pixelSize(ofImageAt: url) {
+            size = pixels
+            transform = .identity
+        }
+        let fitted = FitTransform.make(naturalSize: size, preferredTransform: transform, renderSize: renderSize, mode: clip.fitMode)
+        return CGRect(origin: .zero, size: size).applying(fitted)
+    }
+
+    private static func pixelSize(ofImageAt url: URL) -> CGSize? {
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+              let width = properties[kCGImagePropertyPixelWidth] as? Double,
+              let height = properties[kCGImagePropertyPixelHeight] as? Double else { return nil }
+        return CGSize(width: width, height: height)
     }
 
     private func insertAudio(_ clip: Clip, role: Track.Role) async throws {

@@ -17,6 +17,7 @@ final class PlayerController {
     private(set) var hasTimeline = false
     private(set) var timelineOverlay: TextOverlay?
     private(set) var timelineRevision = 0
+    private(set) var visualFrames: [Clip.ID: CGRect] = [:]
     private(set) var isPlaying = false
     @ObservationIgnored private var timeline: BuiltComposition?
     @ObservationIgnored private var statusObservation: AnyCancellable?
@@ -52,9 +53,18 @@ final class PlayerController {
         timeline = built
         hasTimeline = built != nil
         timelineOverlay = built?.textOverlay
+        visualFrames = built?.visualFrames ?? [:]
         timelineRevision += 1
         guard mode == .timeline else { return }
         installTimeline(resumingPlayback: isPlaying, at: time)
+    }
+
+    /// Applies new clip positions without replacing the playing item, so dragging stays smooth.
+    func updateTransforms(_ built: BuiltComposition) {
+        timeline = built
+        visualFrames = built.visualFrames
+        guard mode == .timeline else { return }
+        player.currentItem?.videoComposition = built.videoComposition
     }
 
     func seekTimeline(to time: TimeInterval) {

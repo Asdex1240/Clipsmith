@@ -32,7 +32,11 @@ struct PreviewView: View {
                 time: store.playheadInSeconds
             )
             .background(.black)
-            .overlay { TextDragOverlay(store: store, renderSize: controller.timelineOverlay?.renderSize) }
+            .overlay { CanvasDragOverlay(
+                    store: store,
+                    renderSize: controller.timelineOverlay?.renderSize,
+                    visualFrames: controller.visualFrames
+                ) }
         } else {
             emptyState(localized("preview.timelineEmpty"))
         }

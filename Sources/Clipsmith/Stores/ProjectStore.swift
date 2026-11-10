@@ -135,6 +135,10 @@ final class ProjectStore {
         mutate { $0.setFitMode(of: id, to: mode) }
     }
 
+    func setOffset(of id: Clip.ID, x: Double, y: Double) {
+        mutate(coalescingKey: "offset-\(id)") { $0.setOffset(of: id, x: x, y: y) }
+    }
+
     func replaceMedia(from original: URL, to replacement: URL) {
         mutate { $0.remapSources([original: replacement]) }
     }

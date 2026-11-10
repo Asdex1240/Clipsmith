@@ -21,6 +21,10 @@ extension Project {
         updateClip(id) { $0.settingFitMode(mode) }
     }
 
+    mutating func setOffset(of id: Clip.ID, x: Double, y: Double) {
+        updateClip(id) { $0.settingOffset(x: x, y: y) }
+    }
+
     var hasVisualClips: Bool {
         tracks.contains { $0.clips.contains { $0.mediaKind == .video || $0.mediaKind == .image } }
     }

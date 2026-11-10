@@ -22,14 +22,19 @@ final class TimelinePreviewer {
         buildTask?.cancel()
         let project = store.project
         // Text is drawn live by the preview, so text-only edits need no new composition.
-        guard Self.withoutText(project) != lastBuiltStructure else { return }
+        let structure = Self.withoutText(project)
+        guard structure != lastBuiltStructure else { return }
+        // Moving a clip only changes its transform, which can be swapped in live.
+        let isMoveOnly = lastBuiltStructure.map { Self.withoutOffsets(structure) == Self.withoutOffsets($0) } ?? false
         buildTask = Task {
-            do {
-                try await Task.sleep(for: Self.debounce)
-            } catch {
-                return
+            if !isMoveOnly {
+                do {
+                    try await Task.sleep(for: Self.debounce)
+                } catch {
+                    return
+                }
             }
-            await rebuild(project)
+            await rebuild(project, moveOnly: isMoveOnly)
         }
     }
 
@@ -41,12 +46,27 @@ final class TimelinePreviewer {
         return copy
     }
 
-    private func rebuild(_ project: Project) async {
+    private static func withoutOffsets(_ project: Project) -> Project {
+        var copy = project
+        for track in copy.tracks.indices {
+            for clip in copy.tracks[track].clips.indices {
+                copy.tracks[track].clips[clip].offsetX = 0
+                copy.tracks[track].clips[clip].offsetY = 0
+            }
+        }
+        return copy
+    }
+
+    private func rebuild(_ project: Project, moveOnly: Bool) async {
         do {
             let built = try await builder.build(from: project)
             guard !Task.isCancelled else { return }
             lastBuiltStructure = Self.withoutText(project)
-            player.setTimeline(built.durationInSeconds > 0 ? built : nil, at: store.playheadInSeconds)
+            if moveOnly, built.durationInSeconds > 0 {
+                player.updateTransforms(built)
+            } else {
+                player.setTimeline(built.durationInSeconds > 0 ? built : nil, at: store.playheadInSeconds)
+            }
         } catch {
             logger.error("Could not build the preview: \(error.localizedDescription)")
         }

@@ -6,6 +6,8 @@ struct BuiltComposition {
     let audioMix: AVAudioMix?
     let textOverlay: TextOverlay?
     let skippedClipIDs: [Clip.ID]
+    /// Where each visual clip sits on the canvas before its offset is applied, in render pixels.
+    var visualFrames: [Clip.ID: CGRect] = [:]
 
     var durationInSeconds: TimeInterval {
         composition.duration.seconds

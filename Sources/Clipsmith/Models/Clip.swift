@@ -16,6 +16,9 @@ struct Clip: Codable, Identifiable, Equatable {
     var fadeOutDurationInSeconds: TimeInterval = 0
     var textLayer: TextLayer?
     var fitMode = FitMode.fit
+    /// Shift of a visual clip on the canvas, as a fraction of the canvas width and height.
+    var offsetX = 0.0
+    var offsetY = 0.0
 
     var displayName: String {
         textLayer?.content ?? sourceURL?.lastPathComponent ?? ""
@@ -119,6 +122,13 @@ struct Clip: Codable, Identifiable, Equatable {
         return clip
     }
 
+    func settingOffset(x: Double, y: Double) -> Clip {
+        var clip = self
+        clip.offsetX = x
+        clip.offsetY = y
+        return clip
+    }
+
     func settingFitMode(_ mode: FitMode) -> Clip {
         var clip = self
         clip.fitMode = mode
@@ -130,7 +140,7 @@ extension Clip {
     private enum CodingKeys: String, CodingKey {
         case id, sourceURL, mediaKind, startInSeconds, sourceStartInSeconds, sourceEndInSeconds
         case sourceDurationInSeconds, volume, fadeInDurationInSeconds, fadeOutDurationInSeconds
-        case textLayer, fitMode
+        case textLayer, fitMode, offsetX, offsetY
     }
 
     init(from decoder: Decoder) throws {
@@ -147,6 +157,8 @@ extension Clip {
         fadeOutDurationInSeconds = try container.decodeIfPresent(TimeInterval.self, forKey: .fadeOutDurationInSeconds) ?? 0
         textLayer = try container.decodeIfPresent(TextLayer.self, forKey: .textLayer)
         fitMode = try container.decodeIfPresent(FitMode.self, forKey: .fitMode) ?? .fit
+        offsetX = try container.decodeIfPresent(Double.self, forKey: .offsetX) ?? 0
+        offsetY = try container.decodeIfPresent(Double.self, forKey: .offsetY) ?? 0
     }
 
     func encode(to encoder: Encoder) throws {
@@ -163,5 +175,7 @@ extension Clip {
         try container.encode(fadeOutDurationInSeconds, forKey: .fadeOutDurationInSeconds)
         try container.encodeIfPresent(textLayer, forKey: .textLayer)
         try container.encode(fitMode, forKey: .fitMode)
+        if offsetX != 0 { try container.encode(offsetX, forKey: .offsetX) }
+        if offsetY != 0 { try container.encode(offsetY, forKey: .offsetY) }
     }
 }
