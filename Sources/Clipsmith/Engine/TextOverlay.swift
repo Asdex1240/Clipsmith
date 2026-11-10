@@ -18,6 +18,7 @@ struct TextSprite {
     let image: CGImage
     let center: CGPoint
     let rotationInRadians: Double
+    let animation: TextAnimation
 }
 
 enum TextOverlayLayers {
@@ -34,7 +35,13 @@ enum TextOverlayLayers {
                 continue
             }
             layer.opacity = 0
-            layer.add(visibilityAnimation(for: clip), forKey: "visibility")
+            if text.animation.isNone {
+                layer.add(visibilityAnimation(for: clip), forKey: "visibility")
+            } else {
+                for animation in animations(for: clip, text: text, renderHeight: overlay.renderSize.height) {
+                    layer.add(animation.animation, forKey: animation.key)
+                }
+            }
             container.addSublayer(layer)
         }
         return container
@@ -62,7 +69,8 @@ enum TextOverlayLayers {
                 endInSeconds: clip.endInSeconds,
                 image: image,
                 center: CGPoint(x: text.positionX * overlay.renderSize.width, y: (1 - text.positionY) * overlay.renderSize.height),
-                rotationInRadians: -text.rotationInDegrees * .pi / 180
+                rotationInRadians: -text.rotationInDegrees * .pi / 180,
+                animation: text.animation
             )
         }
     }
@@ -107,6 +115,10 @@ enum TextOverlayLayers {
         return CGSize(width: ceil(measured.width), height: ceil(measured.height))
     }
 
+    private static let backgroundPaddingFraction = 0.3
+    private static let backgroundCornerFraction = 0.25
+    private static let minimumPadding = 2.0
+
     private static func renderImage(of text: TextLayer, scale: Double, maximumWidth: CGFloat) -> CGImage? {
         let fontSize = text.fontSize * scale
         let font = NSFont(name: text.fontName, size: fontSize) ?? NSFont.boldSystemFont(ofSize: fontSize)
@@ -115,13 +127,26 @@ enum TextOverlayLayers {
             with: CGSize(width: maximumWidth, height: .greatestFiniteMagnitude),
             options: [.usesLineFragmentOrigin, .usesFontLeading]
         )
-        let padding = ceil(fontSize * shadowBlurFraction * shadowPaddingFactor * 10)
+        let shadowPadding = text.hasShadow ? fontSize * shadowBlurFraction * shadowPaddingFactor * 10 : 0
+        let boxPadding = text.backgroundColor == nil ? 0 : fontSize * backgroundPaddingFraction
+        let padding = ceil(max(shadowPadding, boxPadding, text.strokeWidth * fontSize, minimumPadding))
         let width = Int(ceil(maximumWidth + 2 * padding))
         let height = Int(ceil(measured.height + 2 * padding))
         guard width > 0, height > 0, let context = makeContext(width: width, height: height) else { return nil }
         let graphics = NSGraphicsContext(cgContext: context, flipped: false)
         NSGraphicsContext.saveGraphicsState()
         NSGraphicsContext.current = graphics
+        if let background = text.backgroundColor {
+            let textWidth = min(ceil(measured.width), maximumWidth)
+            let box = CGRect(
+                x: padding + (maximumWidth - textWidth) / 2 - boxPadding,
+                y: padding - boxPadding,
+                width: textWidth + 2 * boxPadding,
+                height: ceil(measured.height) + 2 * boxPadding
+            )
+            NSColor(srgbRed: background.red, green: background.green, blue: background.blue, alpha: background.alpha).setFill()
+            NSBezierPath(roundedRect: box, xRadius: fontSize * backgroundCornerFraction, yRadius: fontSize * backgroundCornerFraction).fill()
+        }
         attributed.draw(
             with: CGRect(x: padding, y: padding, width: maximumWidth, height: ceil(measured.height)),
             options: [.usesLineFragmentOrigin, .usesFontLeading]
@@ -133,18 +158,29 @@ enum TextOverlayLayers {
     private static func attributes(for text: TextLayer, font: NSFont, scale: Double) -> [NSAttributedString.Key: Any] {
         let paragraph = NSMutableParagraphStyle()
         paragraph.alignment = .center
-        let shadow = NSShadow()
-        shadow.shadowColor = NSColor.black.withAlphaComponent(shadowOpacity)
-        shadow.shadowBlurRadius = text.fontSize * scale * shadowBlurFraction * 10
-        shadow.shadowOffset = .zero
-        return [
+        var attributes: [NSAttributedString.Key: Any] = [
             .font: font,
             .foregroundColor: NSColor(
                 srgbRed: text.color.red, green: text.color.green, blue: text.color.blue, alpha: text.color.alpha
             ),
             .paragraphStyle: paragraph,
-            .shadow: shadow,
         ]
+        if text.hasShadow {
+            let shadow = NSShadow()
+            shadow.shadowColor = NSColor.black.withAlphaComponent(shadowOpacity)
+            shadow.shadowBlurRadius = text.fontSize * scale * shadowBlurFraction * 10
+            shadow.shadowOffset = .zero
+            attributes[.shadow] = shadow
+        }
+        if text.strokeWidth > 0 {
+            // A negative width draws the outline and still fills the letters; it is a percentage of the font size.
+            attributes[.strokeWidth] = -text.strokeWidth * 100
+            attributes[.strokeColor] = NSColor(
+                srgbRed: text.strokeColor.red, green: text.strokeColor.green,
+                blue: text.strokeColor.blue, alpha: text.strokeColor.alpha
+            )
+        }
+        return attributes
     }
 
     private static func makeContext(width: Int, height: Int) -> CGContext? {
@@ -153,6 +189,39 @@ enum TextOverlayLayers {
             space: CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB(),
             bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
         )
+    }
+
+    /// Where the layer of a text sits, turned and scaled, at one moment of its animation. Core Animation's y axis points up.
+    static func transform(for text: TextLayer, state: TextAnimationState, renderHeight: CGFloat) -> CGAffineTransform {
+        CGAffineTransform(scaleX: state.scale, y: state.scale)
+            .concatenating(CGAffineTransform(rotationAngle: -text.rotationInDegrees * .pi / 180))
+            .concatenating(CGAffineTransform(translationX: 0, y: -state.offsetY * renderHeight))
+    }
+
+    private static func animations(
+        for clip: Clip, text: TextLayer, renderHeight: CGFloat
+    ) -> [(key: String, animation: CAKeyframeAnimation)] {
+        let duration = clip.durationInSeconds
+        let times = text.animation.samplePoints(clipDuration: duration)
+        let states = times.map { text.animation.state(atClipTime: $0, clipDuration: duration) }
+        let keyTimes = times.map { NSNumber(value: duration > 0 ? $0 / duration : 0) }
+        func configured(_ keyPath: String, _ values: [Any]) -> CAKeyframeAnimation {
+            let animation = CAKeyframeAnimation(keyPath: keyPath)
+            animation.values = values
+            animation.keyTimes = keyTimes
+            animation.calculationMode = .linear
+            animation.beginTime = AVCoreAnimationBeginTimeAtZero + clip.startInSeconds
+            animation.duration = duration
+            animation.fillMode = .removed
+            animation.isRemovedOnCompletion = true
+            return animation
+        }
+        return [
+            ("opacity", configured("opacity", states.map { Float($0.opacity) })),
+            ("transform", configured("transform", states.map {
+                NSValue(caTransform3D: CATransform3DMakeAffineTransform(transform(for: text, state: $0, renderHeight: renderHeight)))
+            })),
+        ]
     }
 
     private static func visibilityAnimation(for clip: Clip) -> CABasicAnimation {

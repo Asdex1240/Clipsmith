@@ -159,9 +159,12 @@ extension Project {
 
     /// Adds a text clip for each line; returns how many fit on the text track.
     @discardableResult
-    mutating func addSubtitles(_ lines: [SubtitleLine]) -> Int {
+    mutating func addSubtitles(
+        _ lines: [SubtitleLine], style: TextStylePreset = .classic, animation: TextAnimation = TextAnimation()
+    ) -> Int {
         lines.reduce(0) { added, line in
-            addTextClip(.subtitle(line.text), at: line.startInSeconds, duration: line.durationInSeconds) == nil ? added : added + 1
+            let layer = TextLayer.subtitle(line.text, style: style, animation: animation)
+            return addTextClip(layer, at: line.startInSeconds, duration: line.durationInSeconds) == nil ? added : added + 1
         }
     }
 

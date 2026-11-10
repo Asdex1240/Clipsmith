@@ -5,6 +5,8 @@ struct SubtitleInspector: View {
     let clip: Clip
 
     @AppStorage("subtitleLanguage") private var languageIdentifier = ""
+    @AppStorage("subtitleStyle") private var styleName = TextStylePreset.classic.rawValue
+    @AppStorage("subtitleAnimation") private var animationName = TextAnimationKind.none.rawValue
     private let locales = SpeechTranscriber.supportedLocales
 
     var body: some View {
@@ -15,10 +17,21 @@ struct SubtitleInspector: View {
                     Text(locale.localizedString(forIdentifier: locale.identifier) ?? locale.identifier).tag(locale.identifier)
                 }
             }
+            Picker(localized("inspector.subtitles.style"), selection: $styleName) {
+                ForEach(TextStylePreset.allCases, id: \.rawValue) { Text(TextInspector.title(of: $0)).tag($0.rawValue) }
+            }
+            Picker(localized("inspector.subtitles.animation"), selection: $animationName) {
+                ForEach(TextAnimationKind.allCases, id: \.rawValue) { Text(TextInspector.title(of: $0)).tag($0.rawValue) }
+            }
             HStack {
                 Button(localized("inspector.subtitles.generate")) {
                     subtitles.dismiss()
-                    subtitles.generate(for: clip.id, locale: Locale(identifier: selectedIdentifier.wrappedValue))
+                    subtitles.generate(
+                        for: clip.id,
+                        locale: Locale(identifier: selectedIdentifier.wrappedValue),
+                        style: TextStylePreset(rawValue: styleName) ?? .classic,
+                        animation: .both(TextAnimationKind(rawValue: animationName) ?? .none)
+                    )
                 }
                 .disabled(subtitles.isWorking || locales.isEmpty)
                 if subtitles.isWorking {

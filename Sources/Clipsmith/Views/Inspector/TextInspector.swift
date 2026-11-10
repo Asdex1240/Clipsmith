@@ -34,7 +34,91 @@ struct TextInspector: View {
             slider("inspector.text.positionX", binding(\.positionX), 0...1, percent(layer.positionX))
             slider("inspector.text.positionY", binding(\.positionY), 0...1, percent(layer.positionY))
             slider("inspector.text.rotation", binding(\.rotationInDegrees), -180...180, "\(Int(layer.rotationInDegrees.rounded()))°")
+            styleControls
+            animationControls
         }
+    }
+
+    // MARK: Style
+
+    private var styleControls: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Divider()
+            Text(localized("inspector.textStyle.section")).font(.subheadline.bold())
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 78), spacing: 4)], alignment: .leading, spacing: 4) {
+                ForEach(TextStylePreset.allCases, id: \.self) { preset in
+                    Button(Self.title(of: preset)) {
+                        store.updateTextLayer(of: clip.id, field: "style") { preset.apply(to: &$0) }
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+            }
+            slider("inspector.textStyle.outline", binding(\.strokeWidth), 0...TextLayer.maximumStrokeWidth, percent(layer.strokeWidth / TextLayer.maximumStrokeWidth))
+            if layer.strokeWidth > 0 {
+                ColorPicker(localized("inspector.textStyle.outlineColor"), selection: colorBinding(\.strokeColor, field: "strokeColor"), supportsOpacity: false)
+            }
+            Toggle(localized("inspector.textStyle.background"), isOn: backgroundToggle)
+            if let background = layer.backgroundColor {
+                ColorPicker(
+                    localized("inspector.textStyle.backgroundColor"),
+                    selection: colorBinding(\.backgroundColor, field: "background", fallback: background),
+                    supportsOpacity: true
+                )
+            }
+            Toggle(localized("inspector.textStyle.shadow"), isOn: binding(\.hasShadow))
+        }
+    }
+
+    // MARK: Animation
+
+    private var animationControls: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Divider()
+            Text(localized("inspector.textAnimation.section")).font(.subheadline.bold())
+            Picker(localized("inspector.textAnimation.in"), selection: binding(\.animation.inKind)) {
+                ForEach(TextAnimationKind.allCases, id: \.self) { Text(Self.title(of: $0)).tag($0) }
+            }
+            Picker(localized("inspector.textAnimation.out"), selection: binding(\.animation.outKind)) {
+                ForEach(TextAnimationKind.allCases, id: \.self) { Text(Self.title(of: $0)).tag($0) }
+            }
+            if !layer.animation.isNone {
+                slider(
+                    "inspector.textAnimation.duration", binding(\.animation.durationInSeconds), TextAnimation.durationRange,
+                    String(format: "%.1f s", layer.animation.durationInSeconds)
+                )
+            }
+        }
+    }
+
+    static func title(of kind: TextAnimationKind) -> String {
+        switch kind {
+        case .none: return localized("textAnimation.none")
+        case .fade: return localized("textAnimation.fade")
+        case .slideUp: return localized("textAnimation.slideUp")
+        case .slideDown: return localized("textAnimation.slideDown")
+        case .pop: return localized("textAnimation.pop")
+        }
+    }
+
+    static func title(of preset: TextStylePreset) -> String {
+        switch preset {
+        case .classic: return localized("textStyle.classic")
+        case .outlined: return localized("textStyle.outlined")
+        case .boxed: return localized("textStyle.boxed")
+        case .highlight: return localized("textStyle.highlight")
+        }
+    }
+
+    private var backgroundToggle: Binding<Bool> {
+        Binding(
+            get: { layer.backgroundColor != nil },
+            set: { isOn in
+                store.updateTextLayer(of: clip.id, field: "background") {
+                    $0.backgroundColor = isOn ? RGBAColor(red: 0, green: 0, blue: 0, alpha: 0.65) : nil
+                }
+            }
+        )
     }
 
     private var fontOptions: [(name: String, postScript: String)] {
@@ -52,17 +136,38 @@ struct TextInspector: View {
     }
 
     private var colorBinding: Binding<Color> {
+        colorBinding(\.color, field: "color")
+    }
+
+    private func colorBinding(_ keyPath: WritableKeyPath<TextLayer, RGBAColor>, field: String) -> Binding<Color> {
         Binding(
-            get: { Color(.sRGB, red: layer.color.red, green: layer.color.green, blue: layer.color.blue, opacity: layer.color.alpha) },
+            get: { Self.swiftUIColor(layer[keyPath: keyPath]) },
             set: { newColor in
-                let resolved = NSColor(newColor).usingColorSpace(.sRGB) ?? .white
-                store.updateTextLayer(of: clip.id, field: "color") {
-                    $0.color = RGBAColor(
-                        red: resolved.redComponent, green: resolved.greenComponent,
-                        blue: resolved.blueComponent, alpha: resolved.alphaComponent
-                    )
-                }
+                store.updateTextLayer(of: clip.id, field: field) { $0[keyPath: keyPath] = Self.rgba(newColor) }
             }
+        )
+    }
+
+    private func colorBinding(
+        _ keyPath: WritableKeyPath<TextLayer, RGBAColor?>, field: String, fallback: RGBAColor
+    ) -> Binding<Color> {
+        Binding(
+            get: { Self.swiftUIColor(layer[keyPath: keyPath] ?? fallback) },
+            set: { newColor in
+                store.updateTextLayer(of: clip.id, field: field) { $0[keyPath: keyPath] = Self.rgba(newColor) }
+            }
+        )
+    }
+
+    private static func swiftUIColor(_ color: RGBAColor) -> Color {
+        Color(.sRGB, red: color.red, green: color.green, blue: color.blue, opacity: color.alpha)
+    }
+
+    private static func rgba(_ color: Color) -> RGBAColor {
+        let resolved = NSColor(color).usingColorSpace(.sRGB) ?? .white
+        return RGBAColor(
+            red: resolved.redComponent, green: resolved.greenComponent,
+            blue: resolved.blueComponent, alpha: resolved.alphaComponent
         )
     }
 

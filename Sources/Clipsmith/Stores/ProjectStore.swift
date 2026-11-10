@@ -232,9 +232,9 @@ final class ProjectStore {
     }
 
     @discardableResult
-    func addSubtitles(_ lines: [SubtitleLine]) -> Int {
+    func addSubtitles(_ lines: [SubtitleLine], style: TextStylePreset = .classic, animation: TextAnimation = TextAnimation()) -> Int {
         var added = 0
-        mutate { added = $0.addSubtitles(lines) }
+        mutate { added = $0.addSubtitles(lines, style: style, animation: animation) }
         return added
     }
 
