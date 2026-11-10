@@ -11,6 +11,8 @@ final class TimelinePreviewer {
     private let logger = Logger(subsystem: "Clipsmith", category: "preview")
     private var buildTask: Task<Void, Never>?
     private var lastBuiltStructure: Project?
+    private var liveTask: Task<Void, Never>?
+    private var pendingLiveProject: Project?
 
     init(store: ProjectStore, player: PlayerController, builder: CompositionBuilding = CompositionBuilder()) {
         self.store = store
@@ -19,22 +21,42 @@ final class TimelinePreviewer {
     }
 
     func projectDidChange() {
-        buildTask?.cancel()
         let project = store.project
         // Text is drawn live by the preview, so text-only edits need no new composition.
         let structure = Self.withoutText(project)
         guard structure != lastBuiltStructure else { return }
-        // Moving a clip only changes its transform, which can be swapped in live.
-        let isMoveOnly = lastBuiltStructure.map { Self.withoutTransforms(structure) == Self.withoutTransforms($0) } ?? false
+        // Moving a clip or changing its look only changes how frames are drawn, which can be swapped in live.
+        let isLiveEdit = lastBuiltStructure.map { Self.withoutLook(structure) == Self.withoutLook($0) } ?? false
+        if isLiveEdit {
+            applyLive(project)
+            return
+        }
+        buildTask?.cancel()
+        liveTask?.cancel()
+        liveTask = nil
+        pendingLiveProject = nil
         buildTask = Task {
-            if !isMoveOnly {
-                do {
-                    try await Task.sleep(for: Self.debounce)
-                } catch {
-                    return
-                }
+            do {
+                try await Task.sleep(for: Self.debounce)
+            } catch {
+                return
             }
-            await rebuild(project, moveOnly: isMoveOnly)
+            await rebuild(project, moveOnly: false)
+        }
+    }
+
+    /// Keeps the preview following a slider or a drag: it never waits for the edit to stop, and while one
+    /// update is being prepared only the latest later state is kept, so the picture changes as fast as it can be built.
+    private func applyLive(_ project: Project) {
+        pendingLiveProject = project
+        guard liveTask == nil else { return }
+        liveTask = Task {
+            while let next = pendingLiveProject, !Task.isCancelled {
+                pendingLiveProject = nil
+                await rebuild(next, moveOnly: true)
+            }
+            // A cancelled loop was already replaced by whoever cancelled it.
+            if !Task.isCancelled { liveTask = nil }
         }
     }
 
@@ -49,7 +71,7 @@ final class TimelinePreviewer {
         return copy
     }
 
-    private static func withoutTransforms(_ project: Project) -> Project {
+    private static func withoutLook(_ project: Project) -> Project {
         var copy = project
         for track in copy.tracks.indices {
             for clip in copy.tracks[track].clips.indices {
@@ -59,6 +81,8 @@ final class TimelinePreviewer {
                 copy.tracks[track].clips[clip].rotationInDegrees = 0
                 copy.tracks[track].clips[clip].opacity = 1
                 copy.tracks[track].clips[clip].keyframes = []
+                copy.tracks[track].clips[clip].color = ColorAdjustments()
+                copy.tracks[track].clips[clip].crop = CropInsets()
             }
         }
         return copy
