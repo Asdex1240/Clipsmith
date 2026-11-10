@@ -52,3 +52,17 @@
 "error.export.session" = "The export could not be started.";
 "error.export.cancelled" = "The export was cancelled.";
 "error.export.failed" = "The export failed: %@";
+"text.default" = "Title";
+"timeline.addText" = "Add text at playhead";
+"inspector.empty" = "Select a clip to edit its properties";
+"inspector.text.section" = "Text";
+"inspector.text.content" = "Text";
+"inspector.text.font" = "Font";
+"inspector.text.size" = "Size";
+"inspector.text.color" = "Color";
+"inspector.text.positionX" = "Horizontal position";
+"inspector.text.positionY" = "Vertical position";
+"inspector.audio.section" = "Audio";
+"inspector.audio.volume" = "Volume";
+"inspector.audio.fadeIn" = "Fade in";
+"inspector.audio.fadeOut" = "Fade out";

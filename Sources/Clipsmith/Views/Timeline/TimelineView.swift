@@ -3,6 +3,7 @@ import SwiftUI
 struct TimelineView: View {
     let store: ProjectStore
     let library: MediaLibrary
+    let waveforms: WaveformStore
 
     private var pointsPerSecond: Double { store.pointsPerSecond }
 
@@ -26,6 +27,7 @@ struct TimelineView: View {
             Text(store.project.name).font(.headline)
             Text(store.playheadInSeconds.clockString).monospacedDigit().foregroundStyle(.secondary)
             Spacer()
+            toolbarButton("timeline.addText", systemImage: "textformat", shortcut: "t", action: store.addTextAtPlayhead)
             toolbarButton("timeline.split", systemImage: "scissors", shortcut: "s", action: store.splitAtPlayhead)
             toolbarButton("timeline.delete", systemImage: "trash", shortcut: .delete, action: store.deleteSelectedClip)
             toolbarButton(
@@ -99,16 +101,32 @@ struct TimelineView: View {
                     clip: clip,
                     pointsPerSecond: pointsPerSecond,
                     isSelected: store.selectedClipID == clip.id,
+                    waveformPeaks: waveformPeaks(for: clip, in: track),
                     onSelect: { store.selectClip(clip.id) },
                     onMove: { start, laneOffset in move(clip, from: index, near: start, laneOffset: laneOffset) },
                     onTrim: { edge, time in store.trimClip(clip.id, edge: edge, near: time) }
                 )
+                .task(id: clip.sourceURL) { await loadWaveform(for: clip, in: track) }
             }
         }
         .frame(width: width, height: TimelineMetrics.laneHeight, alignment: .topLeading)
         .dropDestination(for: String.self) { identifiers, location in
             drop(identifiers, onto: track, at: location.x / pointsPerSecond)
         }
+    }
+
+    private func showsWaveform(_ clip: Clip, in track: Track) -> Bool {
+        track.role.playsAudio && (clip.mediaKind == .video || clip.mediaKind == .audio)
+    }
+
+    private func waveformPeaks(for clip: Clip, in track: Track) -> [Float]? {
+        guard showsWaveform(clip, in: track), let url = clip.sourceURL else { return nil }
+        return waveforms.peaksByURL[url]
+    }
+
+    private func loadWaveform(for clip: Clip, in track: Track) async {
+        guard showsWaveform(clip, in: track), let url = clip.sourceURL else { return }
+        await waveforms.load(url)
     }
 
     private func move(_ clip: Clip, from laneIndex: Int, near start: TimeInterval, laneOffset: Int) {

@@ -143,3 +143,51 @@ final class ProjectStorePlaybackTests: XCTestCase {
         XCTAssertEqual(store.project.canvas, .portrait)
     }
 }
+
+@MainActor
+final class ProjectStorePropertiesTests: XCTestCase {
+    private var store = ProjectStore(project: Project(name: "Test"))
+
+    private var textClips: [Clip] { store.project.track(withRole: .text)!.clips }
+
+    override func setUp() async throws {
+        store = ProjectStore(project: Project(name: "Test"))
+    }
+
+    func testAddTextCreatesAndSelectsATextClipAtThePlayhead() {
+        store.setPlayhead(near: 4)
+
+        store.addTextAtPlayhead()
+
+        XCTAssertEqual(textClips.count, 1)
+        XCTAssertEqual(textClips[0].startInSeconds, 4)
+        XCTAssertEqual(textClips[0].durationInSeconds, ProjectStore.defaultTextDurationInSeconds)
+        XCTAssertEqual(store.selectedClipID, textClips[0].id)
+    }
+
+    func testTextEditsGoThroughTheStore() {
+        store.addTextAtPlayhead()
+        let id = textClips[0].id
+
+        store.updateTextLayer(of: id) { $0.content = "Barcelona" }
+
+        XCTAssertEqual(store.selectedClip?.displayName, "Barcelona")
+    }
+
+    func testVolumeAndFadesGoThroughTheStore() {
+        store.appendToTimeline(TestClips.mediaItem(kind: .audio, duration: 10))
+        let id = store.selectedClipID!
+
+        store.setVolume(of: id, to: 0.25)
+        store.setFadeIn(of: id, to: 2)
+        store.setFadeOut(of: id, to: 3)
+
+        XCTAssertEqual(store.selectedClip?.volume, 0.25)
+        XCTAssertEqual(store.selectedClip?.fadeInDurationInSeconds, 2)
+        XCTAssertEqual(store.selectedClip?.fadeOutDurationInSeconds, 3)
+    }
+
+    func testAppendingTextMediaGoesToTheTextTrack() {
+        XCTAssertEqual(Track.Role.preferred(for: .text), .text)
+    }
+}

@@ -2,6 +2,7 @@ import AVFoundation
 import OSLog
 
 enum CompositionError: Error {
+    case missingSource
     case missingTrack(URL)
     case cannotCreateTrack
 }
@@ -21,6 +22,8 @@ final class CompositionAssembler {
     private var audioTracks: [Track.Role: AVMutableCompositionTrack] = [:]
     private var placements: [Clip.ID: Placement] = [:]
     private var skippedClipIDs: [Clip.ID] = []
+    private var textClips: [Clip] = []
+    private var volumeSteps: [Track.Role: [VolumeStep]] = [:]
 
     init(renderSize: CGSize, framesPerSecond: Int32, stillImages: StillImageVideoMaking) {
         self.renderSize = renderSize
@@ -33,7 +36,7 @@ final class CompositionAssembler {
             try await insert(clip, role: role)
         } catch {
             skippedClipIDs.append(clip.id)
-            logger.error("Skipped clip \(clip.sourceURL.lastPathComponent): \(error.localizedDescription)")
+            logger.error("Skipped clip \(clip.displayName): \(error.localizedDescription)")
         }
     }
 
@@ -42,6 +45,8 @@ final class CompositionAssembler {
         return BuiltComposition(
             composition: composition,
             videoComposition: makeVideoComposition(covering: covered),
+            audioMix: makeAudioMix(),
+            textOverlay: TextOverlay(clips: textClips, renderSize: renderSize),
             skippedClipIDs: skippedClipIDs
         )
     }
@@ -56,14 +61,14 @@ final class CompositionAssembler {
         case .audio:
             try await insertAudio(clip, role: role)
         case .text:
-            break
+            textClips.append(clip)
         }
     }
 
     private func insertVideo(_ clip: Clip, role: Track.Role) async throws {
         let source = try await resolveVideoSource(for: clip)
         guard let assetTrack = try await source.asset.loadTracks(withMediaType: .video).first else {
-            throw CompositionError.missingTrack(clip.sourceURL)
+            throw CompositionError.missingTrack(source.asset.url)
         }
         let target = try videoTrack(for: role)
         let insertedDuration = source.isStill ? StillImageVideoWriter.durationInSeconds : clip.durationInSeconds
@@ -86,7 +91,7 @@ final class CompositionAssembler {
 
     private func insertAudio(_ clip: Clip, role: Track.Role) async throws {
         guard try await insertAudioTrack(of: clip, role: role) else {
-            throw CompositionError.missingTrack(clip.sourceURL)
+            throw CompositionError.missingTrack(try sourceURL(of: clip))
         }
     }
 
@@ -94,25 +99,56 @@ final class CompositionAssembler {
         do {
             _ = try await insertAudioTrack(of: clip, role: role)
         } catch {
-            logger.error("Audio of \(clip.sourceURL.lastPathComponent) not added: \(error.localizedDescription)")
+            logger.error("Audio of \(clip.displayName) not added: \(error.localizedDescription)")
         }
     }
 
     private func insertAudioTrack(of clip: Clip, role: Track.Role) async throws -> Bool {
         guard clip.mediaKind != .image else { return false }
-        let asset = AVURLAsset(url: clip.sourceURL)
+        let asset = AVURLAsset(url: try sourceURL(of: clip))
         guard let assetTrack = try await asset.loadTracks(withMediaType: .audio).first else { return false }
         let range = CMTimeRange(start: clip.sourceStartInSeconds.cmTime, duration: clip.durationInSeconds.cmTime)
         try audioTrack(for: role).insertTimeRange(range, of: assetTrack, at: clip.startInSeconds.cmTime)
+        volumeSteps[role, default: []].append(contentsOf: VolumeAutomation.steps(for: clip))
         return true
     }
 
     private func resolveVideoSource(for clip: Clip) async throws -> (asset: AVURLAsset, startInSeconds: TimeInterval, isStill: Bool) {
+        let url = try sourceURL(of: clip)
         guard clip.mediaKind == .image else {
-            return (AVURLAsset(url: clip.sourceURL), clip.sourceStartInSeconds, false)
+            return (AVURLAsset(url: url), clip.sourceStartInSeconds, false)
         }
-        let stillURL = try await stillImages.makeVideo(from: clip.sourceURL, size: renderSize)
+        let stillURL = try await stillImages.makeVideo(from: url, size: renderSize)
         return (AVURLAsset(url: stillURL), 0, true)
+    }
+
+    private func sourceURL(of clip: Clip) throws -> URL {
+        guard let url = clip.sourceURL else { throw CompositionError.missingSource }
+        return url
+    }
+
+    private func makeAudioMix() -> AVAudioMix? {
+        let parameters = audioTracks.compactMap { role, track -> AVMutableAudioMixInputParameters? in
+            guard let steps = volumeSteps[role], !steps.isEmpty else { return nil }
+            let inputParameters = AVMutableAudioMixInputParameters(track: track)
+            for step in steps.sorted(by: { $0.startInSeconds < $1.startInSeconds }) {
+                apply(step, to: inputParameters)
+            }
+            return inputParameters
+        }
+        guard !parameters.isEmpty else { return nil }
+        let mix = AVMutableAudioMix()
+        mix.inputParameters = parameters
+        return mix
+    }
+
+    private func apply(_ step: VolumeStep, to parameters: AVMutableAudioMixInputParameters) {
+        guard step.durationInSeconds > 0 else {
+            parameters.setVolume(step.startVolume, at: step.startInSeconds.cmTime)
+            return
+        }
+        let range = CMTimeRange(start: step.startInSeconds.cmTime, duration: step.durationInSeconds.cmTime)
+        parameters.setVolumeRamp(fromStartVolume: step.startVolume, toEndVolume: step.endVolume, timeRange: range)
     }
 
     private func videoTrack(for role: Track.Role) throws -> AVMutableCompositionTrack {
@@ -133,7 +169,7 @@ final class CompositionAssembler {
         return created
     }
 
-    private func makeVideoComposition(covering segments: [PlannedSegment]) -> AVVideoComposition? {
+    private func makeVideoComposition(covering segments: [PlannedSegment]) -> AVMutableVideoComposition? {
         guard !videoTracks.isEmpty, !segments.isEmpty else { return nil }
         let videoComposition = AVMutableVideoComposition()
         videoComposition.renderSize = renderSize

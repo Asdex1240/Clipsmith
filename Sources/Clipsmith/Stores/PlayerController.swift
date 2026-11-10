@@ -15,6 +15,8 @@ final class PlayerController {
     private(set) var mode: Mode = .timeline
     private(set) var sourceItem: MediaItem?
     private(set) var hasTimeline = false
+    private(set) var timelineOverlay: TextOverlay?
+    private(set) var timelineRevision = 0
     private(set) var isPlaying = false
     @ObservationIgnored private var timeline: BuiltComposition?
     @ObservationIgnored private var statusObservation: AnyCancellable?
@@ -49,6 +51,8 @@ final class PlayerController {
     func setTimeline(_ built: BuiltComposition?, at time: TimeInterval) {
         timeline = built
         hasTimeline = built != nil
+        timelineOverlay = built?.textOverlay
+        timelineRevision += 1
         guard mode == .timeline else { return }
         installTimeline(resumingPlayback: isPlaying, at: time)
     }

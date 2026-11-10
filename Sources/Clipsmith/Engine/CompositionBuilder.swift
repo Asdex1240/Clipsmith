@@ -16,7 +16,7 @@ extension CompositionBuilding {
 
 struct CompositionBuilder: CompositionBuilding {
     static let previewFramesPerSecond: Int32 = 30
-    private static let assemblyOrder: [Track.Role] = [.main, .broll, .audio]
+    private static let assemblyOrder: [Track.Role] = [.main, .broll, .audio, .text]
 
     var stillImages: StillImageVideoMaking = StillImageVideoWriter()
 

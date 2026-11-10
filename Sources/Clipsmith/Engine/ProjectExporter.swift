@@ -58,7 +58,9 @@ struct ProjectExporter: Exporting {
         try? FileManager.default.removeItem(at: destination)
         session.outputURL = destination
         session.outputFileType = .mp4
+        built.attachTextOverlayForExport()
         session.videoComposition = built.videoComposition
+        session.audioMix = built.audioMix
         session.shouldOptimizeForNetworkUse = true
 
         nonisolated(unsafe) let sharedSession = session

@@ -26,7 +26,12 @@ struct PreviewView: View {
     @ViewBuilder
     private var timelineSurface: some View {
         if controller.hasTimeline {
-            PlayerSurface(player: controller.player).background(.black)
+            PlayerSurface(
+                player: controller.player,
+                overlay: controller.timelineOverlay,
+                revision: controller.timelineRevision
+            )
+            .background(.black)
         } else {
             emptyState(localized("preview.timelineEmpty"))
         }

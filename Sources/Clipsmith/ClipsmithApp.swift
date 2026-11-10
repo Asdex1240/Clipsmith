@@ -8,6 +8,7 @@ struct ClipsmithApp: App {
     @State private var player: PlayerController
     @State private var previewer: TimelinePreviewer
     @State private var exporter: ExportController
+    @State private var waveforms = WaveformStore()
     private let thumbnails = CachedThumbnailGenerator()
 
     init() {
@@ -21,7 +22,7 @@ struct ClipsmithApp: App {
 
     var body: some Scene {
         WindowGroup("Clipsmith") {
-            ContentView(store: store, library: library, player: player, previewer: previewer, exporter: exporter, thumbnails: thumbnails)
+            ContentView(store: store, library: library, player: player, previewer: previewer, exporter: exporter, thumbnails: thumbnails, waveforms: waveforms)
                 .frame(minWidth: 1100, minHeight: 700)
         }
     }

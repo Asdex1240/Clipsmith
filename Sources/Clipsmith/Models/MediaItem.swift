@@ -2,7 +2,7 @@ import Foundation
 import UniformTypeIdentifiers
 
 enum MediaKind: String, Codable {
-    case video, audio, image
+    case video, audio, image, text
 
     init?(url: URL) {
         guard let type = UTType(filenameExtension: url.pathExtension.lowercased()) else {

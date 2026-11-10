@@ -4,6 +4,7 @@ struct ClipBlockView: View {
     let clip: Clip
     let pointsPerSecond: Double
     let isSelected: Bool
+    let waveformPeaks: [Float]?
     let onSelect: () -> Void
     let onMove: (_ proposedStart: TimeInterval, _ laneOffset: Int) -> Void
     let onTrim: (_ edge: ClipEdge, _ proposedTime: TimeInterval) -> Void
@@ -19,7 +20,8 @@ struct ClipBlockView: View {
             RoundedRectangle(cornerRadius: Self.cornerRadius)
                 .fill(fillColor)
                 .overlay(border)
-            Text(clip.sourceURL.lastPathComponent)
+            waveform
+            Text(clip.displayName)
                 .font(.caption)
                 .lineLimit(1)
                 .padding(.horizontal, TimelineMetrics.trimHandleWidth + 2)
@@ -42,6 +44,15 @@ struct ClipBlockView: View {
         case .video: return .blue.opacity(0.55)
         case .image: return .purple.opacity(0.55)
         case .audio: return .green.opacity(0.55)
+        case .text: return .orange.opacity(0.65)
+        }
+    }
+
+    @ViewBuilder
+    private var waveform: some View {
+        if let waveformPeaks, !waveformPeaks.isEmpty {
+            WaveformView(peaks: waveformPeaks, clip: clip, pointsPerSecond: pointsPerSecond, color: .white.opacity(0.55))
+                .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius))
         }
     }
 

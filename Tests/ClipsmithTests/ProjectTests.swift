@@ -14,9 +14,9 @@ final class ProjectTests: XCTestCase {
         XCTAssertEqual(decodedClip.durationInSeconds, 3)
     }
 
-    func testNewProjectHasBrollMainAndAudioTracksInThatOrder() {
+    func testNewProjectHasTextBrollMainAndAudioTracksInThatOrder() {
         let project = Project(name: "Demo")
 
-        XCTAssertEqual(project.tracks.map(\.role), [.broll, .main, .audio])
+        XCTAssertEqual(project.tracks.map(\.role), [.text, .broll, .main, .audio])
     }
 }

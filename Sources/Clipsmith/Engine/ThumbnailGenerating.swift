@@ -23,7 +23,7 @@ final class CachedThumbnailGenerator: ThumbnailGenerating {
         switch item.kind {
         case .image: return NSImage(contentsOf: item.url)
         case .video: return await renderVideoFrame(of: item)
-        case .audio: return nil
+        case .audio, .text: return nil
         }
     }
 

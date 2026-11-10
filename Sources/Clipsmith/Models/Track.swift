@@ -8,12 +8,20 @@ struct Track: Codable, Identifiable {
             switch self {
             case .broll, .main: return kind == .video || kind == .image
             case .audio: return kind == .audio
-            case .text: return false
+            case .text: return kind == .text
             }
         }
 
+        var playsAudio: Bool {
+            self == .main || self == .audio
+        }
+
         static func preferred(for kind: MediaKind) -> Role {
-            kind == .audio ? .audio : .main
+            switch kind {
+            case .audio: return .audio
+            case .text: return .text
+            case .video, .image: return .main
+            }
         }
     }
 

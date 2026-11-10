@@ -80,7 +80,7 @@ extension Project {
         }
     }
 
-    private func location(of id: Clip.ID) -> (track: Int, clip: Int)? {
+    func location(of id: Clip.ID) -> (track: Int, clip: Int)? {
         for (trackIndex, track) in tracks.enumerated() {
             if let clipIndex = track.clips.firstIndex(where: { $0.id == id }) {
                 return (trackIndex, clipIndex)

@@ -7,6 +7,7 @@ struct ContentView: View {
     let previewer: TimelinePreviewer
     let exporter: ExportController
     let thumbnails: ThumbnailGenerating
+    let waveforms: WaveformStore
     @State private var selection: MediaItem.ID?
     @State private var isExportPresented = false
 
@@ -16,7 +17,7 @@ struct ContentView: View {
         static let previewMinWidth: CGFloat = 400
         static let inspectorMinWidth: CGFloat = 200
         static let inspectorIdealWidth: CGFloat = 260
-        static let timelineHeight: CGFloat = 270
+        static let timelineHeight: CGFloat = 280
     }
 
     var body: some View {
@@ -31,11 +32,11 @@ struct ContentView: View {
                     .frame(minWidth: Layout.libraryMinWidth, idealWidth: Layout.libraryIdealWidth)
                 PreviewView(controller: player, store: store, onSelectTimeline: showTimeline)
                     .frame(minWidth: Layout.previewMinWidth)
-                placeholder(localized("panel.inspector"))
+                InspectorView(store: store)
                     .frame(minWidth: Layout.inspectorMinWidth, idealWidth: Layout.inspectorIdealWidth)
             }
             Divider()
-            TimelineView(store: store, library: library)
+            TimelineView(store: store, library: library, waveforms: waveforms)
                 .frame(height: Layout.timelineHeight)
         }
         .toolbar {
@@ -71,12 +72,5 @@ struct ContentView: View {
 
     private func showTimeline() {
         player.showTimeline(at: store.playheadInSeconds)
-    }
-
-    private func placeholder(_ title: String) -> some View {
-        ZStack {
-            Rectangle().fill(.background.secondary)
-            Text(title).foregroundStyle(.secondary)
-        }
     }
 }

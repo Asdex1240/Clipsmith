@@ -9,6 +9,7 @@ final class ProjectStore {
     static let maximumPointsPerSecond = 400.0
     static let zoomFactor = 1.25
     static let snapThresholdInPoints = 8.0
+    static let defaultTextDurationInSeconds: TimeInterval = 3
 
     private(set) var project: Project {
         didSet { projectRevision += 1 }
@@ -34,6 +35,29 @@ final class ProjectStore {
         let candidates = project.snapPoints(excluding: nil, playhead: -1)
         let snapped = Snapping.snap(max(0, proposed), to: candidates, within: snapThresholdInSeconds)
         playheadInSeconds = max(0, snapped)
+    }
+
+    func addTextAtPlayhead() {
+        let layer = TextLayer(content: localized("text.default"))
+        if let id = project.addTextClip(layer, at: playheadInSeconds, duration: Self.defaultTextDurationInSeconds) {
+            selectedClipID = id
+        }
+    }
+
+    func updateTextLayer(of id: Clip.ID, _ change: (inout TextLayer) -> Void) {
+        project.updateTextLayer(of: id, change)
+    }
+
+    func setVolume(of id: Clip.ID, to value: Double) {
+        project.setVolume(of: id, to: value)
+    }
+
+    func setFadeIn(of id: Clip.ID, to seconds: TimeInterval) {
+        project.setFadeIn(of: id, to: seconds)
+    }
+
+    func setFadeOut(of id: Clip.ID, to seconds: TimeInterval) {
+        project.setFadeOut(of: id, to: seconds)
     }
 
     func followPlayback(at time: TimeInterval) {
