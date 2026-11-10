@@ -7,8 +7,6 @@ enum CompositionError: Error {
 }
 
 final class CompositionAssembler {
-    static let framesPerSecond: Int32 = 30
-
     private struct Placement {
         let trackID: CMPersistentTrackID
         let transform: CGAffineTransform
@@ -16,6 +14,7 @@ final class CompositionAssembler {
 
     private let composition = AVMutableComposition()
     private let renderSize: CGSize
+    private let framesPerSecond: Int32
     private let stillImages: StillImageVideoMaking
     private let logger = Logger(subsystem: "Clipsmith", category: "composition")
     private var videoTracks: [Track.Role: AVMutableCompositionTrack] = [:]
@@ -23,8 +22,9 @@ final class CompositionAssembler {
     private var placements: [Clip.ID: Placement] = [:]
     private var skippedClipIDs: [Clip.ID] = []
 
-    init(renderSize: CGSize, stillImages: StillImageVideoMaking) {
+    init(renderSize: CGSize, framesPerSecond: Int32, stillImages: StillImageVideoMaking) {
         self.renderSize = renderSize
+        self.framesPerSecond = framesPerSecond
         self.stillImages = stillImages
     }
 
@@ -137,7 +137,7 @@ final class CompositionAssembler {
         guard !videoTracks.isEmpty, !segments.isEmpty else { return nil }
         let videoComposition = AVMutableVideoComposition()
         videoComposition.renderSize = renderSize
-        videoComposition.frameDuration = CMTime(value: 1, timescale: Self.framesPerSecond)
+        videoComposition.frameDuration = CMTime(value: 1, timescale: framesPerSecond)
         videoComposition.instructions = segments.enumerated().map { index, segment in
             let isLast = index == segments.count - 1
             return instruction(for: segment, endingAt: isLast ? composition.duration : segment.endInSeconds.cmTime)

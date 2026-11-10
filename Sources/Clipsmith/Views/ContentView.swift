@@ -5,8 +5,10 @@ struct ContentView: View {
     let library: MediaLibrary
     let player: PlayerController
     let previewer: TimelinePreviewer
+    let exporter: ExportController
     let thumbnails: ThumbnailGenerating
     @State private var selection: MediaItem.ID?
+    @State private var isExportPresented = false
 
     private enum Layout {
         static let libraryMinWidth: CGFloat = 220
@@ -36,6 +38,14 @@ struct ContentView: View {
             TimelineView(store: store, library: library)
                 .frame(height: Layout.timelineHeight)
         }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(localized("export.open"), systemImage: "square.and.arrow.up") { isExportPresented = true }
+                    .keyboardShortcut("e", modifiers: .command)
+                    .disabled(store.project.durationInSeconds == 0)
+            }
+        }
+        .sheet(isPresented: $isExportPresented) { ExportView(controller: exporter) }
         .onChange(of: selection, selectionDidChange)
         .onChange(of: store.projectRevision) { previewer.projectDidChange() }
         .onChange(of: store.playheadInSeconds) { player.seekTimeline(to: store.playheadInSeconds) }
