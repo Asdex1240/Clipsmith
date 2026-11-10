@@ -2,6 +2,7 @@ import SwiftUI
 
 struct InspectorView: View {
     let store: ProjectStore
+    let subtitles: SubtitleController
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -30,6 +31,9 @@ struct InspectorView: View {
                     }
                     if hasAudioControls(for: clip) {
                         AudioInspector(store: store, clip: clip)
+                    }
+                    if hasAudioControls(for: clip) {
+                        SubtitleInspector(subtitles: subtitles, clip: clip)
                     }
                     if clip.isAudioDetached {
                         Text(localized("inspector.audio.detached"))

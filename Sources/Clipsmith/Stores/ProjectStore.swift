@@ -227,6 +227,13 @@ final class ProjectStore {
         if let addedID { selectedClipID = addedID }
     }
 
+    @discardableResult
+    func addSubtitles(_ lines: [SubtitleLine]) -> Int {
+        var added = 0
+        mutate { added = $0.addSubtitles(lines) }
+        return added
+    }
+
     func updateTextLayer(of id: Clip.ID, field: String = "", _ change: (inout TextLayer) -> Void) {
         mutate(coalescingKey: "text-\(id)-\(field)") { $0.updateTextLayer(of: id, change) }
     }

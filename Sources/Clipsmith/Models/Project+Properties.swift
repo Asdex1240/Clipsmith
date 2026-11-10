@@ -153,6 +153,14 @@ extension Project {
         return addClip(clip, toTrack: track.id) ? clip.id : nil
     }
 
+    /// Adds a text clip for each line; returns how many fit on the text track.
+    @discardableResult
+    mutating func addSubtitles(_ lines: [SubtitleLine]) -> Int {
+        lines.reduce(0) { added, line in
+            addTextClip(.subtitle(line.text), at: line.startInSeconds, duration: line.durationInSeconds) == nil ? added : added + 1
+        }
+    }
+
     private mutating func updateClip(_ id: Clip.ID, _ transform: (Clip) -> Clip) {
         guard let position = location(of: id) else { return }
         tracks[position.track].clips[position.clip] = transform(tracks[position.track].clips[position.clip])

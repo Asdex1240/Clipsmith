@@ -15,6 +15,14 @@ struct TextLayer: Codable, Equatable {
     static let defaultFontSize = 72.0
     static let defaultPositionY = 0.85
 
+    static let subtitleFontSize = 54.0
+    static let subtitlePositionY = 0.88
+
+    /// The look of a generated subtitle: smaller than a title and low on the screen.
+    static func subtitle(_ content: String) -> TextLayer {
+        TextLayer(content: content, fontSize: subtitleFontSize, positionY: subtitlePositionY)
+    }
+
     var content: String
     var fontName = TextLayer.defaultFontName
     var fontSize = TextLayer.defaultFontSize

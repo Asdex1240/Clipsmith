@@ -8,6 +8,7 @@ struct ClipsmithApp: App {
     @State private var player: PlayerController
     @State private var previewer: TimelinePreviewer
     @State private var exporter: ExportController
+    @State private var subtitles: SubtitleController
     @State private var document: DocumentController
     private let documentActions: DocumentActions
     private let shortcutMonitor: KeyboardShortcutMonitor
@@ -29,11 +30,12 @@ struct ClipsmithApp: App {
         _player = State(initialValue: player)
         _previewer = State(initialValue: TimelinePreviewer(store: store, player: player))
         _exporter = State(initialValue: ExportController(store: store))
+        _subtitles = State(initialValue: SubtitleController(store: store))
     }
 
     var body: some Scene {
         WindowGroup("Clipsmith") {
-            ContentView(store: store, library: library, player: player, previewer: previewer, exporter: exporter, document: document,
+            ContentView(store: store, library: library, player: player, previewer: previewer, exporter: exporter, subtitles: subtitles, document: document,
                 documentActions: documentActions, thumbnails: thumbnails, waveforms: waveforms)
                 .frame(minWidth: 1100, minHeight: 700)
                 .onAppear {

@@ -1,0 +1,70 @@
+import SwiftUI
+
+struct SubtitleInspector: View {
+    let subtitles: SubtitleController
+    let clip: Clip
+
+    @AppStorage("subtitleLanguage") private var languageIdentifier = ""
+    private let locales = SpeechTranscriber.supportedLocales
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(localized("inspector.subtitles.section")).font(.subheadline.bold())
+            Picker(localized("inspector.subtitles.language"), selection: selectedIdentifier) {
+                ForEach(locales, id: \.identifier) { locale in
+                    Text(locale.localizedString(forIdentifier: locale.identifier) ?? locale.identifier).tag(locale.identifier)
+                }
+            }
+            HStack {
+                Button(localized("inspector.subtitles.generate")) {
+                    subtitles.dismiss()
+                    subtitles.generate(for: clip.id, locale: Locale(identifier: selectedIdentifier.wrappedValue))
+                }
+                .disabled(subtitles.isWorking || locales.isEmpty)
+                if subtitles.isWorking {
+                    ProgressView().controlSize(.small)
+                    Button(localized("inspector.subtitles.cancel"), action: subtitles.cancel)
+                }
+            }
+            status
+            Text(localized("inspector.subtitles.hint")).font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder
+    private var status: some View {
+        switch subtitles.state {
+        case .idle, .working:
+            EmptyView()
+        case .finished(let count):
+            Label(String(format: localized("inspector.subtitles.done"), count), systemImage: "checkmark.circle")
+                .font(.caption)
+                .foregroundStyle(.green)
+        case .failed(let message):
+            Label(message, systemImage: "exclamationmark.triangle")
+                .font(.caption)
+                .foregroundStyle(.orange)
+        }
+    }
+
+    /// The saved language, or the closest to the system one the first time.
+    private var selectedIdentifier: Binding<String> {
+        Binding(
+            get: {
+                if locales.contains(where: { $0.identifier == languageIdentifier }) { return languageIdentifier }
+                return Self.defaultIdentifier(in: locales)
+            },
+            set: { languageIdentifier = $0 }
+        )
+    }
+
+    static func defaultIdentifier(in locales: [Locale], system: Locale = .current) -> String {
+        let identifiers = locales.map(\.identifier)
+        if identifiers.contains(system.identifier) { return system.identifier }
+        if let code = system.language.languageCode?.identifier,
+           let match = identifiers.first(where: { $0.hasPrefix(code + "_") || $0.hasPrefix(code + "-") }) {
+            return match
+        }
+        return identifiers.first(where: { $0 == "en_US" }) ?? identifiers.first ?? "en_US"
+    }
+}

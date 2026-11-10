@@ -179,3 +179,15 @@
 "preset.cool" = "Cool";
 "preset.vivid" = "Vivid";
 "preset.faded" = "Faded";
+"inspector.subtitles.section" = "Subtitles";
+"inspector.subtitles.language" = "Spoken language";
+"inspector.subtitles.generate" = "Generate subtitles";
+"inspector.subtitles.cancel" = "Cancel";
+"inspector.subtitles.done" = "%d subtitles added to the text track.";
+"inspector.subtitles.hint" = "Listens to this clip and adds a text clip for each spoken line. You can edit them afterwards.";
+"error.subtitles.packaged" = "Subtitles need the packaged app (build it with Packaging/build-app.sh).";
+"error.subtitles.denied" = "Speech recognition is not allowed. Enable it for Clipsmith in System Settings > Privacy & Security > Speech Recognition.";
+"error.subtitles.language" = "Speech recognition is not available for this language right now.";
+"error.subtitles.noAudio" = "This clip has no audio to listen to.";
+"error.subtitles.noSpeech" = "No speech was found in this clip.";
+"error.subtitles.failed" = "The subtitles could not be generated: %@";

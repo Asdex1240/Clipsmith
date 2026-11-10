@@ -179,3 +179,15 @@
 "preset.cool" = "Frío";
 "preset.vivid" = "Vivo";
 "preset.faded" = "Desvaído";
+"inspector.subtitles.section" = "Subtítulos";
+"inspector.subtitles.language" = "Idioma hablado";
+"inspector.subtitles.generate" = "Generar subtítulos";
+"inspector.subtitles.cancel" = "Cancelar";
+"inspector.subtitles.done" = "%d subtítulos añadidos a la pista de texto.";
+"inspector.subtitles.hint" = "Escucha este clip y añade un clip de texto por cada frase. Después puedes editarlos.";
+"error.subtitles.packaged" = "Los subtítulos necesitan la app empaquetada (créala con Packaging/build-app.sh).";
+"error.subtitles.denied" = "El reconocimiento de voz no está permitido. Actívalo para Clipsmith en Ajustes del Sistema > Privacidad y seguridad > Reconocimiento de voz.";
+"error.subtitles.language" = "El reconocimiento de voz no está disponible ahora para este idioma.";
+"error.subtitles.noAudio" = "Este clip no tiene audio que escuchar.";
+"error.subtitles.noSpeech" = "No se encontró voz en este clip.";
+"error.subtitles.failed" = "No se pudieron generar los subtítulos: %@";

@@ -6,6 +6,7 @@ struct ContentView: View {
     let player: PlayerController
     let previewer: TimelinePreviewer
     let exporter: ExportController
+    let subtitles: SubtitleController
     let document: DocumentController
     let documentActions: DocumentActions
     let thumbnails: ThumbnailGenerating
@@ -35,7 +36,7 @@ struct ContentView: View {
                     .frame(minWidth: Layout.libraryMinWidth, idealWidth: Layout.libraryIdealWidth)
                 PreviewView(controller: player, store: store, onSelectTimeline: showTimeline)
                     .frame(minWidth: Layout.previewMinWidth)
-                InspectorView(store: store)
+                InspectorView(store: store, subtitles: subtitles)
                     .frame(minWidth: Layout.inspectorMinWidth, idealWidth: Layout.inspectorIdealWidth)
             }
             Divider()
