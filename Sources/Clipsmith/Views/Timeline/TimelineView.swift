@@ -21,6 +21,7 @@ struct TimelineView: View {
                 }
             }
         }
+        .background(CommandScrollZoomMonitor { store.zoom(byScrollDelta: $0) })
     }
 
     private var toolbar: some View {
