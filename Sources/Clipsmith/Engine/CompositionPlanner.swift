@@ -7,10 +7,11 @@ struct PlannedTransition: Equatable {
     let kind: TransitionKind
     let windowStart: TimeInterval
     let windowEnd: TimeInterval
+    var easing = Easing.linear
 
     func progress(at time: TimeInterval) -> Double {
         guard windowEnd > windowStart else { return 1 }
-        return min(max((time - windowStart) / (windowEnd - windowStart), 0), 1)
+        return easing.apply((time - windowStart) / (windowEnd - windowStart))
     }
 }
 
@@ -72,7 +73,8 @@ enum CompositionPlanner {
                     incomingClipID: clip.id,
                     kind: transition.kind,
                     windowStart: clip.startInSeconds,
-                    windowEnd: clip.startInSeconds + duration
+                    windowEnd: clip.startInSeconds + duration,
+                    easing: transition.easing
                 )
             }
         }

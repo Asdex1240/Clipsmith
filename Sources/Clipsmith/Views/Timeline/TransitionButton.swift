@@ -27,6 +27,12 @@ struct TransitionButton: View {
                 )) {
                     ForEach(Self.durations, id: \.self) { Text(String(format: "%g s", $0)).tag($0) }
                 }
+                Picker(localized("easing.title"), selection: Binding(
+                    get: { transition.easing },
+                    set: { store.setTransition(of: clip.id, to: transition.settingEasing($0)) }
+                )) {
+                    ForEach(Easing.allCases, id: \.self) { Text(EasingMenu.title(of: $0)).tag($0) }
+                }
             }
         } label: {
             Image(systemName: clip.transition == nil ? "plus" : "arrow.triangle.merge")

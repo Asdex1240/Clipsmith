@@ -179,6 +179,10 @@ final class ProjectStore {
         mutate { $0.removeKeyframe(keyframeID, from: id) }
     }
 
+    func setKeyframeEasing(_ easing: Easing, for keyframeID: Keyframe.ID, in id: Clip.ID) {
+        mutate { $0.setKeyframeEasing(easing, for: keyframeID, in: id) }
+    }
+
     func clearKeyframes(of id: Clip.ID) {
         mutate { $0.clearKeyframes(of: id) }
     }

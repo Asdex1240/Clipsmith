@@ -191,3 +191,8 @@
 "error.subtitles.noAudio" = "This clip has no audio to listen to.";
 "error.subtitles.noSpeech" = "No speech was found in this clip.";
 "error.subtitles.failed" = "The subtitles could not be generated: %@";
+"easing.title" = "Easing";
+"easing.linear" = "Linear";
+"easing.easeIn" = "Ease in (slow start)";
+"easing.easeOut" = "Ease out (slow end)";
+"easing.easeInOut" = "Ease in and out";

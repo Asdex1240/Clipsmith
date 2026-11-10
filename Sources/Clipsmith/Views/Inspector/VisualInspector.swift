@@ -44,6 +44,7 @@ struct VisualInspector: View {
                     Image(systemName: "diamond.fill").foregroundStyle(.yellow).font(.caption)
                     Text((clip.startInSeconds + frame.timeInSeconds).clockString).monospacedDigit()
                     Spacer()
+                    EasingMenu(easing: frame.easing) { store.setKeyframeEasing($0, for: frame.id, in: clip.id) }
                     Button { store.movePlayhead(to: clip.startInSeconds + frame.timeInSeconds) } label: {
                         Image(systemName: "arrow.right.to.line")
                     }

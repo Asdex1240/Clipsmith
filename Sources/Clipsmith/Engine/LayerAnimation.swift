@@ -5,6 +5,7 @@ enum LayerAnimation {
     private static let maximumDegreesPerStep = 10.0
     private static let maximumScaleChangePerStep = 0.1
     private static let maximumStepsPerSpan = 60
+    private static let minimumStepsWhenEased = 12
 
     /// Times (in timeline seconds) between `start` and `end` at which a layer's look is sampled.
     /// Neighbouring samples are joined by straight ramps, so turns and zooms get extra samples
@@ -31,6 +32,7 @@ enum LayerAnimation {
         let b = clip.visualState(atClipTime: to - clip.startInSeconds)
         let turnSteps = abs(b.rotationInDegrees - a.rotationInDegrees) / maximumDegreesPerStep
         let zoomSteps = abs(b.scale - a.scale) / max(min(a.scale, b.scale), 0.01) / maximumScaleChangePerStep
-        return min(max(Int(ceil(max(turnSteps, zoomSteps))), 1), maximumStepsPerSpan)
+        let easedSteps = clip.eased(from: from - clip.startInSeconds) ? Double(minimumStepsWhenEased) : 1
+        return min(max(Int(ceil(max(turnSteps, zoomSteps, easedSteps))), 1), maximumStepsPerSpan)
     }
 }

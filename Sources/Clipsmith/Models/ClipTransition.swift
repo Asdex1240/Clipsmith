@@ -14,6 +14,13 @@ struct ClipTransition: Codable, Equatable {
 
     var kind: TransitionKind
     var durationInSeconds: TimeInterval = ClipTransition.defaultDuration
+    var easing = Easing.easeInOut
+
+    func settingEasing(_ easing: Easing) -> ClipTransition {
+        var copy = self
+        copy.easing = easing
+        return copy
+    }
 
     func settingDuration(_ seconds: TimeInterval) -> ClipTransition {
         var copy = self
@@ -51,5 +58,25 @@ extension TransitionKind {
     /// Progress values where the look changes direction, which a straight ramp cannot follow.
     var breakpoints: [Double] {
         self == .fadeBlack ? [Self.dipFraction] : []
+    }
+}
+
+extension ClipTransition {
+    private enum CodingKeys: String, CodingKey {
+        case kind, durationInSeconds, easing
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        kind = try container.decode(TransitionKind.self, forKey: .kind)
+        durationInSeconds = try container.decodeIfPresent(TimeInterval.self, forKey: .durationInSeconds) ?? Self.defaultDuration
+        easing = try container.decodeIfPresent(Easing.self, forKey: .easing) ?? .linear
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(kind, forKey: .kind)
+        try container.encode(durationInSeconds, forKey: .durationInSeconds)
+        try container.encode(easing, forKey: .easing)
     }
 }

@@ -191,3 +191,8 @@
 "error.subtitles.noAudio" = "Este clip no tiene audio que escuchar.";
 "error.subtitles.noSpeech" = "No se encontró voz en este clip.";
 "error.subtitles.failed" = "No se pudieron generar los subtítulos: %@";
+"easing.title" = "Suavizado";
+"easing.linear" = "Lineal";
+"easing.easeIn" = "Entrada suave (arranca lento)";
+"easing.easeOut" = "Salida suave (termina lento)";
+"easing.easeInOut" = "Entrada y salida suaves";

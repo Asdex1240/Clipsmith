@@ -79,6 +79,10 @@ extension Project {
         updateClip(id) { $0.removingKeyframe(keyframeID) }
     }
 
+    mutating func setKeyframeEasing(_ easing: Easing, for keyframeID: Keyframe.ID, in id: Clip.ID) {
+        updateClip(id) { $0.settingKeyframeEasing(easing, for: keyframeID) }
+    }
+
     mutating func clearKeyframes(of id: Clip.ID) {
         updateClip(id) { $0.clearingKeyframes() }
     }

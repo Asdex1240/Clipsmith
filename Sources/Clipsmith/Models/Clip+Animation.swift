@@ -16,6 +16,18 @@ extension Clip {
     /// True when the clip needs per-frame values instead of one fixed transform.
     var needsAnimatedLayer: Bool { isAnimated || opacity != 1 }
 
+    /// True when the values just after `time` follow a curve instead of a straight line.
+    func eased(from time: TimeInterval) -> Bool {
+        !KeyframeInterpolation.easing(at: time + 1e-9, in: keyframes).isLinear
+    }
+
+    func settingKeyframeEasing(_ easing: Easing, for id: Keyframe.ID) -> Clip {
+        var clip = self
+        guard let index = clip.keyframes.firstIndex(where: { $0.id == id }) else { return self }
+        clip.keyframes[index].easing = easing
+        return clip
+    }
+
     func visualState(atClipTime time: TimeInterval) -> VisualState {
         KeyframeInterpolation.state(at: time, in: keyframes, fallback: staticVisualState)
     }
