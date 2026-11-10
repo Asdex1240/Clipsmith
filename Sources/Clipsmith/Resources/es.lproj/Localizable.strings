@@ -223,3 +223,11 @@
 "inspector.multiple.title" = "%d clips seleccionados";
 "inspector.multiple.hint" = "Arrastra uno para mover todos. Agrúpalos para mantenerlos juntos.";
 "inspector.multiple.grouped" = "Algunos de estos clips están agrupados: siempre se seleccionan y se mueven juntos.";
+"track.add" = "Pista";
+"track.add.help" = "Añadir una pista";
+"track.add.video" = "Añadir pista de vídeo";
+"track.add.audio" = "Añadir pista de audio";
+"track.add.text" = "Añadir pista de texto";
+"track.moveUp" = "Subir pista";
+"track.moveDown" = "Bajar pista";
+"track.remove" = "Quitar pista y sus clips";

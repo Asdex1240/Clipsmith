@@ -23,12 +23,11 @@ struct PlannedSegment: Equatable {
 }
 
 enum CompositionPlanner {
-    private static let videoRolesTopFirst: [Track.Role] = [.broll, .main]
     private static let toleranceInSeconds: TimeInterval = 1e-6
     private static let minimumTransitionInSeconds: TimeInterval = 0.05
 
     static func segments(for project: Project) -> [PlannedSegment] {
-        let videoClips = videoRolesTopFirst.flatMap { project.track(withRole: $0)?.clips ?? [] }
+        let videoClips = project.videoTracksTopFirst.flatMap(\.clips)
         let transitions = plannedTransitions(in: project)
         let boundaries = boundaries(
             of: videoClips,
@@ -61,8 +60,8 @@ enum CompositionPlanner {
     }
 
     private static func plannedTransitions(in project: Project) -> [PlannedTransition] {
-        videoRolesTopFirst.flatMap { role -> [PlannedTransition] in
-            (project.track(withRole: role)?.clips ?? []).compactMap { clip in
+        project.videoTracksTopFirst.flatMap { track -> [PlannedTransition] in
+            track.clips.compactMap { clip in
                 guard let transition = clip.transition,
                       let outgoing = project.clipBeforeAndTouching(clip.id),
                       outgoing.mediaKind == .video || outgoing.mediaKind == .image else { return nil }

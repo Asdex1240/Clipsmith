@@ -223,3 +223,11 @@
 "inspector.multiple.title" = "%d clips selected";
 "inspector.multiple.hint" = "Drag one to move them all. Group them to keep them together.";
 "inspector.multiple.grouped" = "Some of these clips are grouped: they are always selected and moved together.";
+"track.add" = "Track";
+"track.add.help" = "Add a track";
+"track.add.video" = "Add video track";
+"track.add.audio" = "Add audio track";
+"track.add.text" = "Add text track";
+"track.moveUp" = "Move track up";
+"track.moveDown" = "Move track down";
+"track.remove" = "Remove track and its clips";

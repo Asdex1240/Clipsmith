@@ -15,13 +15,16 @@ struct TimelineView: View {
         VStack(spacing: 0) {
             toolbar
             Divider()
-            HStack(alignment: .top, spacing: 0) {
-                trackLabels
-                GeometryReader { viewport in
-                    ScrollView(.horizontal) {
-                        tracksContent(contentWidth: contentWidth(viewportWidth: viewport.size.width))
+            ScrollView(.vertical) {
+                HStack(alignment: .top, spacing: 0) {
+                    trackLabels
+                    GeometryReader { viewport in
+                        ScrollView(.horizontal) {
+                            tracksContent(contentWidth: contentWidth(viewportWidth: viewport.size.width))
+                        }
                     }
                 }
+                .frame(height: contentHeight)
             }
         }
         .background(CommandScrollZoomMonitor { store.zoom(byScrollDelta: $0) })
@@ -74,17 +77,53 @@ struct TimelineView: View {
             .help("\(localized(key)) (\(EditorShortcuts.displayKeys(for: shortcut)))")
     }
 
+    /// Ruler, every lane and a row for the add-track button.
+    private var contentHeight: CGFloat {
+        TimelineMetrics.rulerHeight + CGFloat(store.project.tracks.count) * TimelineMetrics.laneStride + TimelineMetrics.laneHeight
+    }
+
     private var trackLabels: some View {
         VStack(alignment: .leading, spacing: TimelineMetrics.laneSpacing) {
             Spacer().frame(height: TimelineMetrics.rulerHeight)
             ForEach(store.project.tracks) { track in
-                Text(track.role.title)
+                Text(store.project.title(of: track))
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
                     .frame(width: TimelineMetrics.trackLabelWidth, height: TimelineMetrics.laneHeight, alignment: .leading)
                     .padding(.leading, 8)
+                    .contextMenu { trackMenu(for: track) }
             }
+            addTrackMenu
+                .frame(width: TimelineMetrics.trackLabelWidth, alignment: .leading)
+                .padding(.leading, 8)
         }
+    }
+
+    private var addTrackMenu: some View {
+        Menu {
+            Button(localized("track.add.video")) { store.addTrack(role: .broll) }
+            Button(localized("track.add.audio")) { store.addTrack(role: .audio) }
+            Button(localized("track.add.text")) { store.addTrack(role: .text) }
+        } label: {
+            Label(localized("track.add"), systemImage: "plus")
+                .font(.caption)
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help(localized("track.add.help"))
+    }
+
+    @ViewBuilder
+    private func trackMenu(for track: Track) -> some View {
+        Button(localized("track.moveUp")) { store.moveTrack(track.id, up: true) }
+            .disabled(!store.project.canMoveTrack(track.id, up: true))
+        Button(localized("track.moveDown")) { store.moveTrack(track.id, up: false) }
+            .disabled(!store.project.canMoveTrack(track.id, up: false))
+        Divider()
+        Button(localized("track.remove"), role: .destructive) { store.removeTrack(track.id) }
+            .disabled(!store.project.canRemoveTrack(track.id))
     }
 
     private func contentWidth(viewportWidth: CGFloat) -> CGFloat {
