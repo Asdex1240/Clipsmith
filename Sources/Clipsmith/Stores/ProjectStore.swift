@@ -23,6 +23,7 @@ final class ProjectStore {
     private(set) var selectedClipID: Clip.ID?
     private(set) var selectedClipIDs: Set<Clip.ID> = []
     private(set) var playheadInSeconds: TimeInterval = 0
+    private(set) var highlightMarks = HighlightMarks()
     private(set) var isSnappingEnabled = true
     private(set) var pointsPerSecond = ProjectStore.defaultPointsPerSecond
     private var undoStack: [Project] = []
@@ -72,6 +73,27 @@ final class ProjectStore {
         lastMutationKey = nil
         setSelection([], primary: nil)
         playheadInSeconds = 0
+        highlightMarks.clear()
+    }
+
+    func markHighlightStart() {
+        highlightMarks.markStart(at: playheadInSeconds)
+    }
+
+    func markHighlightEnd() {
+        highlightMarks.markEnd(at: playheadInSeconds)
+    }
+
+    func clearHighlightMarks() {
+        highlightMarks.clear()
+    }
+
+    @discardableResult
+    func saveHighlightFromMarks() -> Highlight.ID? {
+        guard let range = highlightMarks.range else { return nil }
+        let id = addHighlight(from: range.lowerBound, to: range.upperBound)
+        highlightMarks.clear()
+        return id
     }
 
     func setProjectName(_ name: String) {

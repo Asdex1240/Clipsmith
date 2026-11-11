@@ -27,7 +27,8 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 0) {
             HSplitView {
-                LibraryView(
+                SidebarView(
+                    store: store,
                     library: library,
                     thumbnails: thumbnails,
                     selection: $selection,

@@ -6,6 +6,9 @@ enum EditorAction: CaseIterable {
     case addText
     case addMarker
     case toggleSnapping
+    case markHighlightStart
+    case markHighlightEnd
+    case addHighlight
     case delete
     case rippleDelete
     case trimStartToPlayhead

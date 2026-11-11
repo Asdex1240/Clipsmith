@@ -34,6 +34,8 @@ enum Design {
         static let waveform = 0.55
         static let selectedOutline = 0.9
         static let missingFill = 0.45
+        static let highlightBand = 0.8
+        static let highlightBackground = 0.12
         static let chipFill = 0.08
         static let selectedChipFill = 0.25
     }
@@ -48,5 +50,6 @@ enum Design {
         static let sectionIcon: CGFloat = 18
         static let valueField: CGFloat = 56
         static let presetColumn: CGFloat = 72
+        static let highlightBand: CGFloat = 5
     }
 }

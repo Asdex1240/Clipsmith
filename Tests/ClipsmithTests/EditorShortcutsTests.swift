@@ -55,6 +55,7 @@ final class EditorShortcutsTests: XCTestCase {
             .character("-"),
             .character("q"), .character("w"), .character("c"), .character("x"), .character("v"),
             .character("d"), .character("a"), .character("g"),
+            .character("i"), .character("o"), .character("h"),
         ]
         let modifiers: [ShortcutModifiers] = [[], .shift, .option, .command, [.command, .shift]]
         let reachable = Set(

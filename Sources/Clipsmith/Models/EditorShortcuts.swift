@@ -25,6 +25,9 @@ enum EditorShortcuts {
         case .addText: return "T"
         case .addMarker: return "M"
         case .toggleSnapping: return "N"
+        case .markHighlightStart: return "I"
+        case .markHighlightEnd: return "O"
+        case .addHighlight: return "H"
         case .delete: return "⌫"
         case .rippleDelete: return "⇧⌫"
         case .trimStartToPlayhead: return "Q"
@@ -109,6 +112,9 @@ enum EditorShortcuts {
         case "t": return whenUnmodified(.addText, modifiers)
         case "m": return whenUnmodified(.addMarker, modifiers)
         case "n": return whenUnmodified(.toggleSnapping, modifiers)
+        case "i": return whenUnmodified(.markHighlightStart, modifiers)
+        case "o": return whenUnmodified(.markHighlightEnd, modifiers)
+        case "h": return whenUnmodified(.addHighlight, modifiers)
         case "=", "+": return .zoomIn
         case "-", "_": return .zoomOut
         default: return nil
