@@ -16,7 +16,6 @@ struct SubtitleLine: Equatable {
     var durationInSeconds: TimeInterval { endInSeconds - startInSeconds }
 }
 
-/// Turns recognized words into subtitle lines that are short enough to read.
 enum SubtitleGrouper {
     static let maximumCharacters = 42
     static let maximumDurationInSeconds: TimeInterval = 4
@@ -58,10 +57,10 @@ enum SubtitleGrouper {
         )
     }
 
-    /// Keeps lines on screen long enough to read without ever overlapping the next one.
     private static func spaced(_ lines: [SubtitleLine]) -> [SubtitleLine] {
         lines.enumerated().map { index, line in
-            let latestEnd = index + 1 < lines.count ? lines[index + 1].startInSeconds : .infinity
+            var latestEnd = TimeInterval.infinity
+            if index + 1 < lines.count { latestEnd = lines[index + 1].startInSeconds }
             let end = min(max(line.endInSeconds, line.startInSeconds + minimumDurationInSeconds), latestEnd)
             return SubtitleLine(text: line.text, startInSeconds: line.startInSeconds, endInSeconds: max(end, line.startInSeconds))
         }

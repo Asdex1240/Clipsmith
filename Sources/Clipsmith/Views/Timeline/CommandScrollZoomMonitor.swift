@@ -1,7 +1,6 @@
 import SwiftUI
 import AppKit
 
-/// Calls `onZoom` with the scroll delta while command is held and the pointer is over this view.
 struct CommandScrollZoomMonitor: NSViewRepresentable {
     let onZoom: (Double) -> Void
 
@@ -33,7 +32,8 @@ struct CommandScrollZoomMonitor: NSViewRepresentable {
             monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
                 nonisolated(unsafe) let scrollEvent = event
                 let handled = MainActor.assumeIsolated { self?.handle(scrollEvent) ?? false }
-                return handled ? nil : event
+                if handled { return nil }
+                return event
             }
         }
 
@@ -42,11 +42,16 @@ struct CommandScrollZoomMonitor: NSViewRepresentable {
             monitor = nil
         }
 
+        private func dominantDelta(of event: NSEvent) -> CGFloat {
+            if event.scrollingDeltaY != 0 { return event.scrollingDeltaY }
+            return event.scrollingDeltaX
+        }
+
         private func handle(_ event: NSEvent) -> Bool {
             guard event.modifierFlags.contains(.command),
                   event.window === window,
                   bounds.contains(convert(event.locationInWindow, from: nil)) else { return false }
-            let delta = event.scrollingDeltaY != 0 ? event.scrollingDeltaY : event.scrollingDeltaX
+            let delta = dominantDelta(of: event)
             guard delta != 0 else { return true }
             onZoom(Double(delta))
             return true

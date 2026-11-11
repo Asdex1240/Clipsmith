@@ -16,7 +16,8 @@ enum CanvasGeometry {
         if normalized > halfTurnInDegrees { normalized -= fullTurnInDegrees }
         if normalized < -halfTurnInDegrees { normalized += fullTurnInDegrees }
         let nearest = (normalized / angleSnapStep).rounded() * angleSnapStep
-        return abs(normalized - nearest) <= angleSnapTolerance ? nearest : normalized
+        guard abs(normalized - nearest) <= angleSnapTolerance else { return normalized }
+        return nearest
     }
 
     static func magnetized(_ delta: CGSize, from frame: CGRect, canvas: CGSize, reach: Double) -> CGSize {
@@ -30,7 +31,8 @@ enum CanvasGeometry {
     static func pull(low: Double, high: Double, limit: Double, reach: Double) -> Double {
         let candidates = [-low, limit - high, limit / 2 - (low + high) / 2]
         let nearest = candidates.min { abs($0) < abs($1) } ?? 0
-        return abs(nearest) <= reach ? nearest : 0
+        guard abs(nearest) <= reach else { return 0 }
+        return nearest
     }
 
     static func edges(of frame: CGRect, moving delta: CGSize, in canvas: CGSize) -> Set<CanvasEdge> {

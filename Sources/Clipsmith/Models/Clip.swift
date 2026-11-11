@@ -46,7 +46,11 @@ struct Clip: Codable, Identifiable, Equatable {
         self.startInSeconds = startInSeconds
         self.sourceStartInSeconds = 0
         self.sourceEndInSeconds = item.durationInSeconds
-        self.sourceDurationInSeconds = item.kind == .image ? nil : item.durationInSeconds
+        if item.kind == .image {
+            self.sourceDurationInSeconds = nil
+        } else {
+            self.sourceDurationInSeconds = item.durationInSeconds
+        }
     }
 
     init(text: TextLayer, startInSeconds: TimeInterval, durationInSeconds: TimeInterval) {

@@ -42,7 +42,6 @@ struct PreviewView: View {
         }
     }
 
-    /// Text from the current project, so edits show instantly without waiting for a composition rebuild.
     private var liveOverlay: TextOverlay? {
         guard let renderSize = controller.timelineOverlay?.renderSize else { return nil }
         let clips = store.project.tracks.filter { $0.role == .text }.flatMap(\.clips)
@@ -73,12 +72,12 @@ struct PreviewView: View {
         HStack {
             Button(action: controller.togglePlayback) {
                 Label(
-                    localized(controller.isPlaying ? "preview.pause" : "preview.play"),
-                    systemImage: controller.isPlaying ? "pause.fill" : "play.fill"
+                    playbackTitle,
+                    systemImage: playbackIcon
                 )
             }
             .disabled(!canPlay)
-            .help("\(localized(controller.isPlaying ? "preview.pause" : "preview.play")) (\(EditorShortcuts.displayKeys(for: .togglePlayback)))")
+            .help("\(playbackTitle) (\(EditorShortcuts.displayKeys(for: .togglePlayback)))")
             Text("\(store.playheadInSeconds.clockString) / \(store.project.durationInSeconds.clockString)")
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
@@ -89,8 +88,21 @@ struct PreviewView: View {
         .padding(8)
     }
 
+    private var playbackTitle: String {
+        if controller.isPlaying { return localized("preview.pause") }
+        return localized("preview.play")
+    }
+
+    private var playbackIcon: String {
+        if controller.isPlaying { return "pause.fill" }
+        return "play.fill"
+    }
+
     private var canPlay: Bool {
-        controller.mode == .timeline ? controller.hasTimeline : !controller.sourceIsStillImage && controller.sourceItem != nil
+        guard controller.mode == .timeline else {
+            return !controller.sourceIsStillImage && controller.sourceItem != nil
+        }
+        return controller.hasTimeline
     }
 
     private var modePicker: some View {

@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// Flags drawn over the ruler for each project marker. Click one to jump there; double-click to name or delete it.
 struct MarkerFlags: View {
     let store: ProjectStore
     let pointsPerSecond: Double
@@ -11,6 +10,11 @@ struct MarkerFlags: View {
     private static let color = Color.orange
 
     @State private var editingID: Marker.ID?
+
+    private func displayName(of marker: Marker) -> String {
+        if marker.name.isEmpty { return localized("marker.default") }
+        return marker.name
+    }
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -32,7 +36,7 @@ struct MarkerFlags: View {
             }
         }
         .contentShape(Rectangle())
-        .help(marker.name.isEmpty ? localized("marker.default") : marker.name)
+        .help(displayName(of: marker))
         .offset(x: x - Self.flagWidth / 2, y: TimelineMetrics.rulerHeight - Self.flagHeight)
         .onTapGesture(count: 2) { editingID = marker.id }
         .onTapGesture { store.setPlayhead(near: marker.timeInSeconds) }

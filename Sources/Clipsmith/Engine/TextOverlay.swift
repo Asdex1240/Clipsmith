@@ -124,7 +124,8 @@ enum TextOverlayLayers {
             with: CGSize(width: maximumWidth, height: .greatestFiniteMagnitude),
             options: [.usesLineFragmentOrigin, .usesFontLeading]
         )
-        let boxPadding = text.backgroundColor == nil ? 0 : fontSize * backgroundPaddingFraction
+        var boxPadding = 0.0
+        if text.backgroundColor != nil { boxPadding = fontSize * backgroundPaddingFraction }
         let padding = imagePadding(for: text, fontSize: fontSize, boxPadding: boxPadding)
         let width = Int(ceil(maximumWidth + 2 * padding))
         let height = Int(ceil(measured.height + 2 * padding))
@@ -150,7 +151,8 @@ enum TextOverlayLayers {
     }
 
     private static func imagePadding(for text: TextLayer, fontSize: Double, boxPadding: Double) -> Double {
-        let shadowPadding = text.hasShadow ? fontSize * shadowBlurFraction * shadowPaddingFactor * shadowBlurScale : 0
+        var shadowPadding = 0.0
+        if text.hasShadow { shadowPadding = fontSize * shadowBlurFraction * shadowPaddingFactor * shadowBlurScale }
         return ceil(max(shadowPadding, boxPadding, text.strokeWidth * fontSize, minimumPadding))
     }
 
@@ -200,13 +202,18 @@ enum TextOverlayLayers {
             .concatenating(CGAffineTransform(translationX: 0, y: -state.offsetY * renderHeight))
     }
 
+    private static func normalizedTime(_ time: TimeInterval, duration: TimeInterval) -> Double {
+        guard duration > 0 else { return 0 }
+        return time / duration
+    }
+
     private static func animations(
         for clip: Clip, text: TextLayer, renderHeight: CGFloat
     ) -> [(key: String, animation: CAKeyframeAnimation)] {
         let duration = clip.durationInSeconds
         let times = text.animation.samplePoints(clipDuration: duration)
         let states = times.map { text.animation.state(atClipTime: $0, clipDuration: duration) }
-        let keyTimes = times.map { NSNumber(value: duration > 0 ? $0 / duration : 0) }
+        let keyTimes = times.map { NSNumber(value: normalizedTime($0, duration: duration)) }
         func configured(_ keyPath: String, _ values: [Any]) -> CAKeyframeAnimation {
             let animation = CAKeyframeAnimation(keyPath: keyPath)
             animation.values = values

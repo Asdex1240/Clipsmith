@@ -13,6 +13,7 @@ extension Project {
     func title(of track: Track) -> String {
         if let name = track.name { return name }
         let position = ordinal(of: track)
-        return position.count > 1 ? "\(track.role.title) \(position.index + 1)" : track.role.title
+        guard position.count > 1 else { return track.role.title }
+        return "\(track.role.title) \(position.index + 1)"
     }
 }

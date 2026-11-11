@@ -6,7 +6,6 @@ import Observation
 final class MediaLibrary {
     private(set) var items: [MediaItem] = []
     private(set) var lastErrorMessage: String?
-    /// The library item currently being dragged towards the timeline, so lanes can preview the drop.
     var draggedItemID: MediaItem.ID?
     private let loader: MediaLoading
 

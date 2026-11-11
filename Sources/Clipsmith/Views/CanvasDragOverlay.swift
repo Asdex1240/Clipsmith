@@ -31,6 +31,18 @@ struct CanvasDragOverlay: View {
     @State private var reachedEdges: Set<CanvasEdge> = []
     @State private var centeredAxes: Set<CanvasAxis> = []
 
+    private static let selectedOutlineOpacity = 0.9
+
+    private func outlineOpacity(isSelected: Bool) -> Double {
+        if isSelected { return Self.selectedOutlineOpacity }
+        return 0
+    }
+
+    private func dragStart(of target: CanvasTarget, clip: Clip) -> (x: Double, y: Double) {
+        guard target.isText else { return (clip.offsetX, clip.offsetY) }
+        return (clip.textLayer?.positionX ?? 0, clip.textLayer?.positionY ?? 0)
+    }
+
     var body: some View {
         GeometryReader { proxy in
             if let renderSize, renderSize.width > 0, renderSize.height > 0 {
@@ -95,7 +107,7 @@ struct CanvasDragOverlay: View {
             .fill(Color.white.opacity(0.001))
             .overlay {
                 Rectangle().strokeBorder(
-                    Color.accentColor.opacity(isSelected ? 0.9 : 0),
+                    Color.accentColor.opacity(outlineOpacity(isSelected: isSelected)),
                     style: StrokeStyle(lineWidth: 1, dash: [4, 3])
                 )
             }
@@ -178,9 +190,10 @@ struct CanvasDragOverlay: View {
         if let session { return session }
         guard let clip = store.project.clip(withID: target.id)?.presented(atTimelineTime: store.playheadInSeconds) else { return nil }
         store.selectClip(target.id)
+        let origin = dragStart(of: target, clip: clip)
         let started = Session(
-            offsetX: target.isText ? clip.textLayer?.positionX ?? 0 : clip.offsetX,
-            offsetY: target.isText ? clip.textLayer?.positionY ?? 0 : clip.offsetY,
+            offsetX: origin.x,
+            offsetY: origin.y,
             scale: clip.scale,
             fontSize: clip.textLayer?.fontSize ?? 0,
             rotationInDegrees: target.rotationInDegrees,

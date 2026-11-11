@@ -4,6 +4,16 @@ struct VisualInspector: View {
     let store: ProjectStore
     let clip: Clip
 
+    private var fitHintKey: String.LocalizationValue {
+        if clip.fitMode == .fit { return "inspector.visual.fit.hint" }
+        return "inspector.visual.fill.hint"
+    }
+
+    private var keyframesHintKey: String.LocalizationValue {
+        if clip.isAnimated { return "inspector.keyframes.hint.active" }
+        return "inspector.keyframes.hint"
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(localized("inspector.visual.section")).font(.subheadline.bold())
@@ -12,7 +22,7 @@ struct VisualInspector: View {
                 Text(localized("inspector.visual.fill")).tag(FitMode.fill)
             }
             .pickerStyle(.segmented)
-            Text(localized(clip.fitMode == .fit ? "inspector.visual.fit.hint" : "inspector.visual.fill.hint"))
+            Text(localized(fitHintKey))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             slider("inspector.visual.scale", scaleBinding, Clip.scaleRange, "\(Int((clip.scale * 100).rounded()))%")
@@ -36,7 +46,7 @@ struct VisualInspector: View {
         VStack(alignment: .leading, spacing: 6) {
             Divider()
             Text(localized("inspector.keyframes.section")).font(.subheadline.bold())
-            Text(localized(clip.isAnimated ? "inspector.keyframes.hint.active" : "inspector.keyframes.hint"))
+            Text(localized(keyframesHintKey))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             ForEach(clip.keyframes) { frame in

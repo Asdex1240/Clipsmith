@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// Where a library item would land while it is dragged over a lane.
 struct DropPreview: Equatable {
     let trackID: Track.ID
     let start: TimeInterval
@@ -8,6 +7,16 @@ struct DropPreview: Equatable {
     let kind: MediaKind
     let name: String
     let isValid: Bool
+
+    var tint: Color {
+        if isValid { return .accentColor }
+        return .red
+    }
+
+    var iconName: String {
+        if isValid { return "plus" }
+        return "nosign"
+    }
 }
 
 struct LaneDropDelegate: DropDelegate {
@@ -27,7 +36,8 @@ struct LaneDropDelegate: DropDelegate {
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
         update(info)
-        return DropProposal(operation: preview?.isValid == true ? .copy : .forbidden)
+        guard preview?.isValid == true else { return DropProposal(operation: .forbidden) }
+        return DropProposal(operation: .copy)
     }
 
     func dropExited(info: DropInfo) {
@@ -44,13 +54,18 @@ struct LaneDropDelegate: DropDelegate {
         return true
     }
 
+    private func startTime(for item: MediaItem, isValid: Bool, proposed: TimeInterval) -> TimeInterval {
+        guard isValid else { return max(0, proposed) }
+        return store.dropStart(duration: item.durationInSeconds, on: track, near: proposed)
+    }
+
     private func update(_ info: DropInfo) {
         guard let item = draggedItem else { return }
         let isValid = track.role.accepts(item.kind)
         let proposed = info.location.x / pointsPerSecond
         let next = DropPreview(
             trackID: track.id,
-            start: isValid ? store.dropStart(duration: item.durationInSeconds, on: track, near: proposed) : max(0, proposed),
+            start: startTime(for: item, isValid: isValid, proposed: proposed),
             duration: item.durationInSeconds,
             kind: item.kind,
             name: item.name,
@@ -65,12 +80,12 @@ struct DropGhostView: View {
     let pointsPerSecond: Double
 
     var body: some View {
-        let tint: Color = preview.isValid ? .accentColor : .red
+        let tint = preview.tint
         RoundedRectangle(cornerRadius: 6)
             .fill(tint.opacity(0.25))
             .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(tint, style: StrokeStyle(lineWidth: 1.5, dash: [5, 3])))
             .overlay(alignment: .leading) {
-                Label(preview.name, systemImage: preview.isValid ? "plus" : "nosign")
+                Label(preview.name, systemImage: preview.iconName)
                     .font(.caption)
                     .lineLimit(1)
                     .padding(.horizontal, 6)

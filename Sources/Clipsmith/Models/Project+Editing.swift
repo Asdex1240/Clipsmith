@@ -80,7 +80,6 @@ extension Project {
         }
     }
 
-    /// Adds a marker at `time`, or removes the one already there.
     @discardableResult
     mutating func toggleMarker(at time: TimeInterval) -> Marker.ID? {
         if let existing = markers.firstIndex(where: { abs($0.timeInSeconds - time) <= Marker.toggleToleranceInSeconds }) {

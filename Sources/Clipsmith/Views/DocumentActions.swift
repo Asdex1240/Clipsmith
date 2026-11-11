@@ -26,7 +26,8 @@ struct DocumentActions {
 
     @discardableResult
     func save() -> Bool {
-        document.fileURL == nil ? saveAs() : document.save()
+        if document.fileURL == nil { return saveAs() }
+        return document.save()
     }
 
     @discardableResult
@@ -44,7 +45,8 @@ struct DocumentActions {
         panel.message = String(format: localized("relink.panel.message"), missing.lastPathComponent)
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
-        return panel.runModal() == .OK ? panel.url : nil
+        guard panel.runModal() == .OK else { return nil }
+        return panel.url
     }
 
     func confirmDiscardingChanges() -> Bool {

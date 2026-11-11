@@ -41,7 +41,8 @@ extension Project {
             }
         }
         guard lowest.isFinite || highest.isFinite else { return 0 }
-        let allowed = lowest <= highest ? min(max(delta, lowest), highest) : 0
+        guard lowest <= highest else { return 0 }
+        let allowed = min(max(delta, lowest), highest)
         guard allowed != 0 else { return 0 }
         for trackIndex in tracks.indices {
             for clipIndex in tracks[trackIndex].clips.indices where ids.contains(tracks[trackIndex].clips[clipIndex].id) {

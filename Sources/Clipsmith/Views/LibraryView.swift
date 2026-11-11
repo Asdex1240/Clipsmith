@@ -86,6 +86,16 @@ private struct MediaRow: View {
 
     private static let thumbnailSize = CGSize(width: 64, height: 40)
 
+    private var addButtonOpacity: Double {
+        if isHovering { return 1 }
+        return 0
+    }
+
+    private var placeholderSymbol: String {
+        if item.kind == .audio { return "waveform" }
+        return "photo"
+    }
+
     var body: some View {
         HStack {
             thumbnailView
@@ -103,7 +113,7 @@ private struct MediaRow: View {
             }
             .buttonStyle(.borderless)
             .help(localized("library.addToTimeline"))
-            .opacity(isHovering ? 1 : 0)
+            .opacity(addButtonOpacity)
         }
         .contentShape(Rectangle())
         .onHover { isHovering = $0 }
@@ -117,7 +127,7 @@ private struct MediaRow: View {
         } else {
             ZStack {
                 Rectangle().fill(.quaternary)
-                Image(systemName: item.kind == .audio ? "waveform" : "photo")
+                Image(systemName: placeholderSymbol)
                     .foregroundStyle(.secondary)
             }
         }

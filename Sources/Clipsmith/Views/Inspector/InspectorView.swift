@@ -4,6 +4,11 @@ struct InspectorView: View {
     let store: ProjectStore
     let subtitles: SubtitleController
 
+    private var multipleSelectionHintKey: String.LocalizationValue {
+        if store.selectionIsGrouped { return "inspector.multiple.grouped" }
+        return "inspector.multiple.hint"
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(localized("panel.inspector"))
@@ -59,7 +64,7 @@ struct InspectorView: View {
     private var multipleSelection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(String(format: localized("inspector.multiple.title"), store.selectedClipIDs.count)).font(.subheadline.bold())
-            Text(localized(store.selectionIsGrouped ? "inspector.multiple.grouped" : "inspector.multiple.hint"))
+            Text(localized(multipleSelectionHintKey))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             HStack {

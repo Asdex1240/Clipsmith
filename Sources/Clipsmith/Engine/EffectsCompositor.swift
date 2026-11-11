@@ -15,7 +15,8 @@ final class EffectsInstruction: NSObject, AVVideoCompositionInstructionProtocol 
         self.layers = layers
         self.texts = texts
         var seen = Set<CMPersistentTrackID>()
-        requiredSourceTrackIDs = layers.compactMap { seen.insert($0.trackID).inserted ? NSNumber(value: $0.trackID) : nil }
+        let newTrackIDs = layers.map(\.trackID).filter { seen.insert($0).inserted }
+        requiredSourceTrackIDs = newTrackIDs.map { NSNumber(value: $0) }
     }
 }
 

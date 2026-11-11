@@ -14,7 +14,9 @@ enum Easing: String, Codable, CaseIterable {
         case .linear: return t
         case .easeIn: return t * t * t
         case .easeOut: return 1 - pow(1 - t, 3)
-        case .easeInOut: return t < 0.5 ? 4 * t * t * t : 1 - pow(-2 * t + 2, 3) / 2
+        case .easeInOut:
+            if t < 0.5 { return 4 * t * t * t }
+            return 1 - pow(-2 * t + 2, 3) / 2
         }
     }
 

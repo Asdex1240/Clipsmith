@@ -22,16 +22,13 @@ enum SubtitleError: Error, LocalizedError, Equatable {
 }
 
 protocol Transcribing {
-    /// Recognizes the speech in `sourceRange` (seconds of the file); the words' times are seconds of the file too.
     func transcribe(url: URL, sourceRange: ClosedRange<TimeInterval>, locale: Locale) async throws -> [TranscribedWord]
 }
 
 struct SpeechTranscriber: Transcribing {
-    /// Recognition that is not done on the device is limited to about a minute of audio at a time.
     private static let serverChunkInSeconds: TimeInterval = 55
     private static let noSpeechErrorCode = 1110
 
-    /// Asking for permission outside an app bundle that describes why (a test run, `swift run`) makes macOS stop the process.
     static var canAskForPermission: Bool {
         Bundle.main.bundleURL.pathExtension == "app"
             && Bundle.main.object(forInfoDictionaryKey: "NSSpeechRecognitionUsageDescription") != nil
@@ -52,7 +49,8 @@ struct SpeechTranscriber: Transcribing {
         try await authorize()
         guard try await !AVURLAsset(url: url).loadTracks(withMediaType: .audio).isEmpty else { throw SubtitleError.noAudio }
         let onDevice = recognizer.supportsOnDeviceRecognition
-        let chunk = onDevice ? sourceRange.upperBound - sourceRange.lowerBound : Self.serverChunkInSeconds
+        var chunk = Self.serverChunkInSeconds
+        if onDevice { chunk = sourceRange.upperBound - sourceRange.lowerBound }
         var words: [TranscribedWord] = []
         var start = sourceRange.lowerBound
         while start < sourceRange.upperBound {
@@ -109,7 +107,6 @@ struct SpeechTranscriber: Transcribing {
                             TranscribedWord(text: $0.substring, startInSeconds: $0.timestamp, durationInSeconds: $0.duration)
                         })
                     } else if let error {
-                        // A clip without speech is not a failure, it just has no subtitles.
                         let code = (error as NSError).code
                         if code == Self.noSpeechErrorCode {
                             once.resume(returning: [])
@@ -129,7 +126,6 @@ private final class TaskHolder: @unchecked Sendable {
     var task: SFSpeechRecognitionTask?
 }
 
-/// A recognition callback can fire more than once; the continuation must only be resumed the first time.
 private final class ResumeOnce: @unchecked Sendable {
     private let lock = NSLock()
     private var continuation: CheckedContinuation<[TranscribedWord], Error>?

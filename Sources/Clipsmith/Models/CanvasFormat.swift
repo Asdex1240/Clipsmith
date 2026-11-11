@@ -1,6 +1,5 @@
 import Foundation
 
-/// The project's work area: the frame every clip is placed in, in pixels.
 struct CanvasFormat: Codable, Hashable, Identifiable {
     static let minimumSide = 240
     static let maximumSide = 7680
@@ -27,7 +26,6 @@ struct CanvasFormat: Codable, Hashable, Identifiable {
     let width: Int
     let height: Int
 
-    /// Sizes outside the supported range are clamped and odd sizes rounded down, because H.264 needs even dimensions.
     init(width: Int, height: Int) {
         self.width = Self.sanitized(width)
         self.height = Self.sanitized(height)
@@ -38,7 +36,6 @@ struct CanvasFormat: Codable, Hashable, Identifiable {
     var aspectRatio: Double { Double(width) / Double(height) }
     var shortSide: Int { min(width, height) }
 
-    /// "16:9", "9:16"… or nil when the proportion is not one of the common ones.
     var aspectLabel: String? {
         Self.knownAspects.first { abs($0.ratio - aspectRatio) < Self.aspectTolerance * $0.ratio }?.label
     }
@@ -47,7 +44,6 @@ struct CanvasFormat: Codable, Hashable, Identifiable {
         "\(aspectLabel ?? localized("canvas.custom")) · \(width)×\(height)"
     }
 
-    /// The same proportion with its shorter side set to `side` pixels.
     func scaled(toShortSide side: Int) -> CanvasFormat {
         if width >= height {
             return CanvasFormat(width: Int((Double(side) * aspectRatio).rounded()), height: side)
@@ -55,7 +51,6 @@ struct CanvasFormat: Codable, Hashable, Identifiable {
         return CanvasFormat(width: side, height: Int((Double(side) / aspectRatio).rounded()))
     }
 
-    /// The canvas that frames media of the given pixel size without bars: a preset when the proportion is a common one.
     static func fitting(_ size: CGSize) -> CanvasFormat? {
         guard size.width > 0, size.height > 0 else { return nil }
         let aspect = size.width / size.height
@@ -75,9 +70,12 @@ struct CanvasFormat: Codable, Hashable, Identifiable {
     }
 
     init(from decoder: Decoder) throws {
-        // Projects saved before custom sizes stored the canvas as "landscape" or "portrait".
         if let legacy = try? decoder.singleValueContainer().decode(String.self) {
-            self = legacy == "portrait" ? .portrait : .landscape
+            if legacy == "portrait" {
+                self = .portrait
+            } else {
+                self = .landscape
+            }
             return
         }
         let container = try decoder.container(keyedBy: CodingKeys.self)

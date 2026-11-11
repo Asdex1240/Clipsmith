@@ -1,17 +1,33 @@
 import SwiftUI
 
+enum SliderValueDisplay {
+    case percent, signedNumber
+
+    func text(for value: Double) -> String {
+        switch self {
+        case .percent: return "\(Int((value * 100).rounded()))%"
+        case .signedNumber: return String(format: "%+.0f", value * 100)
+        }
+    }
+}
+
 struct EffectsInspector: View {
     let store: ProjectStore
     let clip: Clip
+
+    private func presetTint(for preset: ColorPreset) -> Color? {
+        guard clip.color == preset.adjustments else { return nil }
+        return .accentColor
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(localized("inspector.effects.section")).font(.subheadline.bold())
             presets
-            slider("inspector.effects.brightness", \.brightness, ColorAdjustments.brightnessRange, percent: true)
-            slider("inspector.effects.contrast", \.contrast, ColorAdjustments.contrastRange, percent: true)
-            slider("inspector.effects.saturation", \.saturation, ColorAdjustments.saturationRange, percent: true)
-            slider("inspector.effects.temperature", \.temperature, ColorAdjustments.temperatureRange, percent: false)
+            slider("inspector.effects.brightness", \.brightness, ColorAdjustments.brightnessRange, display: .percent)
+            slider("inspector.effects.contrast", \.contrast, ColorAdjustments.contrastRange, display: .percent)
+            slider("inspector.effects.saturation", \.saturation, ColorAdjustments.saturationRange, display: .percent)
+            slider("inspector.effects.temperature", \.temperature, ColorAdjustments.temperatureRange, display: .signedNumber)
             Button(localized("inspector.effects.reset")) { store.setColor(of: clip.id, to: ColorAdjustments()) }
                 .disabled(clip.color.isIdentity)
             Divider()
@@ -34,7 +50,7 @@ struct EffectsInspector: View {
                     Button(Self.title(of: preset)) { store.setColor(of: clip.id, to: preset.adjustments) }
                         .buttonStyle(.bordered)
                         .controlSize(.small)
-                        .tint(clip.color == preset.adjustments ? .accentColor : nil)
+                        .tint(presetTint(for: preset))
                 }
             }
         }
@@ -44,14 +60,14 @@ struct EffectsInspector: View {
         _ key: String.LocalizationValue,
         _ path: WritableKeyPath<ColorAdjustments, Double>,
         _ range: ClosedRange<Double>,
-        percent: Bool
+        display: SliderValueDisplay
     ) -> some View {
         let value = clip.color[keyPath: path]
         return VStack(alignment: .leading, spacing: 2) {
             HStack {
                 Text(localized(key))
                 Spacer()
-                Text(percent ? "\(Int((value * 100).rounded()))%" : String(format: "%+.0f", value * 100))
+                Text(display.text(for: value))
                     .monospacedDigit()
                     .foregroundStyle(.secondary)
             }

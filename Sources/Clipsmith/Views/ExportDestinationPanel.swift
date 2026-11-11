@@ -8,6 +8,7 @@ enum ExportDestinationPanel {
         panel.allowedContentTypes = [.mpeg4Movie]
         panel.nameFieldStringValue = defaultName
         panel.canCreateDirectories = true
-        return panel.runModal() == .OK ? panel.url : nil
+        guard panel.runModal() == .OK else { return nil }
+        return panel.url
     }
 }

@@ -46,7 +46,8 @@ final class DocumentController {
     }
 
     var windowTitle: String {
-        hasUnsavedChanges ? store.project.name + " — " + localized("document.edited") : store.project.name
+        guard hasUnsavedChanges else { return store.project.name }
+        return store.project.name + " — " + localized("document.edited")
     }
 
     func newProject() {

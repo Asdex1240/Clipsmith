@@ -156,7 +156,11 @@ final class ProjectStoreUndoTests: XCTestCase {
 
     func testHistoryIsLimited() {
         for index in 0..<(ProjectStore.maximumUndoSteps + 20) {
-            store.setCanvas(index.isMultiple(of: 2) ? .portrait : .landscape)
+            if index.isMultiple(of: 2) {
+                store.setCanvas(.portrait)
+            } else {
+                store.setCanvas(.landscape)
+            }
         }
         var steps = 0
         while store.canUndo {

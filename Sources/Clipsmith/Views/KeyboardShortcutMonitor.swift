@@ -14,7 +14,8 @@ final class KeyboardShortcutMonitor {
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             nonisolated(unsafe) let keyEvent = event
             let wasHandled = MainActor.assumeIsolated { self?.handle(keyEvent) ?? false }
-            return wasHandled ? nil : event
+            if wasHandled { return nil }
+            return event
         }
     }
 

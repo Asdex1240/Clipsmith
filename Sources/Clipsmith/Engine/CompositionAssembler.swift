@@ -84,7 +84,8 @@ final class CompositionAssembler {
             throw CompositionError.missingTrack(source.asset.url)
         }
         let target = try videoTrack(for: trackID)
-        let insertedDuration = source.isStill ? StillImageVideoWriter.durationInSeconds : clip.sourceSpanInSeconds
+        var insertedDuration = clip.sourceSpanInSeconds
+        if source.isStill { insertedDuration = StillImageVideoWriter.durationInSeconds }
         let insertedRange = CMTimeRange(start: source.startInSeconds.cmTime, duration: insertedDuration.cmTime)
         try target.insertTimeRange(insertedRange, of: assetTrack, at: clip.startInSeconds.cmTime)
         if abs(insertedDuration - clip.durationInSeconds) > Self.scaleToleranceInSeconds {
@@ -215,8 +216,10 @@ final class CompositionAssembler {
         if usesEffects { videoComposition.customVideoCompositorClass = EffectsCompositor.self }
         videoComposition.instructions = segments.enumerated().map { index, segment in
             let isLast = index == segments.count - 1
-            let end = isLast ? composition.duration : segment.endInSeconds.cmTime
-            return usesEffects ? effectsInstruction(for: segment, endingAt: end) : instruction(for: segment, endingAt: end)
+            var end = segment.endInSeconds.cmTime
+            if isLast { end = composition.duration }
+            if usesEffects { return effectsInstruction(for: segment, endingAt: end) }
+            return instruction(for: segment, endingAt: end)
         }
         return videoComposition
     }
@@ -288,7 +291,10 @@ final class CompositionAssembler {
         let target = try transitionTrack(for: source.trackID)
         let duration = transition.windowEnd - transition.windowStart
         let start = transition.windowStart.cmTime
-        let availableSource = source.isStill ? 0 : (outgoing.sourceDurationInSeconds ?? 0) - outgoing.sourceEndInSeconds
+        var availableSource = 0.0
+        if !source.isStill {
+            availableSource = (outgoing.sourceDurationInSeconds ?? 0) - outgoing.sourceEndInSeconds
+        }
         if availableSource >= duration * outgoing.speed - Self.scaleToleranceInSeconds {
             let range = CMTimeRange(start: outgoing.sourceEndInSeconds.cmTime, duration: (duration * outgoing.speed).cmTime)
             try target.insertTimeRange(range, of: source.assetTrack, at: start)
@@ -296,8 +302,12 @@ final class CompositionAssembler {
                 target.scaleTimeRange(CMTimeRange(start: start, duration: range.duration), toDuration: duration.cmTime)
             }
         } else {
-            let held = source.isStill ? source.startInSeconds : max(outgoing.sourceEndInSeconds - Self.heldFrameInSeconds, source.startInSeconds)
-            let heldDuration = source.isStill ? StillImageVideoWriter.durationInSeconds : outgoing.sourceEndInSeconds - held
+            var held = source.startInSeconds
+            var heldDuration = StillImageVideoWriter.durationInSeconds
+            if !source.isStill {
+                held = max(outgoing.sourceEndInSeconds - Self.heldFrameInSeconds, source.startInSeconds)
+                heldDuration = outgoing.sourceEndInSeconds - held
+            }
             guard heldDuration > 0 else { return }
             let range = CMTimeRange(start: held.cmTime, duration: heldDuration.cmTime)
             try target.insertTimeRange(range, of: source.assetTrack, at: start)

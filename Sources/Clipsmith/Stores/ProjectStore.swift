@@ -101,7 +101,7 @@ final class ProjectStore {
         guard !members.isEmpty else { return }
         if selectedClipIDs.contains(id) {
             let remaining = selectedClipIDs.subtracting(members)
-            setSelection(remaining, primary: remaining.contains(selectedClipID ?? id) ? selectedClipID : remaining.first)
+            setSelection(remaining, primary: selectedClipID)
         } else {
             setSelection(selectedClipIDs.union(members), primary: id)
         }
@@ -109,12 +109,17 @@ final class ProjectStore {
 
     func selectAll() {
         let all = project.allClipIDs
-        setSelection(all, primary: selectedClipID.flatMap { all.contains($0) ? $0 : nil } ?? selectedClips.first?.id ?? all.first)
+        let candidates = [selectedClipID, selectedClips.first?.id].compactMap { $0 }
+        setSelection(all, primary: candidates.first { all.contains($0) })
     }
 
     private func setSelection(_ ids: Set<Clip.ID>, primary: Clip.ID?) {
         selectedClipIDs = ids
-        selectedClipID = primary.flatMap { ids.contains($0) ? $0 : nil } ?? ids.first
+        if let primary, ids.contains(primary) {
+            selectedClipID = primary
+        } else {
+            selectedClipID = ids.first
+        }
     }
 
     func setPlayhead(near proposed: TimeInterval) {
@@ -371,7 +376,11 @@ final class ProjectStore {
     }
 
     func toggleGroupSelection() {
-        selectionIsGrouped ? ungroupSelection() : groupSelection()
+        if selectionIsGrouped {
+            ungroupSelection()
+        } else {
+            groupSelection()
+        }
     }
 
     func addTrack(role: Track.Role) {
@@ -440,7 +449,8 @@ final class ProjectStore {
     }
 
     private var snapThresholdInSeconds: TimeInterval {
-        isSnappingEnabled ? Self.snapThresholdInPoints / pointsPerSecond : 0
+        guard isSnappingEnabled else { return 0 }
+        return Self.snapThresholdInPoints / pointsPerSecond
     }
 
     private func mutate(coalescingKey: String? = nil, _ change: (inout Project) -> Void) {

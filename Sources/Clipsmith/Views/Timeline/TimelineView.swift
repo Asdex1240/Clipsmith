@@ -10,6 +10,11 @@ struct TimelineView: View {
 
     private var pointsPerSecond: Double { store.pointsPerSecond }
 
+    private var snappingTitle: String {
+        if store.isSnappingEnabled { return localized("timeline.snapping.on") }
+        return localized("timeline.snapping.off")
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             toolbar
@@ -38,7 +43,7 @@ struct TimelineView: View {
                 Image(systemName: "magnet")
             }
             .toggleStyle(.button)
-            .help("\(localized(store.isSnappingEnabled ? "timeline.snapping.on" : "timeline.snapping.off")) (\(EditorShortcuts.displayKeys(for: .toggleSnapping)))")
+            .help("\(snappingTitle) (\(EditorShortcuts.displayKeys(for: .toggleSnapping)))")
             toolbarButton("timeline.addText", systemImage: "textformat", shortcut: .addText, action: store.addTextAtPlayhead)
             toolbarButton("timeline.addMarker", systemImage: "bookmark", shortcut: .addMarker, action: store.toggleMarkerAtPlayhead)
             toolbarButton("timeline.split", systemImage: "scissors", shortcut: .split, action: store.splitAtPlayhead)
@@ -226,7 +231,7 @@ struct TimelineView: View {
     private func dropOutline(on track: Track) -> some View {
         if let dropPreview, dropPreview.trackID == track.id {
             Rectangle()
-                .strokeBorder((dropPreview.isValid ? Color.accentColor : Color.red).opacity(0.6), lineWidth: 1.5)
+                .strokeBorder(dropPreview.tint.opacity(0.6), lineWidth: 1.5)
                 .allowsHitTesting(false)
         }
     }

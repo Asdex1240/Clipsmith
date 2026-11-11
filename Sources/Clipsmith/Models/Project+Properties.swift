@@ -147,7 +147,8 @@ extension Project {
     mutating func addTextClip(_ layer: TextLayer, at start: TimeInterval, duration: TimeInterval) -> Clip.ID? {
         guard let track = trackWithRoom(role: .text, start: start, duration: duration) else { return nil }
         let clip = Clip(text: layer, startInSeconds: start, durationInSeconds: duration)
-        return addClip(clip, toTrack: track.id) ? clip.id : nil
+        guard addClip(clip, toTrack: track.id) else { return nil }
+        return clip.id
     }
 
     @discardableResult
@@ -156,7 +157,8 @@ extension Project {
     ) -> Int {
         lines.reduce(0) { added, line in
             let layer = TextLayer.subtitle(line.text, style: style, animation: animation)
-            return addTextClip(layer, at: line.startInSeconds, duration: line.durationInSeconds) == nil ? added : added + 1
+            guard addTextClip(layer, at: line.startInSeconds, duration: line.durationInSeconds) != nil else { return added }
+            return added + 1
         }
     }
 

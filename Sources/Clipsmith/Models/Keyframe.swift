@@ -50,9 +50,9 @@ extension Keyframe {
 
 enum KeyframeInterpolation {
     static func easing(at time: TimeInterval, in keyframes: [Keyframe]) -> Easing {
-        keyframes.last { $0.timeInSeconds <= time }.flatMap { frame in
-            keyframes.contains { $0.timeInSeconds > time } ? frame.easing : nil
-        } ?? .linear
+        guard let frame = keyframes.last(where: { $0.timeInSeconds <= time }),
+              keyframes.contains(where: { $0.timeInSeconds > time }) else { return .linear }
+        return frame.easing
     }
 
     static func state(at time: TimeInterval, in keyframes: [Keyframe], fallback: VisualState) -> VisualState {

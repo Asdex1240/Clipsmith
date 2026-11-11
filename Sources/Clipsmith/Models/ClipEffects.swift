@@ -1,6 +1,5 @@
 import Foundation
 
-/// Color corrections of a visual clip. The defaults leave the picture untouched.
 struct ColorAdjustments: Codable, Equatable {
     static let brightnessRange = -0.5...0.5
     static let contrastRange = 0.25...2.0
@@ -10,7 +9,6 @@ struct ColorAdjustments: Codable, Equatable {
     var brightness = 0.0
     var contrast = 1.0
     var saturation = 1.0
-    /// Negative cools the picture towards blue, positive warms it towards orange.
     var temperature = 0.0
 
     var isIdentity: Bool { self == ColorAdjustments() }
@@ -41,9 +39,7 @@ enum ColorPreset: CaseIterable {
     }
 }
 
-/// How much of each side of a picture is cut away, as a fraction of its width or height.
 struct CropInsets: Codable, Equatable {
-    /// The two sides of an axis together can never remove more than this.
     static let maximumPerAxis = 0.9
 
     var left = 0.0
@@ -67,7 +63,6 @@ struct CropInsets: Codable, Equatable {
         return CropInsets(left: horizontal.0, right: horizontal.1, top: vertical.0, bottom: vertical.1)
     }
 
-    /// The part of `rect` that stays visible.
     func visible(in rect: CGRect) -> CGRect {
         CGRect(
             x: rect.minX + rect.width * left,

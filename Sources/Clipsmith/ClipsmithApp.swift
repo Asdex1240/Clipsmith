@@ -74,7 +74,8 @@ final class DockActivatingAppDelegate: NSObject, NSApplicationDelegate {
     var shouldAllowTermination: (() -> Bool)?
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        (shouldAllowTermination?() ?? true) ? .terminateNow : .terminateCancel
+        if shouldAllowTermination?() ?? true { return .terminateNow }
+        return .terminateCancel
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {

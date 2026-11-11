@@ -48,7 +48,8 @@ final class TextOverlayHostView: NSView {
     }
 
     func show(_ overlay: TextOverlay?, at time: TimeInterval) {
-        let visibleOverlay = overlay.flatMap { $0.isEmpty ? nil : $0 }
+        var visibleOverlay: TextOverlay?
+        if let overlay, !overlay.isEmpty { visibleOverlay = overlay }
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         if visibleOverlay != shownOverlay {

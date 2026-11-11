@@ -19,13 +19,43 @@ struct ClipBlockView: View {
     private static let minimumDragDistance: CGFloat = 3
     private static let cornerRadius: CGFloat = 6
 
+    private var blockFill: Color {
+        if isMissing { return Color.red.opacity(0.45) }
+        return fillColor
+    }
+
+    private var blockTitle: String {
+        if isMissing { return "⚠︎ " + clip.displayName }
+        return clip.displayName
+    }
+
+    private var stackingOrder: Double {
+        if moveTranslation == .zero && companionOffset == 0 { return 0 }
+        return 1
+    }
+
+    private var borderColor: Color {
+        if isSelected { return .yellow }
+        return Color.white.opacity(0.25)
+    }
+
+    private var borderWidth: CGFloat {
+        if isSelected { return 2 }
+        return 1
+    }
+
+    private func allowedVerticalTravel(_ translation: CGFloat) -> CGFloat {
+        guard allowsLaneChange else { return 0 }
+        return translation
+    }
+
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: Self.cornerRadius)
-                .fill(isMissing ? Color.red.opacity(0.45) : fillColor)
+                .fill(blockFill)
                 .overlay(border)
             waveform
-            Text(isMissing ? "⚠︎ " + clip.displayName : clip.displayName)
+            Text(blockTitle)
                 .font(.caption)
                 .lineLimit(1)
                 .padding(.horizontal, TimelineMetrics.trimHandleWidth + 2)
@@ -47,7 +77,7 @@ struct ClipBlockView: View {
             }
         }
         .offset(x: clip.startInSeconds * pointsPerSecond + moveTranslation.width + companionOffset, y: moveTranslation.height)
-        .zIndex(moveTranslation == .zero && companionOffset == 0 ? 0 : 1)
+        .zIndex(stackingOrder)
         .onTapGesture(perform: onSelect)
         .gesture(moveGesture)
     }
@@ -83,19 +113,19 @@ struct ClipBlockView: View {
 
     private var border: some View {
         RoundedRectangle(cornerRadius: Self.cornerRadius)
-            .stroke(isSelected ? Color.yellow : Color.white.opacity(0.25), lineWidth: isSelected ? 2 : 1)
+            .stroke(borderColor, lineWidth: borderWidth)
     }
 
     private var moveGesture: some Gesture {
         DragGesture(minimumDistance: Self.minimumDragDistance, coordinateSpace: .global)
             .onChanged { value in
                 if !isSelected { onSelect() }
-                moveTranslation = CGSize(width: value.translation.width, height: allowsLaneChange ? value.translation.height : 0)
+                moveTranslation = CGSize(width: value.translation.width, height: allowedVerticalTravel(value.translation.height))
                 onDragChange(value.translation.width)
             }
             .onEnded { value in
                 let proposedStart = clip.startInSeconds + value.translation.width / pointsPerSecond
-                let laneOffset = allowsLaneChange ? Int((value.translation.height / TimelineMetrics.laneStride).rounded()) : 0
+                let laneOffset = Int((allowedVerticalTravel(value.translation.height) / TimelineMetrics.laneStride).rounded())
                 moveTranslation = .zero
                 onDragChange(nil)
                 onMove(proposedStart, laneOffset)
@@ -121,6 +151,9 @@ struct ClipBlockView: View {
     }
 
     private func edgeTime(_ edge: ClipEdge) -> TimeInterval {
-        edge == .leading ? clip.startInSeconds : clip.endInSeconds
+        switch edge {
+        case .leading: return clip.startInSeconds
+        case .trailing: return clip.endInSeconds
+        }
     }
 }

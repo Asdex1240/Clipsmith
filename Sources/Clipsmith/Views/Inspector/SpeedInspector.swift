@@ -15,7 +15,6 @@ struct SpeedInspector: View {
                     Spacer()
                     Text(Self.label(for: clip.speed)).monospacedDigit().foregroundStyle(.secondary)
                 }
-                // The slider works on a log scale so 0.5× and 2× sit at equal distances from 1×.
                 Slider(value: logBinding, in: log2(Clip.speedRange.lowerBound)...log2(Clip.speedRange.upperBound))
             }
             HStack(spacing: 4) {
@@ -39,13 +38,12 @@ struct SpeedInspector: View {
         )
     }
 
-    /// Dragging lands exactly on the common rates when it gets close to them.
     static func snapped(_ speed: Double) -> Double {
         presets.first { abs($0 - speed) / $0 < 0.03 } ?? (speed * 100).rounded() / 100
     }
 
     static func label(for speed: Double) -> String {
-        let text = speed == speed.rounded() ? String(Int(speed)) : String(format: "%g", speed)
-        return text + "×"
+        guard speed == speed.rounded() else { return String(format: "%g", speed) + "×" }
+        return String(Int(speed)) + "×"
     }
 }

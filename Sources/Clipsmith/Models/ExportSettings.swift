@@ -11,7 +11,6 @@ enum ExportResolution: String, Codable, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    /// Pixels of the shorter side of the output; nil exports at exactly the canvas size.
     var shortSide: Int? {
         switch self {
         case .hd720: return 720

@@ -7,6 +7,21 @@ struct TransitionButton: View {
     static let size: CGFloat = 16
     private static let durations: [TimeInterval] = [0.5, 1, 1.5, 2]
 
+    private var iconName: String {
+        if clip.transition == nil { return "plus" }
+        return "arrow.triangle.merge"
+    }
+
+    private var iconColor: Color {
+        if clip.transition == nil { return .secondary }
+        return .white
+    }
+
+    private var badgeColor: Color {
+        if clip.transition == nil { return Color.black.opacity(0.55) }
+        return .accentColor
+    }
+
     var body: some View {
         Menu {
             Button(localized("transition.none")) { store.setTransition(of: clip.id, to: nil) }
@@ -34,11 +49,11 @@ struct TransitionButton: View {
                 }
             }
         } label: {
-            Image(systemName: clip.transition == nil ? "plus" : "arrow.triangle.merge")
+            Image(systemName: iconName)
                 .font(.system(size: 9, weight: .bold))
-                .foregroundStyle(clip.transition == nil ? Color.secondary : Color.white)
+                .foregroundStyle(iconColor)
                 .frame(width: Self.size, height: Self.size)
-                .background(Circle().fill(clip.transition == nil ? Color.black.opacity(0.55) : Color.accentColor))
+                .background(Circle().fill(badgeColor))
                 .overlay(Circle().stroke(Color.white.opacity(0.6), lineWidth: 1))
         }
         .menuStyle(.button)

@@ -58,7 +58,8 @@ struct AVMediaLoader: MediaLoading {
         guard let track = try? await asset.loadTracks(withMediaType: .video).first,
               let (natural, transform) = try? await track.load(.naturalSize, .preferredTransform) else { return nil }
         let oriented = CGRect(origin: .zero, size: natural).applying(transform)
-        return oriented.width > 0 && oriented.height > 0 ? CGSize(width: oriented.width, height: oriented.height) : nil
+        guard oriented.width > 0, oriented.height > 0 else { return nil }
+        return CGSize(width: oriented.width, height: oriented.height)
     }
 
     private func imageSize(of url: URL) -> CGSize? {
@@ -68,8 +69,7 @@ struct AVMediaLoader: MediaLoading {
               let height = properties[kCGImagePropertyPixelHeight] as? Double,
               width > 0, height > 0 else { return nil }
         let orientation = properties[kCGImagePropertyOrientation] as? Int ?? 1
-        return orientation >= Self.firstOrientationThatSwapsAxes
-            ? CGSize(width: height, height: width)
-            : CGSize(width: width, height: height)
+        guard orientation >= Self.firstOrientationThatSwapsAxes else { return CGSize(width: width, height: height) }
+        return CGSize(width: height, height: width)
     }
 }

@@ -52,7 +52,8 @@ extension TransitionKind {
     }
 
     var breakpoints: [Double] {
-        self == .fadeBlack ? [Self.dipFraction] : []
+        guard self == .fadeBlack else { return [] }
+        return [Self.dipFraction]
     }
 }
 

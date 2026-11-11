@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// Toolbar button that shows the current work area and opens its settings.
 struct CanvasPicker: View {
     let store: ProjectStore
     @State private var isPresented = false
@@ -30,6 +29,11 @@ private struct CanvasSettings: View {
 
     private var canvas: CanvasFormat { store.project.canvas }
 
+    private func checkmarkOpacity(for preset: CanvasFormat) -> Double {
+        if preset.aspectLabel == canvas.aspectLabel { return 1 }
+        return 0
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(localized("canvas.title")).font(.headline)
@@ -54,7 +58,7 @@ private struct CanvasSettings: View {
                 Button { store.setCanvas(resized) } label: {
                     HStack {
                         Image(systemName: "checkmark")
-                            .opacity(preset.aspectLabel == canvas.aspectLabel ? 1 : 0)
+                            .opacity(checkmarkOpacity(for: preset))
                         Text(preset.aspectLabel ?? "")
                         Spacer()
                         Text("\(resized.width)×\(resized.height)").foregroundStyle(.secondary).monospacedDigit()

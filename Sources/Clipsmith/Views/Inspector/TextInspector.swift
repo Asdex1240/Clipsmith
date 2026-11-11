@@ -2,6 +2,7 @@ import AppKit
 import SwiftUI
 
 struct TextInspector: View {
+    private static let defaultBackgroundColor = RGBAColor(red: 0, green: 0, blue: 0, alpha: 0.65)
     let store: ProjectStore
     let clip: Clip
 
@@ -115,7 +116,11 @@ struct TextInspector: View {
             get: { layer.backgroundColor != nil },
             set: { isOn in
                 store.updateTextLayer(of: clip.id, field: "background") {
-                    $0.backgroundColor = isOn ? RGBAColor(red: 0, green: 0, blue: 0, alpha: 0.65) : nil
+                    if isOn {
+                        $0.backgroundColor = Self.defaultBackgroundColor
+                    } else {
+                        $0.backgroundColor = nil
+                    }
                 }
             }
         )
@@ -123,7 +128,8 @@ struct TextInspector: View {
 
     private var fontOptions: [(name: String, postScript: String)] {
         let isListed = Self.fonts.contains { $0.postScript == layer.fontName }
-        return isListed ? Self.fonts : Self.fonts + [(layer.fontName, layer.fontName)]
+        guard !isListed else { return Self.fonts }
+        return Self.fonts + [(layer.fontName, layer.fontName)]
     }
 
     private func binding<Value>(_ keyPath: WritableKeyPath<TextLayer, Value>) -> Binding<Value> {

@@ -4,7 +4,6 @@ struct Project: Codable, Identifiable, Equatable {
     var id = UUID()
     var name: String
     var canvas: CanvasFormat = .landscape
-    /// When true, the canvas takes the proportion of the first video or image added to an empty timeline.
     var autoFitCanvas = true
     var tracks: [Track] = [Track(role: .text), Track(role: .broll), Track(role: .main), Track(role: .audio)]
     var markers: [Marker] = []

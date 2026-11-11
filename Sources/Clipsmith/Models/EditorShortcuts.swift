@@ -61,13 +61,13 @@ struct ShortcutModifiers: OptionSet {
 enum EditorShortcuts {
     static func action(for key: ShortcutKey, modifiers: ShortcutModifiers) -> EditorAction? {
         switch key {
-        case .space: return modifiers.isEmpty ? .togglePlayback : nil
+        case .space: return whenUnmodified(.togglePlayback, modifiers)
         case .delete: return deleteAction(modifiers)
         case .leftArrow: return arrowAction(modifiers, plain: .stepBackward, shift: .jumpBackward, option: .previousEdit)
         case .rightArrow: return arrowAction(modifiers, plain: .stepForward, shift: .jumpForward, option: .nextEdit)
-        case .home: return modifiers.isEmpty ? .goToStart : nil
-        case .end: return modifiers.isEmpty ? .goToEnd : nil
-        case .escape: return modifiers.isEmpty ? .deselect : nil
+        case .home: return whenUnmodified(.goToStart, modifiers)
+        case .end: return whenUnmodified(.goToEnd, modifiers)
+        case .escape: return whenUnmodified(.deselect, modifiers)
         case .character(let character): return characterAction(character, modifiers)
         }
     }
@@ -104,9 +104,15 @@ enum EditorShortcuts {
         }
     }
 
+    private static func whenUnmodified(_ action: EditorAction, _ modifiers: ShortcutModifiers) -> EditorAction? {
+        guard modifiers.isEmpty else { return nil }
+        return action
+    }
+
     private static func deleteAction(_ modifiers: ShortcutModifiers) -> EditorAction? {
         if modifiers.isEmpty { return .delete }
-        return modifiers == .shift ? .rippleDelete : nil
+        guard modifiers == .shift else { return nil }
+        return .rippleDelete
     }
 
     private static func arrowAction(
@@ -117,7 +123,8 @@ enum EditorShortcuts {
     ) -> EditorAction? {
         if modifiers.isEmpty { return plain }
         if modifiers == .shift { return shift }
-        return modifiers == .option ? option : nil
+        guard modifiers == .option else { return nil }
+        return option
     }
 
     private static func characterAction(_ character: Character, _ modifiers: ShortcutModifiers) -> EditorAction? {
@@ -133,16 +140,17 @@ enum EditorShortcuts {
             }
         }
         if modifiers == [.command, .shift] {
-            return character.lowercased() == "g" ? .ungroup : nil
+            guard character.lowercased() == "g" else { return nil }
+            return .ungroup
         }
         guard modifiers.isEmpty || modifiers == .shift else { return nil }
         switch character.lowercased() {
-        case "q": return modifiers.isEmpty ? .trimStartToPlayhead : nil
-        case "w": return modifiers.isEmpty ? .trimEndToPlayhead : nil
-        case "s": return modifiers.isEmpty ? .split : nil
-        case "t": return modifiers.isEmpty ? .addText : nil
-        case "m": return modifiers.isEmpty ? .addMarker : nil
-        case "n": return modifiers.isEmpty ? .toggleSnapping : nil
+        case "q": return whenUnmodified(.trimStartToPlayhead, modifiers)
+        case "w": return whenUnmodified(.trimEndToPlayhead, modifiers)
+        case "s": return whenUnmodified(.split, modifiers)
+        case "t": return whenUnmodified(.addText, modifiers)
+        case "m": return whenUnmodified(.addMarker, modifiers)
+        case "n": return whenUnmodified(.toggleSnapping, modifiers)
         case "=", "+": return .zoomIn
         case "-", "_": return .zoomOut
         default: return nil

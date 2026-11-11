@@ -39,7 +39,11 @@ final class PlayerController {
         mode = .source
         sourceItem = item
         player.pause()
-        player.replaceCurrentItem(with: sourceIsStillImage ? nil : AVPlayerItem(url: item.url))
+        if sourceIsStillImage {
+            player.replaceCurrentItem(with: nil)
+        } else {
+            player.replaceCurrentItem(with: AVPlayerItem(url: item.url))
+        }
     }
 
     func showTimeline(at time: TimeInterval) {
@@ -59,7 +63,6 @@ final class PlayerController {
         installTimeline(resumingPlayback: isPlaying, at: time)
     }
 
-    /// Applies new clip positions without replacing the playing item, so dragging stays smooth.
     func updateTransforms(_ built: BuiltComposition) {
         timeline = built
         visualFrames = built.visualFrames

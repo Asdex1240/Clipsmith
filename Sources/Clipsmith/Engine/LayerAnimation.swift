@@ -29,7 +29,8 @@ enum LayerAnimation {
         let b = clip.visualState(atClipTime: to - clip.startInSeconds)
         let turnSteps = abs(b.rotationInDegrees - a.rotationInDegrees) / maximumDegreesPerStep
         let zoomSteps = abs(b.scale - a.scale) / max(min(a.scale, b.scale), 0.01) / maximumScaleChangePerStep
-        let easedSteps = clip.eased(from: from - clip.startInSeconds) ? Double(minimumStepsWhenEased) : 1
+        var easedSteps = 1.0
+        if clip.eased(from: from - clip.startInSeconds) { easedSteps = Double(minimumStepsWhenEased) }
         return min(max(Int(ceil(max(turnSteps, zoomSteps, easedSteps))), 1), maximumStepsPerSpan)
     }
 }

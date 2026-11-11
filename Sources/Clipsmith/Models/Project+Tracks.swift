@@ -88,7 +88,11 @@ extension Project {
     mutating func renameTrack(_ id: Track.ID, to name: String) {
         guard let index = tracks.firstIndex(where: { $0.id == id }) else { return }
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        tracks[index].name = trimmed.isEmpty ? nil : trimmed
+        if trimmed.isEmpty {
+            tracks[index].name = nil
+        } else {
+            tracks[index].name = trimmed
+        }
     }
 
     func audioTrackWithRoom(for clip: Clip) -> Track? {
