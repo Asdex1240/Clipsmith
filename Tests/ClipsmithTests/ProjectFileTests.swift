@@ -33,13 +33,17 @@ final class ProjectFileTests: XCTestCase {
 
     func testGarbageIsReportedAsCorrupted() {
         XCTAssertThrowsError(try ProjectFileCoding.decode(Data("not json".utf8))) { error in
-            guard case ProjectFileError.corrupted = error else { return XCTFail("Unexpected \(error)") }
+            guard case ProjectFileError.corrupted = error else {
+                return XCTFail("Unexpected \(error)")
+            }
         }
     }
 
     func testValidJsonWithoutTheExpectedShapeIsCorrupted() {
         XCTAssertThrowsError(try ProjectFileCoding.decode(Data(#"{"version": 1}"#.utf8))) { error in
-            guard case ProjectFileError.corrupted = error else { return XCTFail("Unexpected \(error)") }
+            guard case ProjectFileError.corrupted = error else {
+                return XCTFail("Unexpected \(error)")
+            }
         }
     }
 
@@ -47,7 +51,9 @@ final class ProjectFileTests: XCTestCase {
         let data = Data(#"{"version": 99, "anything": true}"#.utf8)
 
         XCTAssertThrowsError(try ProjectFileCoding.decode(data)) { error in
-            guard case ProjectFileError.unsupportedVersion(let version) = error else { return XCTFail("Unexpected \(error)") }
+            guard case ProjectFileError.unsupportedVersion(let version) = error else {
+                return XCTFail("Unexpected \(error)")
+            }
             XCTAssertEqual(version, 99)
         }
     }

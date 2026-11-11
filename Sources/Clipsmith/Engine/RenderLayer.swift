@@ -55,15 +55,18 @@ struct RenderLayer {
             preferredTransform: preferredTransform,
             renderSize: renderSize,
             mode: clip.fitMode,
-            offset: CGPoint(x: state.offsetX * renderSize.width, y: state.offsetY * renderSize.height),
+            offset: CGPoint(
+                x: state.offsetX * renderSize.width, y: state.offsetY * renderSize.height),
             scale: state.scale,
             rotationInDegrees: state.rotationInDegrees
         )
         guard let blend else { return fitted }
-        return fitted.concatenating(CGAffineTransform(translationX: blend.shift(at: time) * renderSize.width, y: 0))
+        return fitted.concatenating(
+            CGAffineTransform(translationX: blend.shift(at: time) * renderSize.width, y: 0))
     }
 
     func opacity(at time: TimeInterval) -> Double {
-        clip.visualState(atClipTime: time - clip.startInSeconds).opacity * (blend?.opacity(at: time) ?? 1)
+        clip.visualState(atClipTime: time - clip.startInSeconds).opacity
+            * (blend?.opacity(at: time) ?? 1)
     }
 }

@@ -35,19 +35,23 @@ struct ClipsmithApp: App {
 
     var body: some Scene {
         WindowGroup("Clipsmith") {
-            ContentView(store: store, library: library, player: player, previewer: previewer, exporter: exporter, subtitles: subtitles, document: document,
-                documentActions: documentActions, thumbnails: thumbnails, waveforms: waveforms)
-                .frame(minWidth: 1100, minHeight: 700)
-                .onAppear {
-                    appDelegate.shouldAllowTermination = documentActions.confirmDiscardingChanges
-                    shortcutMonitor.start()
-                }
-                .sheet(isPresented: $isShortcutsPresented) { ShortcutsView() }
+            ContentView(
+                store: store, library: library, player: player, previewer: previewer,
+                exporter: exporter, subtitles: subtitles, document: document,
+                documentActions: documentActions, thumbnails: thumbnails, waveforms: waveforms
+            )
+            .frame(minWidth: 1100, minHeight: 700)
+            .onAppear {
+                appDelegate.shouldAllowTermination = documentActions.confirmDiscardingChanges
+                shortcutMonitor.start()
+            }
+            .sheet(isPresented: $isShortcutsPresented) { ShortcutsView() }
         }
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button(localized("menu.new")) { documentActions.newProject() }.keyboardShortcut("n")
-                Button(localized("menu.open")) { documentActions.openProject() }.keyboardShortcut("o")
+                Button(localized("menu.open")) { documentActions.openProject() }
+                    .keyboardShortcut("o")
             }
             CommandGroup(replacing: .saveItem) {
                 Button(localized("menu.save")) { documentActions.save() }.keyboardShortcut("s")

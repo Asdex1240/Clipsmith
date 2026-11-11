@@ -24,7 +24,8 @@ struct TimelineView: View {
                     trackLabels
                     GeometryReader { viewport in
                         ScrollView(.horizontal) {
-                            tracksContent(contentWidth: contentWidth(viewportWidth: viewport.size.width))
+                            tracksContent(
+                                contentWidth: contentWidth(viewportWidth: viewport.size.width))
                         }
                     }
                 }
@@ -39,33 +40,62 @@ struct TimelineView: View {
             Text(store.project.name).font(.headline)
             Text(store.playheadInSeconds.clockString).monospacedDigit().foregroundStyle(.secondary)
             Spacer()
-            Toggle(isOn: Binding(get: { store.isSnappingEnabled }, set: { _ in store.toggleSnapping() })) {
+            Toggle(
+                isOn: Binding(
+                    get: { store.isSnappingEnabled }, set: { _ in store.toggleSnapping() })
+            ) {
                 Image(systemName: "magnet")
             }
             .toggleStyle(.button)
             .help("\(snappingTitle) (\(EditorShortcuts.displayKeys(for: .toggleSnapping)))")
-            toolbarButton("timeline.addText", systemImage: "textformat", shortcut: .addText, action: store.addTextAtPlayhead)
-            toolbarButton("timeline.addMarker", systemImage: "bookmark", shortcut: .addMarker, action: store.toggleMarkerAtPlayhead)
-            toolbarButton("timeline.split", systemImage: "scissors", shortcut: .split, action: store.splitAtPlayhead)
-            toolbarButton("shortcut.trimStart", systemImage: "arrow.right.to.line", shortcut: .trimStartToPlayhead) {
+            toolbarButton(
+                "timeline.addText", systemImage: "textformat", shortcut: .addText,
+                action: store.addTextAtPlayhead)
+            toolbarButton(
+                "timeline.addMarker", systemImage: "bookmark", shortcut: .addMarker,
+                action: store.toggleMarkerAtPlayhead)
+            toolbarButton(
+                "timeline.split", systemImage: "scissors", shortcut: .split,
+                action: store.splitAtPlayhead)
+            toolbarButton(
+                "shortcut.trimStart", systemImage: "arrow.right.to.line",
+                shortcut: .trimStartToPlayhead
+            ) {
                 store.trimToPlayhead(edge: .leading)
             }
-            toolbarButton("shortcut.trimEnd", systemImage: "arrow.left.to.line.compact", shortcut: .trimEndToPlayhead) {
+            toolbarButton(
+                "shortcut.trimEnd", systemImage: "arrow.left.to.line.compact",
+                shortcut: .trimEndToPlayhead
+            ) {
                 store.trimToPlayhead(edge: .trailing)
             }
-            toolbarButton("shortcut.duplicate", systemImage: "plus.square.on.square", shortcut: .duplicate, action: store.duplicateSelectedClip)
-            toolbarButton("timeline.group", systemImage: "link", shortcut: .group, action: store.groupSelection)
-                .disabled(!store.canGroupSelection)
-            toolbarButton("timeline.ungroup", systemImage: "link.badge.plus", shortcut: .ungroup, action: store.ungroupSelection)
-                .disabled(!store.selectionIsGrouped)
-            toolbarButton("timeline.delete", systemImage: "trash", shortcut: .delete, action: store.deleteSelectedClip)
+            toolbarButton(
+                "shortcut.duplicate", systemImage: "plus.square.on.square", shortcut: .duplicate,
+                action: store.duplicateSelectedClip)
+            toolbarButton(
+                "timeline.group", systemImage: "link", shortcut: .group,
+                action: store.groupSelection
+            )
+            .disabled(!store.canGroupSelection)
+            toolbarButton(
+                "timeline.ungroup", systemImage: "link.badge.plus", shortcut: .ungroup,
+                action: store.ungroupSelection
+            )
+            .disabled(!store.selectionIsGrouped)
+            toolbarButton(
+                "timeline.delete", systemImage: "trash", shortcut: .delete,
+                action: store.deleteSelectedClip)
             toolbarButton(
                 "timeline.rippleDelete", systemImage: "arrow.left.to.line",
                 shortcut: .rippleDelete, action: store.rippleDeleteSelectedClip
             )
             Divider().frame(height: 16)
-            toolbarButton("timeline.zoomOut", systemImage: "minus.magnifyingglass", shortcut: .zoomOut, action: store.zoomOut)
-            toolbarButton("timeline.zoomIn", systemImage: "plus.magnifyingglass", shortcut: .zoomIn, action: store.zoomIn)
+            toolbarButton(
+                "timeline.zoomOut", systemImage: "minus.magnifyingglass", shortcut: .zoomOut,
+                action: store.zoomOut)
+            toolbarButton(
+                "timeline.zoomIn", systemImage: "plus.magnifyingglass", shortcut: .zoomIn,
+                action: store.zoomIn)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
@@ -82,7 +112,8 @@ struct TimelineView: View {
     }
 
     private var contentHeight: CGFloat {
-        TimelineMetrics.rulerHeight + CGFloat(store.project.tracks.count) * TimelineMetrics.laneStride + TimelineMetrics.laneHeight
+        TimelineMetrics.rulerHeight + CGFloat(store.project.tracks.count)
+            * TimelineMetrics.laneStride + TimelineMetrics.laneHeight
     }
 
     private var trackLabels: some View {
@@ -93,7 +124,10 @@ struct TimelineView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-                    .frame(width: TimelineMetrics.trackLabelWidth, height: TimelineMetrics.laneHeight, alignment: .leading)
+                    .frame(
+                        width: TimelineMetrics.trackLabelWidth, height: TimelineMetrics.laneHeight,
+                        alignment: .leading
+                    )
                     .padding(.leading, 8)
                     .contextMenu { trackMenu(for: track) }
             }
@@ -130,14 +164,20 @@ struct TimelineView: View {
     }
 
     private func contentWidth(viewportWidth: CGFloat) -> CGFloat {
-        let contentSeconds = store.project.durationInSeconds + TimelineMetrics.trailingPaddingInSeconds
+        let contentSeconds =
+            store.project.durationInSeconds + TimelineMetrics.trailingPaddingInSeconds
         return max(contentSeconds * pointsPerSecond, viewportWidth)
     }
 
     private func tracksContent(contentWidth: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: TimelineMetrics.laneSpacing) {
-            TimelineRuler(pointsPerSecond: pointsPerSecond, width: contentWidth, onScrub: store.setPlayhead(near:))
-                .overlay(alignment: .topLeading) { MarkerFlags(store: store, pointsPerSecond: pointsPerSecond) }
+            TimelineRuler(
+                pointsPerSecond: pointsPerSecond, width: contentWidth,
+                onScrub: store.setPlayhead(near:)
+            )
+            .overlay(alignment: .topLeading) {
+                MarkerFlags(store: store, pointsPerSecond: pointsPerSecond)
+            }
             ForEach(Array(store.project.tracks.enumerated()), id: \.element.id) { index, track in
                 lane(for: track, at: index, width: contentWidth)
             }
@@ -161,9 +201,10 @@ struct TimelineView: View {
                 .frame(width: size.width, height: size.height)
                 .contentShape(Rectangle())
                 .gesture(
-                    DragGesture(minimumDistance: 0, coordinateSpace: .named(Self.contentSpace)).onChanged { value in
-                        store.setPlayhead(near: value.location.x / pointsPerSecond)
-                    }
+                    DragGesture(minimumDistance: 0, coordinateSpace: .named(Self.contentSpace))
+                        .onChanged { value in
+                            store.setPlayhead(near: value.location.x / pointsPerSecond)
+                        }
                 )
         }
         .frame(width: size.width)
@@ -189,7 +230,8 @@ struct TimelineView: View {
         .onDrop(
             of: [.plainText],
             delegate: LaneDropDelegate(
-                track: track, store: store, library: library, pointsPerSecond: pointsPerSecond, preview: $dropPreview
+                track: track, store: store, library: library, pointsPerSecond: pointsPerSecond,
+                preview: $dropPreview
             )
         )
     }
@@ -199,12 +241,15 @@ struct TimelineView: View {
             clip: clip,
             pointsPerSecond: pointsPerSecond,
             isSelected: store.selectedClipIDs.contains(clip.id),
-            allowsLaneChange: !(store.hasMultipleSelected && store.selectedClipIDs.contains(clip.id)),
+            allowsLaneChange:
+                !(store.hasMultipleSelected && store.selectedClipIDs.contains(clip.id)),
             companionOffset: companionOffset(for: clip),
             waveformPeaks: waveformPeaks(for: clip, in: track),
             isMissing: clip.sourceURL.map(missingMedia.contains) ?? false,
             onSelect: { select(clip) },
-            onMove: { start, laneOffset in move(clip, from: index, near: start, laneOffset: laneOffset) },
+            onMove: { start, laneOffset in
+                move(clip, from: index, near: start, laneOffset: laneOffset)
+            },
             onTrim: { edge, time in store.trimClip(clip.id, edge: edge, near: time) },
             onDragChange: { offset in drag = offset.map { (clip.id, $0) } }
         )
@@ -237,7 +282,8 @@ struct TimelineView: View {
     }
 
     private func showsWaveform(_ clip: Clip, in track: Track) -> Bool {
-        track.role.playsAudio && !clip.isAudioDetached && (clip.mediaKind == .video || clip.mediaKind == .audio)
+        track.role.playsAudio && !clip.isAudioDetached
+            && (clip.mediaKind == .video || clip.mediaKind == .audio)
     }
 
     private func waveformPeaks(for clip: Clip, in track: Track) -> [Float]? {
@@ -252,7 +298,9 @@ struct TimelineView: View {
 
     private func select(_ clip: Clip) {
         if NSEvent.modifierFlags.intersection([.shift, .command]).isEmpty {
-            if !(store.hasMultipleSelected && store.selectedClipIDs.contains(clip.id)) { store.selectClip(clip.id) }
+            if !(store.hasMultipleSelected && store.selectedClipIDs.contains(clip.id)) {
+                store.selectClip(clip.id)
+            }
         } else {
             store.toggleSelection(of: clip.id)
         }
@@ -260,11 +308,13 @@ struct TimelineView: View {
 
     private func companionOffset(for clip: Clip) -> CGFloat {
         guard let drag, drag.clipID != clip.id, store.selectedClipIDs.contains(clip.id),
-              store.selectedClipIDs.contains(drag.clipID) else { return 0 }
+            store.selectedClipIDs.contains(drag.clipID)
+        else { return 0 }
         return drag.offset
     }
 
-    private func move(_ clip: Clip, from laneIndex: Int, near start: TimeInterval, laneOffset: Int) {
+    private func move(_ clip: Clip, from laneIndex: Int, near start: TimeInterval, laneOffset: Int)
+    {
         if store.hasMultipleSelected, store.selectedClipIDs.contains(clip.id) {
             store.moveSelection(draggedClip: clip.id, near: start)
             return

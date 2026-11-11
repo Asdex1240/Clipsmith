@@ -14,7 +14,8 @@ final class PlayheadNavigationTests: XCTestCase {
     func testSteppingMovesByOneFrame() {
         store.stepPlayhead(byFrames: 3)
 
-        XCTAssertEqual(store.playheadInSeconds, 3 * ProjectStore.frameDurationInSeconds, accuracy: 1e-9)
+        XCTAssertEqual(
+            store.playheadInSeconds, 3 * ProjectStore.frameDurationInSeconds, accuracy: 1e-9)
         store.stepPlayhead(byFrames: -3)
         XCTAssertEqual(store.playheadInSeconds, 0, accuracy: 1e-9)
     }

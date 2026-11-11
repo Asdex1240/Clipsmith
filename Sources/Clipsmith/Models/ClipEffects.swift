@@ -14,7 +14,9 @@ struct ColorAdjustments: Codable, Equatable {
     var isIdentity: Bool { self == ColorAdjustments() }
 
     func clamped() -> ColorAdjustments {
-        func limit(_ value: Double, _ range: ClosedRange<Double>) -> Double { min(max(value, range.lowerBound), range.upperBound) }
+        func limit(_ value: Double, _ range: ClosedRange<Double>) -> Double {
+            min(max(value, range.lowerBound), range.upperBound)
+        }
         return ColorAdjustments(
             brightness: limit(brightness, Self.brightnessRange),
             contrast: limit(contrast, Self.contrastRange),
@@ -60,7 +62,8 @@ struct CropInsets: Codable, Equatable {
         }
         let horizontal = fit(left, right)
         let vertical = fit(top, bottom)
-        return CropInsets(left: horizontal.0, right: horizontal.1, top: vertical.0, bottom: vertical.1)
+        return CropInsets(
+            left: horizontal.0, right: horizontal.1, top: vertical.0, bottom: vertical.1)
     }
 
     func visible(in rect: CGRect) -> CGRect {

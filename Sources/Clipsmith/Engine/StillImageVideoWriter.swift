@@ -24,7 +24,10 @@ final class StillImageVideoWriter: StillImageVideoMaking {
 
     private let directory: URL
 
-    init(directory: URL = FileManager.default.temporaryDirectory.appendingPathComponent("Clipsmith-stills")) {
+    init(
+        directory: URL = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "Clipsmith-stills")
+    ) {
         self.directory = directory
     }
 
@@ -42,55 +45,66 @@ final class StillImageVideoWriter: StillImageVideoMaking {
     }
 
     private func cachedURL(for imageURL: URL, size: CGSize, mode: FitMode) -> URL {
-        let modified = (try? imageURL.resourceValues(forKeys: [.contentModificationDateKey]))?
+        let modified =
+            (try? imageURL.resourceValues(forKeys: [.contentModificationDateKey]))?
             .contentModificationDate?.timeIntervalSince1970 ?? 0
-        let key = "\(imageURL.path)|\(Int(size.width))x\(Int(size.height))|\(mode.rawValue)|\(modified)"
-        let digest = SHA256.hash(data: Data(key.utf8)).prefix(12).map { String(format: "%02x", $0) }.joined()
+        let key =
+            "\(imageURL.path)|\(Int(size.width))x\(Int(size.height))|\(mode.rawValue)|\(modified)"
+        let digest = SHA256.hash(data: Data(key.utf8)).prefix(12).map { String(format: "%02x", $0) }
+            .joined()
         return directory.appendingPathComponent("\(digest).mov")
     }
 
-    private func write(imageAt imageURL: URL, size: CGSize, mode: FitMode, to url: URL) async throws {
-        guard let image = NSImage(contentsOf: imageURL)?.cgImage(forProposedRect: nil, context: nil, hints: nil),
-              let buffer = makePixelBuffer(drawing: image, size: size, mode: mode) else {
+    private func write(imageAt imageURL: URL, size: CGSize, mode: FitMode, to url: URL) async throws
+    {
+        guard
+            let image = NSImage(contentsOf: imageURL)?.cgImage(
+                forProposedRect: nil, context: nil, hints: nil),
+            let buffer = makePixelBuffer(drawing: image, size: size, mode: mode)
+        else {
             throw StillImageError.unreadableImage(imageURL)
         }
         let writer = try AVAssetWriter(outputURL: url, fileType: .mov)
-        let input = AVAssetWriterInput(mediaType: .video, outputSettings: [
-            AVVideoCodecKey: AVVideoCodecType.h264,
-            AVVideoWidthKey: Int(size.width),
-            AVVideoHeightKey: Int(size.height),
-        ])
-        let adaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: input, sourcePixelBufferAttributes: nil)
+        let input = AVAssetWriterInput(
+            mediaType: .video,
+            outputSettings: [
+                AVVideoCodecKey: AVVideoCodecType.h264,
+                AVVideoWidthKey: Int(size.width),
+                AVVideoHeightKey: Int(size.height),
+            ])
+        let adaptor = AVAssetWriterInputPixelBufferAdaptor(
+            assetWriterInput: input, sourcePixelBufferAttributes: nil)
         writer.add(input)
         writer.startWriting()
         writer.startSession(atSourceTime: .zero)
-        for time in Self.frameTimesInSeconds {
-            while !input.isReadyForMoreMediaData {
-                try await Task.sleep(for: Self.bufferPollInterval)
-            }
-            adaptor.append(buffer, withPresentationTime: time.cmTime)
-        }
+        try await appendFrames(of: buffer, to: adaptor)
         input.markAsFinished()
         writer.endSession(atSourceTime: Self.durationInSeconds.cmTime)
         await writer.finishWriting()
         guard writer.status == .completed else { throw StillImageError.writingFailed(imageURL) }
     }
 
-    private func makePixelBuffer(drawing image: CGImage, size: CGSize, mode: FitMode) -> CVPixelBuffer? {
+    private func appendFrames(
+        of buffer: CVPixelBuffer, to adaptor: AVAssetWriterInputPixelBufferAdaptor
+    ) async throws {
+        for time in Self.frameTimesInSeconds {
+            while !adaptor.assetWriterInput.isReadyForMoreMediaData {
+                try await Task.sleep(for: Self.bufferPollInterval)
+            }
+            adaptor.append(buffer, withPresentationTime: time.cmTime)
+        }
+    }
+
+    private func makePixelBuffer(
+        drawing image: CGImage, size: CGSize, mode: FitMode
+    ) -> CVPixelBuffer? {
         var buffer: CVPixelBuffer?
-        CVPixelBufferCreate(nil, Int(size.width), Int(size.height), kCVPixelFormatType_32BGRA, nil, &buffer)
+        CVPixelBufferCreate(
+            nil, Int(size.width), Int(size.height), kCVPixelFormatType_32BGRA, nil, &buffer)
         guard let buffer else { return nil }
         CVPixelBufferLockBaseAddress(buffer, [])
         defer { CVPixelBufferUnlockBaseAddress(buffer, []) }
-        guard let context = CGContext(
-            data: CVPixelBufferGetBaseAddress(buffer),
-            width: Int(size.width),
-            height: Int(size.height),
-            bitsPerComponent: 8,
-            bytesPerRow: CVPixelBufferGetBytesPerRow(buffer),
-            space: CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB(),
-            bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
-        ) else { return nil }
+        guard let context = makeContext(over: buffer, size: size) else { return nil }
         let bounds = CGRect(origin: .zero, size: size)
         context.setFillColor(CGColor(gray: 0, alpha: 1))
         context.fill(bounds)
@@ -99,10 +113,25 @@ final class StillImageVideoWriter: StillImageVideoMaking {
         return buffer
     }
 
+    private func makeContext(over buffer: CVPixelBuffer, size: CGSize) -> CGContext? {
+        CGContext(
+            data: CVPixelBufferGetBaseAddress(buffer),
+            width: Int(size.width),
+            height: Int(size.height),
+            bitsPerComponent: 8,
+            bytesPerRow: CVPixelBufferGetBytesPerRow(buffer),
+            space: CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue
+                | CGBitmapInfo.byteOrder32Little.rawValue
+        )
+    }
+
     private func drawingRect(for imageSize: CGSize, in bounds: CGRect, mode: FitMode) -> CGRect {
         guard mode == .fill else { return AVMakeRect(aspectRatio: imageSize, insideRect: bounds) }
         let scale = max(bounds.width / imageSize.width, bounds.height / imageSize.height)
         let size = CGSize(width: imageSize.width * scale, height: imageSize.height * scale)
-        return CGRect(x: bounds.midX - size.width / 2, y: bounds.midY - size.height / 2, width: size.width, height: size.height)
+        return CGRect(
+            x: bounds.midX - size.width / 2, y: bounds.midY - size.height / 2, width: size.width,
+            height: size.height)
     }
 }

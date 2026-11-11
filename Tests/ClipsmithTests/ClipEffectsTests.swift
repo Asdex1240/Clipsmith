@@ -30,7 +30,8 @@ final class ClipEffectsTests: XCTestCase {
     }
 
     func testAdjustmentsAreClampedToTheirRanges() {
-        let clamped = ColorAdjustments(brightness: 9, contrast: -3, saturation: 9, temperature: -9).clamped()
+        let clamped = ColorAdjustments(brightness: 9, contrast: -3, saturation: 9, temperature: -9)
+            .clamped()
 
         XCTAssertEqual(clamped.brightness, ColorAdjustments.brightnessRange.upperBound)
         XCTAssertEqual(clamped.contrast, ColorAdjustments.contrastRange.lowerBound)
@@ -47,7 +48,8 @@ final class ClipEffectsTests: XCTestCase {
     }
 
     func testVisibleAreaIsTheRectWithoutTheCutSides() {
-        let visible = CropInsets(left: 0.25, right: 0.25, top: 0.1, bottom: 0).visible(in: CGRect(x: 0, y: 0, width: 100, height: 100))
+        let visible = CropInsets(left: 0.25, right: 0.25, top: 0.1, bottom: 0).visible(
+            in: CGRect(x: 0, y: 0, width: 100, height: 100))
 
         XCTAssertEqual(visible, CGRect(x: 25, y: 10, width: 50, height: 90))
     }
@@ -58,7 +60,8 @@ final class ClipEffectsTests: XCTestCase {
         clip.crop = CropInsets(left: 0.1)
 
         let decoded = try JSONDecoder().decode(Clip.self, from: JSONEncoder().encode(clip))
-        let plain = try JSONDecoder().decode(Clip.self, from: JSONEncoder().encode(TestClips.video(start: 0)))
+        let plain = try JSONDecoder().decode(
+            Clip.self, from: JSONEncoder().encode(TestClips.video(start: 0)))
 
         XCTAssertEqual(decoded.color, clip.color)
         XCTAssertEqual(decoded.crop, clip.crop)
@@ -81,10 +84,13 @@ final class ClipEffectsTests: XCTestCase {
     // MARK: Rendering
 
     private func solidPNG(_ color: NSColor, named name: String) throws -> URL {
-        let bitmap = try XCTUnwrap(NSBitmapImageRep(
-            bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 36, bitsPerSample: 8, samplesPerPixel: 4,
-            hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
-        ))
+        let bitmap = try XCTUnwrap(
+            NSBitmapImageRep(
+                bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 36, bitsPerSample: 8,
+                samplesPerPixel: 4,
+                hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0,
+                bitsPerPixel: 0
+            ))
         let context = try XCTUnwrap(NSGraphicsContext(bitmapImageRep: bitmap))
         NSGraphicsContext.saveGraphicsState()
         NSGraphicsContext.current = context
@@ -97,7 +103,9 @@ final class ClipEffectsTests: XCTestCase {
     }
 
     private func builder() -> CompositionBuilder {
-        CompositionBuilder(stillImages: StillImageVideoWriter(directory: directory.appendingPathComponent("stills")))
+        CompositionBuilder(
+            stillImages: StillImageVideoWriter(
+                directory: directory.appendingPathComponent("stills")))
     }
 
     private func render(at time: TimeInterval = 0.5) async throws -> CGImage {
@@ -110,13 +118,17 @@ final class ClipEffectsTests: XCTestCase {
         return try await generator.image(at: time.cmTime).image
     }
 
-    /// Red, green and blue (0 to 255) of the pixel at a fraction of the frame, with (0, 0) being the top left.
-    private func pixel(_ image: CGImage, x fractionX: Double, y fractionY: Double) throws -> (r: Int, g: Int, b: Int) {
+    private func pixel(
+        _ image: CGImage, x fractionX: Double, y fractionY: Double
+    ) throws -> (r: Int, g: Int, b: Int) {
         var data = [UInt8](repeating: 0, count: image.width * image.height * 4)
-        let context = try XCTUnwrap(CGContext(
-            data: &data, width: image.width, height: image.height, bitsPerComponent: 8, bytesPerRow: image.width * 4,
-            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-        ))
+        let context = try XCTUnwrap(
+            CGContext(
+                data: &data, width: image.width, height: image.height, bitsPerComponent: 8,
+                bytesPerRow: image.width * 4,
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            ))
         context.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
         let column = min(Int(fractionX * Double(image.width)), image.width - 1)
         let row = min(Int(fractionY * Double(image.height)), image.height - 1)
@@ -124,8 +136,13 @@ final class ClipEffectsTests: XCTestCase {
         return (Int(data[offset]), Int(data[offset + 1]), Int(data[offset + 2]))
     }
 
-    private func addStill(_ url: URL, start: TimeInterval = 0, duration: TimeInterval = 3, edit: (inout Clip) -> Void = { _ in }) {
-        var clip = Clip(sourceURL: url, mediaKind: .image, startInSeconds: start, sourceStartInSeconds: 0, sourceEndInSeconds: duration)
+    private func addStill(
+        _ url: URL, start: TimeInterval = 0, duration: TimeInterval = 3,
+        edit: (inout Clip) -> Void = { _ in }
+    ) {
+        var clip = Clip(
+            sourceURL: url, mediaKind: .image, startInSeconds: start, sourceStartInSeconds: 0,
+            sourceEndInSeconds: duration)
         edit(&clip)
         project.addClip(clip, toTrack: mainTrackID)
     }
@@ -206,10 +223,14 @@ final class ClipEffectsTests: XCTestCase {
         let width = image.width
         let height = image.height
         var data = [UInt8](repeating: 0, count: width * height * 4)
-        guard let context = CGContext(
-            data: &data, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
-            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-        ) else { return -1 }
+        guard
+            let context = CGContext(
+                data: &data, width: width, height: height, bitsPerComponent: 8,
+                bytesPerRow: width * 4,
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            )
+        else { return -1 }
         context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
         var count = 0
         for row in Int(rows.lowerBound * Double(height))..<Int(rows.upperBound * Double(height)) {
@@ -224,16 +245,21 @@ final class ClipEffectsTests: XCTestCase {
     private func exportedFrame(withEffect: Bool) async throws -> CGImage {
         project = Project(name: "T")
         let black = try solidPNG(.black, named: "black.png")
-        addStill(black, duration: 2) { if withEffect { $0.color = ColorAdjustments(saturation: 0.9) } }
+        addStill(black, duration: 2) {
+            if withEffect { $0.color = ColorAdjustments(saturation: 0.9) }
+        }
         var text = TextLayer(content: "MMMMMM")
         text.fontSize = 220
         text.positionY = 0.2
         project.addTextClip(text, at: 0, duration: 2)
         let url = directory.appendingPathComponent("out-\(withEffect).mp4")
 
-        try await ProjectExporter(builder: builder()).export(project, with: ExportPreset.landscape720.settings, to: url) { _ in }
+        try await ProjectExporter(builder: builder()).export(
+            project, with: ExportPreset.landscape720.settings, to: url
+        ) { _ in }
 
-        return try await AVAssetImageGenerator(asset: AVURLAsset(url: url)).image(at: 1.0.cmTime).image
+        return try await AVAssetImageGenerator(asset: AVURLAsset(url: url)).image(at: 1.0.cmTime)
+            .image
     }
 
     func testExportedTextAppearsWithoutEffects() async throws {

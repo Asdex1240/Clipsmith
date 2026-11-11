@@ -28,7 +28,8 @@ final class FitTransformTests: XCTestCase {
 
     func testNinetyDegreeRotationTurnsTheClipClockwiseAroundTheCenter() {
         let transform = FitTransform.make(
-            naturalSize: landscape, preferredTransform: .identity, renderSize: landscape, rotationInDegrees: 90
+            naturalSize: landscape, preferredTransform: .identity, renderSize: landscape,
+            rotationInDegrees: 90
         )
 
         let topLeft = CGPoint.zero.applying(transform)
@@ -38,7 +39,8 @@ final class FitTransformTests: XCTestCase {
     }
 
     func testMatchingAspectRatioFillsTheCanvas() {
-        let transform = FitTransform.make(naturalSize: landscape, preferredTransform: .identity, renderSize: landscape)
+        let transform = FitTransform.make(
+            naturalSize: landscape, preferredTransform: .identity, renderSize: landscape)
 
         let rect = CGRect(origin: .zero, size: landscape).applying(transform)
 
@@ -46,7 +48,8 @@ final class FitTransformTests: XCTestCase {
     }
 
     func testLandscapeVideoIsLetterboxedInAPortraitCanvas() {
-        let transform = FitTransform.make(naturalSize: landscape, preferredTransform: .identity, renderSize: portrait)
+        let transform = FitTransform.make(
+            naturalSize: landscape, preferredTransform: .identity, renderSize: portrait)
 
         let rect = CGRect(origin: .zero, size: landscape).applying(transform)
 
@@ -54,7 +57,8 @@ final class FitTransformTests: XCTestCase {
     }
 
     func testPortraitVideoIsPillarboxedInALandscapeCanvas() {
-        let transform = FitTransform.make(naturalSize: portrait, preferredTransform: .identity, renderSize: landscape)
+        let transform = FitTransform.make(
+            naturalSize: portrait, preferredTransform: .identity, renderSize: landscape)
 
         let rect = CGRect(origin: .zero, size: portrait).applying(transform)
 
@@ -64,13 +68,16 @@ final class FitTransformTests: XCTestCase {
     func testRotatedIPhoneFootageEndsUpUprightAndCentred() {
         let rotate90 = CGAffineTransform(a: 0, b: 1, c: -1, d: 0, tx: 1080, ty: 0)
 
-        let transform = FitTransform.make(naturalSize: landscape, preferredTransform: rotate90, renderSize: portrait)
+        let transform = FitTransform.make(
+            naturalSize: landscape, preferredTransform: rotate90, renderSize: portrait)
 
         let rect = CGRect(origin: .zero, size: landscape).applying(transform)
         assertEqual(rect, CGRect(origin: .zero, size: portrait))
     }
 
-    private func assertEqual(_ actual: CGRect, _ expected: CGRect, file: StaticString = #filePath, line: UInt = #line) {
+    private func assertEqual(
+        _ actual: CGRect, _ expected: CGRect, file: StaticString = #filePath, line: UInt = #line
+    ) {
         XCTAssertEqual(actual.minX, expected.minX, accuracy: 0.01, file: file, line: line)
         XCTAssertEqual(actual.minY, expected.minY, accuracy: 0.01, file: file, line: line)
         XCTAssertEqual(actual.width, expected.width, accuracy: 0.01, file: file, line: line)

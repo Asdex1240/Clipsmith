@@ -27,7 +27,8 @@ final class CanvasGeometryTests: XCTestCase {
     func testEdgesCountOnlySidesBeingPushed() {
         let frame = CGRect(x: 0, y: 100, width: 200, height: 200)
 
-        let edges = CanvasGeometry.edges(of: frame, moving: CGSize(width: -5, height: 0), in: canvas)
+        let edges = CanvasGeometry.edges(
+            of: frame, moving: CGSize(width: -5, height: 0), in: canvas)
 
         XCTAssertEqual(edges, [.left])
     }

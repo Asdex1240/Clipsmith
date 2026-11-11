@@ -47,7 +47,8 @@ final class CompositionPlannerTests: XCTestCase {
 
         let segments = CompositionPlanner.segments(for: project)
 
-        XCTAssertEqual(segments.map(\.clipIDsTopFirst), [[main.id], [broll.id, main.id], [main.id]])
+        XCTAssertEqual(
+            segments.map(\.clipIDsTopFirst), [[main.id], [broll.id, main.id], [main.id]])
         XCTAssertEqual(segments.map(\.startInSeconds), [0, 3, 7])
     }
 

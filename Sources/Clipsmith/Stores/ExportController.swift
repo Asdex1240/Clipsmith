@@ -65,7 +65,8 @@ final class ExportController {
 
     private func run(_ project: Project, _ settings: ExportSettings, _ destination: URL) async {
         do {
-            try await exporter.export(project, with: settings, to: destination) { [weak self] value in
+            try await exporter.export(project, with: settings, to: destination) {
+                [weak self] value in
                 Task { @MainActor in self?.updateProgress(value) }
             }
             state = .finished(destination)

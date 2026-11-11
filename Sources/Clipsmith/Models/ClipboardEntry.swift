@@ -13,7 +13,9 @@ extension Project {
     }
 
     @discardableResult
-    mutating func insertCopies(of entries: [ClipboardEntry], shiftedBy offset: TimeInterval) -> [Clip.ID] {
+    mutating func insertCopies(
+        of entries: [ClipboardEntry], shiftedBy offset: TimeInterval
+    ) -> [Clip.ID] {
         var groups: [UUID: UUID] = [:]
         var added: [Clip.ID] = []
         for entry in entries {
@@ -26,7 +28,8 @@ extension Project {
                 copy.groupID = copiedGroup
             }
             guard let trackID = destinationTrackID(for: entry, copy: copy),
-                  addClip(copy, toTrack: trackID) else { continue }
+                addClip(copy, toTrack: trackID)
+            else { continue }
             added.append(copy.id)
         }
         return added

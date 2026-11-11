@@ -33,7 +33,8 @@ final class ExportTextAndAudioTests: XCTestCase {
         project.addTextClip(text, at: 0.5, duration: 1)
         let url = directory.appendingPathComponent("out.mp4")
 
-        try await exporter.export(project, with: ExportPreset.youtube1080.settings, to: url) { _ in }
+        try await exporter.export(project, with: ExportPreset.youtube1080.settings, to: url) { _ in
+        }
 
         let withText = try await frame(of: url, at: 1.0)
         let withoutText = try await frame(of: url, at: 2.5)
@@ -57,11 +58,15 @@ final class ExportTextAndAudioTests: XCTestCase {
         var start: Float = -1
         var end: Float = -1
         var range = CMTimeRange.zero
-        XCTAssertTrue(parameters.getVolumeRamp(for: 0.5.cmTime, startVolume: &start, endVolume: &end, timeRange: &range))
+        XCTAssertTrue(
+            parameters.getVolumeRamp(
+                for: 0.5.cmTime, startVolume: &start, endVolume: &end, timeRange: &range))
         XCTAssertEqual(start, 0, accuracy: 0.001)
         XCTAssertEqual(end, 0.5, accuracy: 0.001)
         XCTAssertEqual(range.duration.seconds, 1, accuracy: 0.01)
-        XCTAssertTrue(parameters.getVolumeRamp(for: 5.0.cmTime, startVolume: &start, endVolume: &end, timeRange: &range))
+        XCTAssertTrue(
+            parameters.getVolumeRamp(
+                for: 5.0.cmTime, startVolume: &start, endVolume: &end, timeRange: &range))
         XCTAssertEqual(start, 0.5, accuracy: 0.001)
         XCTAssertEqual(end, 0, accuracy: 0.001)
         XCTAssertEqual(range.start.seconds, 4, accuracy: 0.01)
@@ -90,7 +95,8 @@ final class ExportTextAndAudioTests: XCTestCase {
         )
         let url = directory.appendingPathComponent("faded.mp4")
 
-        try await exporter.export(project, with: ExportPreset.youtube1080.settings, to: url) { _ in }
+        try await exporter.export(project, with: ExportPreset.youtube1080.settings, to: url) { _ in
+        }
 
         let asset = AVURLAsset(url: url)
         let audioTracks = try await asset.loadTracks(withMediaType: .audio)
@@ -110,10 +116,14 @@ final class ExportTextAndAudioTests: XCTestCase {
         let width = image.width
         let height = image.height
         var data = [UInt8](repeating: 0, count: width * height * 4)
-        guard let context = CGContext(
-            data: &data, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
-            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-        ) else { return -1 }
+        guard
+            let context = CGContext(
+                data: &data, width: width, height: height, bitsPerComponent: 8,
+                bytesPerRow: width * 4,
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            )
+        else { return -1 }
         context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
         let firstRow = Int(rows.lowerBound * Double(height))
         let lastRow = Int(rows.upperBound * Double(height))
@@ -128,13 +138,18 @@ final class ExportTextAndAudioTests: XCTestCase {
     }
 
     private func imageClip(duration: TimeInterval) throws -> Clip {
-        let bitmap = try XCTUnwrap(NSBitmapImageRep(
-            bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 36, bitsPerSample: 8, samplesPerPixel: 4,
-            hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
-        ))
+        let bitmap = try XCTUnwrap(
+            NSBitmapImageRep(
+                bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 36, bitsPerSample: 8,
+                samplesPerPixel: 4,
+                hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0,
+                bitsPerPixel: 0
+            ))
         let url = directory.appendingPathComponent("black.png")
         try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: url)
-        return Clip(sourceURL: url, mediaKind: .image, startInSeconds: 0, sourceStartInSeconds: 0, sourceEndInSeconds: duration)
+        return Clip(
+            sourceURL: url, mediaKind: .image, startInSeconds: 0, sourceStartInSeconds: 0,
+            sourceEndInSeconds: duration)
     }
 
     private func makeSilentWav(seconds: Double) throws -> URL {

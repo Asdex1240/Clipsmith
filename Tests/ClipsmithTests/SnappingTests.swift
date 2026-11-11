@@ -19,7 +19,8 @@ final class SnappingTests: XCTestCase {
     }
 
     func testSnapStartAlignsClipEndToCandidate() {
-        XCTAssertEqual(Snapping.snapStart(6.9, duration: 3, to: [10], within: 0.2), 7, accuracy: 1e-9)
+        XCTAssertEqual(
+            Snapping.snapStart(6.9, duration: 3, to: [10], within: 0.2), 7, accuracy: 1e-9)
     }
 
     func testSnapStartPicksTheCloserEdge() {

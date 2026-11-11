@@ -44,7 +44,9 @@ final class ProjectStore {
     var hasMultipleSelected: Bool { selectedClipIDs.count > 1 }
 
     var selectedClips: [Clip] {
-        project.tracks.flatMap(\.clips).filter { selectedClipIDs.contains($0.id) }.sorted { $0.startInSeconds < $1.startInSeconds }
+        project.tracks.flatMap(\.clips).filter { selectedClipIDs.contains($0.id) }.sorted {
+            $0.startInSeconds < $1.startInSeconds
+        }
     }
 
     var selectionIsGrouped: Bool {
@@ -124,7 +126,8 @@ final class ProjectStore {
 
     func setPlayhead(near proposed: TimeInterval) {
         let candidates = project.snapPoints(excluding: nil, playhead: -1)
-        let snapped = Snapping.snap(max(0, proposed), to: candidates, within: snapThresholdInSeconds)
+        let snapped = Snapping.snap(
+            max(0, proposed), to: candidates, within: snapThresholdInSeconds)
         playheadInSeconds = max(0, snapped)
     }
 
@@ -159,7 +162,9 @@ final class ProjectStore {
 
     func goToNextEdit() {
         let tolerance = Self.editPointToleranceInSeconds
-        movePlayhead(to: editPoints.first { $0 > playheadInSeconds + tolerance } ?? project.durationInSeconds)
+        movePlayhead(
+            to: editPoints.first { $0 > playheadInSeconds + tolerance } ?? project.durationInSeconds
+        )
     }
 
     func toggleSnapping() {
@@ -270,12 +275,18 @@ final class ProjectStore {
     func addTextAtPlayhead() {
         let layer = TextLayer(content: localized("text.default"))
         var addedID: Clip.ID?
-        mutate { addedID = $0.addTextClip(layer, at: playheadInSeconds, duration: Self.defaultTextDurationInSeconds) }
+        mutate {
+            addedID = $0.addTextClip(
+                layer, at: playheadInSeconds, duration: Self.defaultTextDurationInSeconds)
+        }
         if let addedID { selectClip(addedID) }
     }
 
     @discardableResult
-    func addSubtitles(_ lines: [SubtitleLine], style: TextStylePreset = .classic, animation: TextAnimation = TextAnimation()) -> Int {
+    func addSubtitles(
+        _ lines: [SubtitleLine], style: TextStylePreset = .classic,
+        animation: TextAnimation = TextAnimation()
+    ) -> Int {
         var added = 0
         mutate { added = $0.addSubtitles(lines, style: style, animation: animation) }
         return added
@@ -319,7 +330,9 @@ final class ProjectStore {
         if added { selectClip(clip.id) }
     }
 
-    func dropStart(duration: TimeInterval, on track: Track, near proposed: TimeInterval) -> TimeInterval {
+    func dropStart(
+        duration: TimeInterval, on track: Track, near proposed: TimeInterval
+    ) -> TimeInterval {
         let snapped = snappedStart(proposed, duration: duration, excluding: nil)
         return track.nearestFreeStart(forDuration: duration, near: snapped, excluding: nil)
     }
@@ -360,7 +373,9 @@ final class ProjectStore {
         let ids = selectedClipIDs
         guard let clip = project.clip(withID: id), ids.contains(id) else { return }
         let candidates = project.snapPoints(excluding: ids, playhead: playheadInSeconds)
-        let start = Snapping.snapStart(max(0, proposedStart), duration: clip.durationInSeconds, to: candidates, within: snapThresholdInSeconds)
+        let start = Snapping.snapStart(
+            max(0, proposedStart), duration: clip.durationInSeconds, to: candidates,
+            within: snapThresholdInSeconds)
         let delta = start - clip.startInSeconds
         mutate { $0.moveClips(ids, by: delta) }
     }
@@ -426,7 +441,8 @@ final class ProjectStore {
     func duplicateSelectedClip() {
         let entries = project.clipboardEntries(for: selectedClips)
         guard let first = entries.map(\.clip.startInSeconds).min(),
-              let last = entries.map(\.clip.endInSeconds).max() else { return }
+            let last = entries.map(\.clip.endInSeconds).max()
+        else { return }
         place(entries, shiftedBy: last - first)
     }
 
@@ -439,8 +455,9 @@ final class ProjectStore {
 
     private func canvasFittingFirstClip(_ item: MediaItem) -> CanvasFormat? {
         guard project.autoFitCanvas, !project.hasVisualClips,
-              item.kind == .video || item.kind == .image,
-              let size = item.pixelSize else { return nil }
+            item.kind == .video || item.kind == .image,
+            let size = item.pixelSize
+        else { return nil }
         return CanvasFormat.fitting(size)
     }
 
@@ -468,7 +485,8 @@ final class ProjectStore {
             lastMutationDate = timestamp
         }
         if let coalescingKey, coalescingKey == lastMutationKey,
-           timestamp.timeIntervalSince(lastMutationDate) <= Self.coalescingWindowInSeconds {
+            timestamp.timeIntervalSince(lastMutationDate) <= Self.coalescingWindowInSeconds
+        {
             return
         }
         undoStack.append(project)
@@ -486,12 +504,16 @@ final class ProjectStore {
     }
 
     private func setZoom(_ proposed: Double) {
-        pointsPerSecond = min(max(proposed, Self.minimumPointsPerSecond), Self.maximumPointsPerSecond)
+        pointsPerSecond = min(
+            max(proposed, Self.minimumPointsPerSecond), Self.maximumPointsPerSecond)
     }
 
-    private func snappedStart(_ proposed: TimeInterval, duration: TimeInterval, excluding id: Clip.ID?) -> TimeInterval {
+    private func snappedStart(
+        _ proposed: TimeInterval, duration: TimeInterval, excluding id: Clip.ID?
+    ) -> TimeInterval {
         let candidates = project.snapPoints(excluding: id, playhead: playheadInSeconds)
-        return Snapping.snapStart(max(0, proposed), duration: duration, to: candidates, within: snapThresholdInSeconds)
+        return Snapping.snapStart(
+            max(0, proposed), duration: duration, to: candidates, within: snapThresholdInSeconds)
     }
 
     private func splitTargetIDs() -> [Clip.ID] {

@@ -27,16 +27,19 @@ extension Project {
     @discardableResult
     mutating func addClip(_ clip: Clip, toTrack trackID: Track.ID) -> Bool {
         guard let trackIndex = tracks.firstIndex(where: { $0.id == trackID }),
-              tracks[trackIndex].role.accepts(clip.mediaKind) else { return false }
+            tracks[trackIndex].role.accepts(clip.mediaKind)
+        else { return false }
         insert(clip, intoTrackAt: trackIndex)
         return true
     }
 
     @discardableResult
-    mutating func moveClip(_ id: Clip.ID, toTrack trackID: Track.ID, startingAt proposedStart: TimeInterval) -> Bool {
+    mutating func moveClip(
+        _ id: Clip.ID, toTrack trackID: Track.ID, startingAt proposedStart: TimeInterval
+    ) -> Bool {
         guard let source = location(of: id),
-              let targetIndex = tracks.firstIndex(where: { $0.id == trackID }),
-              tracks[targetIndex].role.accepts(tracks[source.track].clips[source.clip].mediaKind)
+            let targetIndex = tracks.firstIndex(where: { $0.id == trackID }),
+            tracks[targetIndex].role.accepts(tracks[source.track].clips[source.clip].mediaKind)
         else { return false }
         let clip = tracks[source.track].clips.remove(at: source.clip)
         insert(clip, intoTrackAt: targetIndex, near: proposedStart)
@@ -50,17 +53,20 @@ extension Project {
         switch edge {
         case .leading:
             let floor = track.previousEnd(before: clip)
-            tracks[position.track].clips[position.clip] = clip.trimmedLeading(to: time, notBefore: floor)
+            tracks[position.track].clips[position.clip] = clip.trimmedLeading(
+                to: time, notBefore: floor)
         case .trailing:
             let ceiling = track.nextStart(after: clip)
-            tracks[position.track].clips[position.clip] = clip.trimmedTrailing(to: time, notAfter: ceiling)
+            tracks[position.track].clips[position.clip] = clip.trimmedTrailing(
+                to: time, notAfter: ceiling)
         }
     }
 
     @discardableResult
     mutating func splitClip(_ id: Clip.ID, at time: TimeInterval) -> Bool {
         guard let position = location(of: id),
-              let halves = tracks[position.track].clips[position.clip].split(at: time) else { return false }
+            let halves = tracks[position.track].clips[position.clip].split(at: time)
+        else { return false }
         tracks[position.track].clips[position.clip] = halves.left
         tracks[position.track].clips.insert(halves.right, at: position.clip + 1)
         return true
@@ -82,7 +88,9 @@ extension Project {
 
     @discardableResult
     mutating func toggleMarker(at time: TimeInterval) -> Marker.ID? {
-        if let existing = markers.firstIndex(where: { abs($0.timeInSeconds - time) <= Marker.toggleToleranceInSeconds }) {
+        if let existing = markers.firstIndex(where: {
+            abs($0.timeInSeconds - time) <= Marker.toggleToleranceInSeconds
+        }) {
             markers.remove(at: existing)
             return nil
         }
@@ -110,7 +118,9 @@ extension Project {
         return nil
     }
 
-    private mutating func insert(_ clip: Clip, intoTrackAt trackIndex: Int, near proposedStart: TimeInterval? = nil) {
+    private mutating func insert(
+        _ clip: Clip, intoTrackAt trackIndex: Int, near proposedStart: TimeInterval? = nil
+    ) {
         var placed = clip
         placed.startInSeconds = tracks[trackIndex].nearestFreeStart(
             forDuration: clip.durationInSeconds,

@@ -24,33 +24,47 @@ extension Project {
 
     @discardableResult
     mutating func moveClips(_ ids: Set<Clip.ID>, by delta: TimeInterval) -> TimeInterval {
+        let (lowest, highest) = movementLimits(of: ids)
+        guard lowest.isFinite || highest.isFinite else { return 0 }
+        guard lowest <= highest else { return 0 }
+        let allowed = min(max(delta, lowest), highest)
+        guard allowed != 0 else { return 0 }
+        for trackIndex in tracks.indices {
+            for clipIndex in tracks[trackIndex].clips.indices
+            where ids.contains(tracks[trackIndex].clips[clipIndex].id) {
+                tracks[trackIndex].clips[clipIndex].startInSeconds += allowed
+            }
+            tracks[trackIndex].clips.sort { $0.startInSeconds < $1.startInSeconds }
+        }
+        return allowed
+    }
+
+    private func movementLimits(
+        of ids: Set<Clip.ID>
+    ) -> (lowest: TimeInterval, highest: TimeInterval) {
         var lowest = -Double.infinity
         var highest = Double.infinity
         for track in tracks {
             let moving = track.clips.filter { ids.contains($0.id) }
             let staying = track.clips.filter { !ids.contains($0.id) }
             for clip in moving {
-                let previousEnd = staying
-                    .filter { $0.endInSeconds <= clip.startInSeconds + Track.overlapToleranceInSeconds }
+                let previousEnd =
+                    staying
+                    .filter {
+                        $0.endInSeconds <= clip.startInSeconds + Track.overlapToleranceInSeconds
+                    }
                     .map(\.endInSeconds).max() ?? 0
-                let nextStart = staying
-                    .filter { $0.startInSeconds >= clip.endInSeconds - Track.overlapToleranceInSeconds }
+                let nextStart =
+                    staying
+                    .filter {
+                        $0.startInSeconds >= clip.endInSeconds - Track.overlapToleranceInSeconds
+                    }
                     .map(\.startInSeconds).min() ?? .infinity
                 lowest = max(lowest, previousEnd - clip.startInSeconds)
                 highest = min(highest, nextStart - clip.endInSeconds)
             }
         }
-        guard lowest.isFinite || highest.isFinite else { return 0 }
-        guard lowest <= highest else { return 0 }
-        let allowed = min(max(delta, lowest), highest)
-        guard allowed != 0 else { return 0 }
-        for trackIndex in tracks.indices {
-            for clipIndex in tracks[trackIndex].clips.indices where ids.contains(tracks[trackIndex].clips[clipIndex].id) {
-                tracks[trackIndex].clips[clipIndex].startInSeconds += allowed
-            }
-            tracks[trackIndex].clips.sort { $0.startInSeconds < $1.startInSeconds }
-        }
-        return allowed
+        return (lowest, highest)
     }
 
     mutating func deleteClips(_ ids: Set<Clip.ID>) {
@@ -60,7 +74,9 @@ extension Project {
     }
 
     mutating func rippleDeleteClips(_ ids: Set<Clip.ID>) {
-        let ordered = tracks.flatMap(\.clips).filter { ids.contains($0.id) }.sorted { $0.startInSeconds > $1.startInSeconds }
+        let ordered = tracks.flatMap(\.clips).filter { ids.contains($0.id) }.sorted {
+            $0.startInSeconds > $1.startInSeconds
+        }
         ordered.forEach { rippleDeleteClip($0.id) }
     }
 
@@ -80,7 +96,8 @@ extension Project {
         guard ids.count >= 2 else { return false }
         let group = UUID()
         for trackIndex in tracks.indices {
-            for clipIndex in tracks[trackIndex].clips.indices where ids.contains(tracks[trackIndex].clips[clipIndex].id) {
+            for clipIndex in tracks[trackIndex].clips.indices
+            where ids.contains(tracks[trackIndex].clips[clipIndex].id) {
                 tracks[trackIndex].clips[clipIndex].groupID = group
             }
         }
@@ -88,7 +105,8 @@ extension Project {
     }
 
     mutating func ungroup(_ ids: Set<Clip.ID>) {
-        let groups = Set(tracks.flatMap(\.clips).filter { ids.contains($0.id) }.compactMap(\.groupID))
+        let groups = Set(
+            tracks.flatMap(\.clips).filter { ids.contains($0.id) }.compactMap(\.groupID))
         for trackIndex in tracks.indices {
             for clipIndex in tracks[trackIndex].clips.indices {
                 if let group = tracks[trackIndex].clips[clipIndex].groupID, groups.contains(group) {

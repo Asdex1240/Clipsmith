@@ -52,28 +52,35 @@ final class TextOverlayHostView: NSView {
         if let overlay, !overlay.isEmpty { visibleOverlay = overlay }
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        if visibleOverlay != shownOverlay {
-            shownOverlay = visibleOverlay
-            entries.forEach { $0.layer.removeFromSuperlayer() }
-            entries = visibleOverlay.map(TextOverlayLayers.makeStaticLayers) ?? []
-            entries.forEach { container.addSublayer($0.layer) }
-            container.bounds = CGRect(origin: .zero, size: visibleOverlay?.renderSize ?? .zero)
-            needsLayout = true
-        }
+        if visibleOverlay != shownOverlay { replaceEntries(with: visibleOverlay) }
         let renderHeight = shownOverlay?.renderSize.height ?? 0
-        for entry in entries {
-            let isShown = entry.clip.startInSeconds <= time && time < entry.clip.endInSeconds
-            guard isShown, let text = entry.clip.textLayer else {
-                entry.layer.opacity = 0
-                continue
-            }
-            let state = text.animation.state(
-                atClipTime: time - entry.clip.startInSeconds, clipDuration: entry.clip.durationInSeconds
-            )
-            entry.layer.opacity = Float(state.opacity)
-            entry.layer.setAffineTransform(TextOverlayLayers.transform(for: text, state: state, renderHeight: renderHeight))
-        }
+        entries.forEach { update($0, at: time, renderHeight: renderHeight) }
         CATransaction.commit()
+    }
+
+    private func replaceEntries(with overlay: TextOverlay?) {
+        shownOverlay = overlay
+        entries.forEach { $0.layer.removeFromSuperlayer() }
+        entries = overlay.map(TextOverlayLayers.makeStaticLayers) ?? []
+        entries.forEach { container.addSublayer($0.layer) }
+        container.bounds = CGRect(origin: .zero, size: overlay?.renderSize ?? .zero)
+        needsLayout = true
+    }
+
+    private func update(
+        _ entry: (clip: Clip, layer: CALayer), at time: TimeInterval, renderHeight: Double
+    ) {
+        let isShown = entry.clip.startInSeconds <= time && time < entry.clip.endInSeconds
+        guard isShown, let text = entry.clip.textLayer else {
+            entry.layer.opacity = 0
+            return
+        }
+        let state = text.animation.state(
+            atClipTime: time - entry.clip.startInSeconds, clipDuration: entry.clip.durationInSeconds
+        )
+        entry.layer.opacity = Float(state.opacity)
+        entry.layer.setAffineTransform(
+            TextOverlayLayers.transform(for: text, state: state, renderHeight: renderHeight))
     }
 
     override func layout() {
@@ -82,7 +89,9 @@ final class TextOverlayHostView: NSView {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         let scale = min(bounds.width / size.width, bounds.height / size.height)
-        container.position = CGPoint(x: (bounds.width - size.width * scale) / 2, y: (bounds.height - size.height * scale) / 2)
+        container.position = CGPoint(
+            x: (bounds.width - size.width * scale) / 2, y: (bounds.height - size.height * scale) / 2
+        )
         container.setAffineTransform(CGAffineTransform(scaleX: scale, y: scale))
         CATransaction.commit()
     }

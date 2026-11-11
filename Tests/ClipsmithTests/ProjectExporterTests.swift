@@ -25,7 +25,9 @@ final class ProjectExporterTests: XCTestCase {
 
     func testEmptyProjectCannotBeExported() async {
         do {
-            try await exporter.export(project, with: ExportPreset.youtube1080.settings, to: output()) { _ in }
+            try await exporter.export(
+                project, with: ExportPreset.youtube1080.settings, to: output()
+            ) { _ in }
             XCTFail("Expected an error")
         } catch ExportError.nothingToExport {
         } catch {
@@ -37,7 +39,8 @@ final class ProjectExporterTests: XCTestCase {
         try addImageAndMusic(duration: 3)
         let url = output()
 
-        try await exporter.export(project, with: ExportPreset.youtube1080.settings, to: url) { _ in }
+        try await exporter.export(project, with: ExportPreset.youtube1080.settings, to: url) { _ in
+        }
 
         let info = try await inspect(url)
         XCTAssertEqual(info.size, CGSize(width: 1920, height: 1080))
@@ -63,7 +66,8 @@ final class ProjectExporterTests: XCTestCase {
         project.canvas = .portrait
         let url = output()
 
-        try await exporter.export(project, with: ExportPreset.vertical1080.settings, to: url) { _ in }
+        try await exporter.export(project, with: ExportPreset.vertical1080.settings, to: url) { _ in
+        }
 
         let info = try await inspect(url)
         XCTAssertEqual(info.size, CGSize(width: 1080, height: 1920))
@@ -73,7 +77,9 @@ final class ProjectExporterTests: XCTestCase {
         try addImageAndMusic(duration: 3)
         let recorder = ProgressRecorder()
 
-        try await exporter.export(project, with: ExportPreset.youtube1080.settings, to: output()) { recorder.record($0) }
+        try await exporter.export(project, with: ExportPreset.youtube1080.settings, to: output()) {
+            recorder.record($0)
+        }
 
         let values = recorder.values
         XCTAssertEqual(values.last, 1)
@@ -85,7 +91,8 @@ final class ProjectExporterTests: XCTestCase {
         let url = output()
         try Data("old".utf8).write(to: url)
 
-        try await exporter.export(project, with: ExportPreset.youtube1080.settings, to: url) { _ in }
+        try await exporter.export(project, with: ExportPreset.youtube1080.settings, to: url) { _ in
+        }
 
         let info = try await inspect(url)
         XCTAssertEqual(info.duration, 2, accuracy: 0.2)
@@ -99,7 +106,9 @@ final class ProjectExporterTests: XCTestCase {
         let image = try makeImage()
         let music = try makeSilentWav(seconds: duration)
         project.addClip(
-            Clip(sourceURL: image, mediaKind: .image, startInSeconds: 0, sourceStartInSeconds: 0, sourceEndInSeconds: duration),
+            Clip(
+                sourceURL: image, mediaKind: .image, startInSeconds: 0, sourceStartInSeconds: 0,
+                sourceEndInSeconds: duration),
             toTrack: mainTrackID
         )
         project.addClip(
@@ -111,7 +120,11 @@ final class ProjectExporterTests: XCTestCase {
         )
     }
 
-    private func inspect(_ url: URL) async throws -> (size: CGSize, codec: CMVideoCodecType, duration: TimeInterval, hasAudio: Bool) {
+    private func inspect(
+        _ url: URL
+    ) async throws -> (
+        size: CGSize, codec: CMVideoCodecType, duration: TimeInterval, hasAudio: Bool
+    ) {
         let asset = AVURLAsset(url: url)
         let videoTracks = try await asset.loadTracks(withMediaType: .video)
         let video = try XCTUnwrap(videoTracks.first)
@@ -124,10 +137,13 @@ final class ProjectExporterTests: XCTestCase {
     }
 
     private func makeImage() throws -> URL {
-        let bitmap = try XCTUnwrap(NSBitmapImageRep(
-            bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 36, bitsPerSample: 8, samplesPerPixel: 4,
-            hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
-        ))
+        let bitmap = try XCTUnwrap(
+            NSBitmapImageRep(
+                bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 36, bitsPerSample: 8,
+                samplesPerPixel: 4,
+                hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0,
+                bitsPerPixel: 0
+            ))
         let url = directory.appendingPathComponent("photo.png")
         try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: url)
         return url

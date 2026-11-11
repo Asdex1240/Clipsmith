@@ -11,7 +11,6 @@ final class MultiSelectionTests: XCTestCase {
         store = ProjectStore(project: Project(name: "T"))
     }
 
-    /// Adds clips of 4 s on the main track at the given starts and returns their ids.
     @discardableResult
     private func addClips(at starts: [TimeInterval], track: Track.ID? = nil) -> [Clip.ID] {
         starts.map { start in
@@ -154,7 +153,8 @@ final class MultiSelectionTests: XCTestCase {
 
         store.duplicateSelectedClip()
 
-        XCTAssertEqual(store.project.track(withRole: .main)!.clips.map(\.startInSeconds), [0, 6, 10, 16])
+        XCTAssertEqual(
+            store.project.track(withRole: .main)!.clips.map(\.startInSeconds), [0, 6, 10, 16])
     }
 
     func testCutAndPasteMovesTheSelection() {
@@ -245,7 +245,8 @@ final class MultiSelectionTests: XCTestCase {
         store.selectAll()
         store.groupSelection()
 
-        let decoded = try JSONDecoder().decode(Project.self, from: JSONEncoder().encode(store.project))
+        let decoded = try JSONDecoder().decode(
+            Project.self, from: JSONEncoder().encode(store.project))
         XCTAssertEqual(decoded.clip(withID: ids[0])?.groupID, decoded.clip(withID: ids[1])?.groupID)
         XCTAssertNotNil(decoded.clip(withID: ids[0])?.groupID)
 

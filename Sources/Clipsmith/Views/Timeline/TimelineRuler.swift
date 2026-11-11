@@ -27,7 +27,10 @@ struct TimelineRuler: View {
         )
     }
 
-    private func drawTick(at time: TimeInterval, interval: TimeInterval, in context: inout GraphicsContext, height: CGFloat) {
+    private func drawTick(
+        at time: TimeInterval, interval: TimeInterval, in context: inout GraphicsContext,
+        height: CGFloat
+    ) {
         let x = time * pointsPerSecond
         var path = Path()
         path.move(to: CGPoint(x: x, y: height - Self.majorTickHeight))

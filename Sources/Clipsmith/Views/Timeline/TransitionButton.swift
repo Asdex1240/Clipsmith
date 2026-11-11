@@ -28,23 +28,33 @@ struct TransitionButton: View {
                 .disabled(clip.transition == nil)
             Divider()
             ForEach(TransitionKind.allCases, id: \.self) { kind in
-                Toggle(Self.title(of: kind), isOn: Binding(
-                    get: { clip.transition?.kind == kind },
-                    set: { _ in choose(kind) }
-                ))
+                Toggle(
+                    Self.title(of: kind),
+                    isOn: Binding(
+                        get: { clip.transition?.kind == kind },
+                        set: { _ in choose(kind) }
+                    ))
             }
             if let transition = clip.transition {
                 Divider()
-                Picker(localized("transition.duration"), selection: Binding(
-                    get: { transition.durationInSeconds },
-                    set: { store.setTransition(of: clip.id, to: transition.settingDuration($0)) }
-                )) {
+                Picker(
+                    localized("transition.duration"),
+                    selection: Binding(
+                        get: { transition.durationInSeconds },
+                        set: {
+                            store.setTransition(of: clip.id, to: transition.settingDuration($0))
+                        }
+                    )
+                ) {
                     ForEach(Self.durations, id: \.self) { Text(String(format: "%g s", $0)).tag($0) }
                 }
-                Picker(localized("easing.title"), selection: Binding(
-                    get: { transition.easing },
-                    set: { store.setTransition(of: clip.id, to: transition.settingEasing($0)) }
-                )) {
+                Picker(
+                    localized("easing.title"),
+                    selection: Binding(
+                        get: { transition.easing },
+                        set: { store.setTransition(of: clip.id, to: transition.settingEasing($0)) }
+                    )
+                ) {
                     ForEach(Easing.allCases, id: \.self) { Text(EasingMenu.title(of: $0)).tag($0) }
                 }
             }
@@ -65,12 +75,14 @@ struct TransitionButton: View {
 
     private var helpText: String {
         guard let transition = clip.transition else { return localized("transition.add") }
-        return "\(Self.title(of: transition.kind)) · \(String(format: "%g s", transition.durationInSeconds))"
+        let duration = String(format: "%g s", transition.durationInSeconds)
+        return "\(Self.title(of: transition.kind)) · \(duration)"
     }
 
     private func choose(_ kind: TransitionKind) {
         let duration = clip.transition?.durationInSeconds ?? ClipTransition.defaultDuration
-        store.setTransition(of: clip.id, to: ClipTransition(kind: kind, durationInSeconds: duration))
+        store.setTransition(
+            of: clip.id, to: ClipTransition(kind: kind, durationInSeconds: duration))
     }
 
     static func title(of kind: TransitionKind) -> String {

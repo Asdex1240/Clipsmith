@@ -51,11 +51,16 @@ final class EditorShortcutsTests: XCTestCase {
     func testEveryActionIsReachableFromSomeKey() {
         let keys: [ShortcutKey] = [
             .space, .delete, .leftArrow, .rightArrow, .home, .end, .escape,
-            .character("s"), .character("t"), .character("m"), .character("n"), .character("="), .character("-"),
-            .character("q"), .character("w"), .character("c"), .character("x"), .character("v"), .character("d"), .character("a"), .character("g"),
+            .character("s"), .character("t"), .character("m"), .character("n"), .character("="),
+            .character("-"),
+            .character("q"), .character("w"), .character("c"), .character("x"), .character("v"),
+            .character("d"), .character("a"), .character("g"),
         ]
         let modifiers: [ShortcutModifiers] = [[], .shift, .option, .command, [.command, .shift]]
-        let reachable = Set(keys.flatMap { key in modifiers.compactMap { EditorShortcuts.action(for: key, modifiers: $0) } })
+        let reachable = Set(
+            keys.flatMap { key in
+                modifiers.compactMap { EditorShortcuts.action(for: key, modifiers: $0) }
+            })
 
         XCTAssertEqual(reachable, Set(EditorAction.allCases))
     }
@@ -64,7 +69,8 @@ final class EditorShortcutsTests: XCTestCase {
         XCTAssertEqual(EditorShortcuts.action(for: .character("c"), modifiers: .command), .copy)
         XCTAssertEqual(EditorShortcuts.action(for: .character("x"), modifiers: .command), .cut)
         XCTAssertEqual(EditorShortcuts.action(for: .character("v"), modifiers: .command), .paste)
-        XCTAssertEqual(EditorShortcuts.action(for: .character("d"), modifiers: .command), .duplicate)
+        XCTAssertEqual(
+            EditorShortcuts.action(for: .character("d"), modifiers: .command), .duplicate)
         XCTAssertNil(EditorShortcuts.action(for: .character("s"), modifiers: .command))
         XCTAssertNil(EditorShortcuts.action(for: .character("c"), modifiers: []))
     }

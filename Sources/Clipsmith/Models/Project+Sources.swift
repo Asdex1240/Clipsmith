@@ -9,7 +9,8 @@ extension Project {
         for trackIndex in tracks.indices {
             for clipIndex in tracks[trackIndex].clips.indices {
                 guard let url = tracks[trackIndex].clips[clipIndex].sourceURL,
-                      let replacement = replacements[url] else { continue }
+                    let replacement = replacements[url]
+                else { continue }
                 tracks[trackIndex].clips[clipIndex].sourceURL = replacement
             }
         }

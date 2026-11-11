@@ -24,19 +24,16 @@ final class SubtitleController {
     var isWorking: Bool { state == .working }
 
     func generate(
-        for clipID: Clip.ID, locale: Locale, style: TextStylePreset = .classic, animation: TextAnimation = TextAnimation()
+        for clipID: Clip.ID, locale: Locale, style: TextStylePreset = .classic,
+        animation: TextAnimation = TextAnimation()
     ) {
         guard !isWorking, let clip = store.project.clip(withID: clipID), let url = clip.sourceURL,
-              clip.mediaKind == .video || clip.mediaKind == .audio else { return }
+            clip.mediaKind == .video || clip.mediaKind == .audio
+        else { return }
         state = .working
         task = Task {
             do {
-                let words = try await transcriber.transcribe(
-                    url: url, sourceRange: clip.sourceStartInSeconds...clip.sourceEndInSeconds, locale: locale
-                )
-                try Task.checkCancellation()
-                let lines = Self.timelineLines(from: SubtitleGrouper.lines(from: words), for: clip)
-                guard !lines.isEmpty else { throw SubtitleError.noSpeech }
+                let lines = try await subtitleLines(for: clip, from: url, locale: locale)
                 let added = store.addSubtitles(lines, style: style, animation: animation)
                 state = .finished(lineCount: added)
             } catch is CancellationError {
@@ -45,6 +42,19 @@ final class SubtitleController {
                 state = .failed(error.localizedDescription)
             }
         }
+    }
+
+    private func subtitleLines(
+        for clip: Clip, from url: URL, locale: Locale
+    ) async throws -> [SubtitleLine] {
+        let words = try await transcriber.transcribe(
+            url: url, sourceRange: clip.sourceStartInSeconds...clip.sourceEndInSeconds,
+            locale: locale
+        )
+        try Task.checkCancellation()
+        let lines = Self.timelineLines(from: SubtitleGrouper.lines(from: words), for: clip)
+        guard !lines.isEmpty else { throw SubtitleError.noSpeech }
+        return lines
     }
 
     func cancel() {
@@ -57,12 +67,15 @@ final class SubtitleController {
 
     static func timelineLines(from lines: [SubtitleLine], for clip: Clip) -> [SubtitleLine] {
         lines.compactMap { line in
-            let start = clip.startInSeconds + (line.startInSeconds - clip.sourceStartInSeconds) / clip.speed
-            let end = clip.startInSeconds + (line.endInSeconds - clip.sourceStartInSeconds) / clip.speed
+            let start =
+                clip.startInSeconds + (line.startInSeconds - clip.sourceStartInSeconds) / clip.speed
+            let end =
+                clip.startInSeconds + (line.endInSeconds - clip.sourceStartInSeconds) / clip.speed
             let clampedStart = max(start, clip.startInSeconds)
             let clampedEnd = min(end, clip.endInSeconds)
             guard clampedEnd - clampedStart >= Clip.minimumDurationInSeconds else { return nil }
-            return SubtitleLine(text: line.text, startInSeconds: clampedStart, endInSeconds: clampedEnd)
+            return SubtitleLine(
+                text: line.text, startInSeconds: clampedStart, endInSeconds: clampedEnd)
         }
     }
 }

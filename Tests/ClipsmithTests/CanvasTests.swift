@@ -21,16 +21,23 @@ final class CanvasFormatTests: XCTestCase {
     }
 
     func testSizesAreClampedAndMadeEven() {
-        XCTAssertEqual(CanvasFormat(width: 1921, height: 1081), CanvasFormat(width: 1920, height: 1080))
+        XCTAssertEqual(
+            CanvasFormat(width: 1921, height: 1081), CanvasFormat(width: 1920, height: 1080))
         XCTAssertEqual(CanvasFormat(width: 10, height: 99_999).width, CanvasFormat.minimumSide)
         XCTAssertEqual(CanvasFormat(width: 10, height: 99_999).height, CanvasFormat.maximumSide)
     }
 
     func testScalingKeepsTheProportion() {
-        XCTAssertEqual(CanvasFormat.landscape.scaled(toShortSide: 2160), CanvasFormat(width: 3840, height: 2160))
-        XCTAssertEqual(CanvasFormat.portrait.scaled(toShortSide: 720), CanvasFormat(width: 720, height: 1280))
-        XCTAssertEqual(CanvasFormat.square.scaled(toShortSide: 1440), CanvasFormat(width: 1440, height: 1440))
-        XCTAssertEqual(CanvasFormat.portrait4x5.scaled(toShortSide: 2160), CanvasFormat(width: 2160, height: 2700))
+        XCTAssertEqual(
+            CanvasFormat.landscape.scaled(toShortSide: 2160),
+            CanvasFormat(width: 3840, height: 2160))
+        XCTAssertEqual(
+            CanvasFormat.portrait.scaled(toShortSide: 720), CanvasFormat(width: 720, height: 1280))
+        XCTAssertEqual(
+            CanvasFormat.square.scaled(toShortSide: 1440), CanvasFormat(width: 1440, height: 1440))
+        XCTAssertEqual(
+            CanvasFormat.portrait4x5.scaled(toShortSide: 2160),
+            CanvasFormat(width: 2160, height: 2700))
     }
 
     func testFittingMapsCommonVideoSizesToPresets() {
@@ -59,7 +66,8 @@ final class CanvasFormatTests: XCTestCase {
     }
 
     func testDecodesTheFormatsSavedByEarlierVersions() throws {
-        let landscape = try JSONDecoder().decode(CanvasFormat.self, from: Data(#""landscape""#.utf8))
+        let landscape = try JSONDecoder().decode(
+            CanvasFormat.self, from: Data(#""landscape""#.utf8))
         let portrait = try JSONDecoder().decode(CanvasFormat.self, from: Data(#""portrait""#.utf8))
 
         XCTAssertEqual(landscape, .landscape)
@@ -69,10 +77,14 @@ final class CanvasFormatTests: XCTestCase {
 
 final class ExportResolutionTests: XCTestCase {
     func testShortSideDefinesTheOutputForAnyProportion() {
-        XCTAssertEqual(ExportResolution.hd720.renderSize(for: .landscape), CGSize(width: 1280, height: 720))
-        XCTAssertEqual(ExportResolution.qhd1440.renderSize(for: .landscape), CGSize(width: 2560, height: 1440))
-        XCTAssertEqual(ExportResolution.hd1080.renderSize(for: .square), CGSize(width: 1080, height: 1080))
-        XCTAssertEqual(ExportResolution.uhd4K.renderSize(for: .portrait4x5), CGSize(width: 2160, height: 2700))
+        XCTAssertEqual(
+            ExportResolution.hd720.renderSize(for: .landscape), CGSize(width: 1280, height: 720))
+        XCTAssertEqual(
+            ExportResolution.qhd1440.renderSize(for: .landscape), CGSize(width: 2560, height: 1440))
+        XCTAssertEqual(
+            ExportResolution.hd1080.renderSize(for: .square), CGSize(width: 1080, height: 1080))
+        XCTAssertEqual(
+            ExportResolution.uhd4K.renderSize(for: .portrait4x5), CGSize(width: 2160, height: 2700))
     }
 
     func testCanvasSizeExportsExactlyTheCanvas() {
@@ -84,7 +96,9 @@ final class ExportResolutionTests: XCTestCase {
     func testPresetMatchesAnyCanvasWithTheSameProportion() {
         let settings = ExportPreset.youtube4K.settings
 
-        XCTAssertEqual(ExportPreset.matching(settings: settings, canvas: .landscape.scaled(toShortSide: 2160)), .youtube4K)
+        XCTAssertEqual(
+            ExportPreset.matching(settings: settings, canvas: .landscape.scaled(toShortSide: 2160)),
+            .youtube4K)
         XCTAssertNil(ExportPreset.matching(settings: settings, canvas: .square))
     }
 }
@@ -94,7 +108,9 @@ final class FillFitTransformTests: XCTestCase {
         let landscape = CGSize(width: 1920, height: 1080)
         let portrait = CGSize(width: 1080, height: 1920)
 
-        let transform = FitTransform.make(naturalSize: landscape, preferredTransform: .identity, renderSize: portrait, mode: .fill)
+        let transform = FitTransform.make(
+            naturalSize: landscape, preferredTransform: .identity, renderSize: portrait, mode: .fill
+        )
 
         let rect = CGRect(origin: .zero, size: landscape).applying(transform)
         XCTAssertEqual(rect.height, 1920, accuracy: 0.001)
@@ -109,7 +125,8 @@ final class FillFitTransformTests: XCTestCase {
 
         XCTAssertEqual(
             FitTransform.make(naturalSize: size, preferredTransform: .identity, renderSize: render),
-            FitTransform.make(naturalSize: size, preferredTransform: .identity, renderSize: render, mode: .fit)
+            FitTransform.make(
+                naturalSize: size, preferredTransform: .identity, renderSize: render, mode: .fit)
         )
     }
 }
@@ -202,8 +219,8 @@ final class CanvasStoreTests: XCTestCase {
 final class CanvasCodingTests: XCTestCase {
     func testProjectSavedBeforeCanvasSizesStillLoads() throws {
         let legacy = """
-        {"id":"\(UUID().uuidString)","name":"Old","canvas":"portrait","tracks":[]}
-        """
+            {"id":"\(UUID().uuidString)","name":"Old","canvas":"portrait","tracks":[]}
+            """
 
         let project = try JSONDecoder().decode(Project.self, from: Data(legacy.utf8))
 
@@ -213,10 +230,10 @@ final class CanvasCodingTests: XCTestCase {
 
     func testClipSavedBeforeFitModeDefaultsToFit() throws {
         let legacy = """
-        {"id":"\(UUID().uuidString)","mediaKind":"video","startInSeconds":0,
-         "sourceStartInSeconds":0,"sourceEndInSeconds":4,"volume":1,
-         "fadeInDurationInSeconds":0,"fadeOutDurationInSeconds":0}
-        """
+            {"id":"\(UUID().uuidString)","mediaKind":"video","startInSeconds":0,
+             "sourceStartInSeconds":0,"sourceEndInSeconds":4,"volume":1,
+             "fadeInDurationInSeconds":0,"fadeOutDurationInSeconds":0}
+            """
 
         let clip = try JSONDecoder().decode(Clip.self, from: Data(legacy.utf8))
 
@@ -239,14 +256,18 @@ final class CanvasCodingTests: XCTestCase {
 
 final class MediaPixelSizeTests: XCTestCase {
     func testImagesReportTheirPixelSize() async throws {
-        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         let url = directory.appendingPathComponent("photo.png")
-        let bitmap = try XCTUnwrap(NSBitmapImageRep(
-            bitmapDataPlanes: nil, pixelsWide: 120, pixelsHigh: 80, bitsPerSample: 8, samplesPerPixel: 4,
-            hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
-        ))
+        let bitmap = try XCTUnwrap(
+            NSBitmapImageRep(
+                bitmapDataPlanes: nil, pixelsWide: 120, pixelsHigh: 80, bitsPerSample: 8,
+                samplesPerPixel: 4,
+                hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0,
+                bitsPerPixel: 0
+            ))
         try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: url)
 
         let item = try await AVMediaLoader().loadItem(from: url)

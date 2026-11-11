@@ -46,7 +46,6 @@ final class TextStyleAnimationTests: XCTestCase {
     func testShortTextsSplitTheirTimeBetweenInAndOut() {
         let animation = TextAnimation(inKind: .fade, outKind: .fade, durationInSeconds: 2)
 
-        // A clip of 1 s can spend at most half a second on each side, so the middle is fully visible.
         XCTAssertEqual(animation.state(atClipTime: 0.5, clipDuration: 1).opacity, 1, accuracy: 1e-9)
         XCTAssertEqual(animation.state(atClipTime: 0, clipDuration: 1).opacity, 0, accuracy: 1e-9)
     }
@@ -91,14 +90,17 @@ final class TextStyleAnimationTests: XCTestCase {
         var layer = TextLayer(content: "Hi")
         TextStylePreset.boxed.apply(to: &layer)
         layer.animation = TextAnimation(inKind: .pop, outKind: .fade, durationInSeconds: 0.6)
-        XCTAssertEqual(try JSONDecoder().decode(TextLayer.self, from: JSONEncoder().encode(layer)), layer)
+        XCTAssertEqual(
+            try JSONDecoder().decode(TextLayer.self, from: JSONEncoder().encode(layer)), layer)
 
         let plain = TextLayer(content: "Hi")
-        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(plain)) as? [String: Any])
+        var json = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: JSONEncoder().encode(plain)) as? [String: Any])
         XCTAssertNil(json["animation"])
         XCTAssertNil(json["hasShadow"])
         json["rotationInDegrees"] = nil
-        let legacy = try JSONDecoder().decode(TextLayer.self, from: JSONSerialization.data(withJSONObject: json))
+        let legacy = try JSONDecoder().decode(
+            TextLayer.self, from: JSONSerialization.data(withJSONObject: json))
         XCTAssertEqual(legacy, plain)
         XCTAssertTrue(legacy.hasShadow)
     }
@@ -127,16 +129,22 @@ final class TextStyleAnimationTests: XCTestCase {
     private func pixels(of image: CGImage) -> [UInt8] {
         var data = [UInt8](repeating: 0, count: image.width * image.height * 4)
         let context = CGContext(
-            data: &data, width: image.width, height: image.height, bitsPerComponent: 8, bytesPerRow: image.width * 4,
-            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            data: &data, width: image.width, height: image.height, bitsPerComponent: 8,
+            bytesPerRow: image.width * 4,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
         )
         context?.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
         return data
     }
 
-    private func opaquePixelCount(in image: CGImage, where match: (UInt8, UInt8, UInt8) -> Bool = { _, _, _ in true }) -> Int {
+    private func opaquePixelCount(
+        in image: CGImage, where match: (UInt8, UInt8, UInt8) -> Bool = { _, _, _ in true }
+    ) -> Int {
         let data = pixels(of: image)
-        return stride(from: 0, to: data.count, by: 4).filter { data[$0 + 3] > 200 && match(data[$0], data[$0 + 1], data[$0 + 2]) }.count
+        return stride(from: 0, to: data.count, by: 4).filter {
+            data[$0 + 3] > 200 && match(data[$0], data[$0 + 1], data[$0 + 2])
+        }.count
     }
 
     func testBackgroundBoxAddsOpaquePixelsBehindTheText() throws {
@@ -147,7 +155,9 @@ final class TextStyleAnimationTests: XCTestCase {
 
         let withoutBox = opaquePixelCount(in: try sprite(for: plain).image)
         let withBox = opaquePixelCount(in: try sprite(for: boxed).image)
-        let blue = opaquePixelCount(in: try sprite(for: boxed).image) { red, _, blue in blue > 200 && red < 60 }
+        let blue = opaquePixelCount(in: try sprite(for: boxed).image) { red, _, blue in
+            blue > 200 && red < 60
+        }
 
         XCTAssertGreaterThan(withBox, withoutBox * 3)
         XCTAssertGreaterThan(blue, 1000)
@@ -160,7 +170,9 @@ final class TextStyleAnimationTests: XCTestCase {
         layer.strokeWidth = TextLayer.outlinedStrokeWidth
         layer.strokeColor = RGBAColor(red: 1, green: 0, blue: 0)
 
-        let red = opaquePixelCount(in: try sprite(for: layer).image) { red, green, _ in red > 200 && green < 60 }
+        let red = opaquePixelCount(in: try sprite(for: layer).image) { red, green, _ in
+            red > 200 && green < 60
+        }
 
         XCTAssertGreaterThan(red, 200)
     }
@@ -173,7 +185,8 @@ final class TextStyleAnimationTests: XCTestCase {
 
         func translucent(_ layer: TextLayer) throws -> Int {
             let data = pixels(of: try sprite(for: layer).image)
-            return stride(from: 3, to: data.count, by: 4).filter { data[$0] > 5 && data[$0] < 200 }.count
+            return stride(from: 3, to: data.count, by: 4).filter { data[$0] > 5 && data[$0] < 200 }
+                .count
         }
 
         let withShadow = try translucent(shadowed)
@@ -182,18 +195,24 @@ final class TextStyleAnimationTests: XCTestCase {
     }
 
     func testExportedTextFadesIn() async throws {
-        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
-        let bitmap = try XCTUnwrap(NSBitmapImageRep(
-            bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 36, bitsPerSample: 8, samplesPerPixel: 4,
-            hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
-        ))
+        let bitmap = try XCTUnwrap(
+            NSBitmapImageRep(
+                bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 36, bitsPerSample: 8,
+                samplesPerPixel: 4,
+                hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0,
+                bitsPerPixel: 0
+            ))
         let image = directory.appendingPathComponent("black.png")
         try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: image)
         var project = Project(name: "T")
         project.addClip(
-            Clip(sourceURL: image, mediaKind: .image, startInSeconds: 0, sourceStartInSeconds: 0, sourceEndInSeconds: 4),
+            Clip(
+                sourceURL: image, mediaKind: .image, startInSeconds: 0, sourceStartInSeconds: 0,
+                sourceEndInSeconds: 4),
             toTrack: project.track(withRole: .main)!.id
         )
         var text = TextLayer(content: "MMMMMM")
@@ -202,9 +221,13 @@ final class TextStyleAnimationTests: XCTestCase {
         text.animation = TextAnimation(inKind: .fade, durationInSeconds: 1)
         project.addTextClip(text, at: 0, duration: 4)
         let url = directory.appendingPathComponent("out.mp4")
-        let builder = CompositionBuilder(stillImages: StillImageVideoWriter(directory: directory.appendingPathComponent("stills")))
+        let builder = CompositionBuilder(
+            stillImages: StillImageVideoWriter(
+                directory: directory.appendingPathComponent("stills")))
 
-        try await ProjectExporter(builder: builder).export(project, with: ExportPreset.landscape720.settings, to: url) { _ in }
+        try await ProjectExporter(builder: builder).export(
+            project, with: ExportPreset.landscape720.settings, to: url
+        ) { _ in }
 
         let generator = AVAssetImageGenerator(asset: AVURLAsset(url: url))
         generator.requestedTimeToleranceBefore = .zero

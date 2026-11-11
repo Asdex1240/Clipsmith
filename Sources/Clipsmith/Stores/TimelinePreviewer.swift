@@ -1,6 +1,10 @@
 import Foundation
 import OSLog
 
+private enum RebuildMode {
+    case full, transformsOnly
+}
+
 @MainActor
 final class TimelinePreviewer {
     private static let debounce: Duration = .milliseconds(150)
@@ -14,7 +18,10 @@ final class TimelinePreviewer {
     private var liveTask: Task<Void, Never>?
     private var pendingLiveProject: Project?
 
-    init(store: ProjectStore, player: PlayerController, builder: CompositionBuilding = CompositionBuilder()) {
+    init(
+        store: ProjectStore, player: PlayerController,
+        builder: CompositionBuilding = CompositionBuilder()
+    ) {
         self.store = store
         self.player = player
         self.builder = builder
@@ -24,11 +31,16 @@ final class TimelinePreviewer {
         let project = store.project
         let structure = Self.withoutText(project)
         guard structure != lastBuiltStructure else { return }
-        let isLiveEdit = lastBuiltStructure.map { Self.withoutLook(structure) == Self.withoutLook($0) } ?? false
+        let isLiveEdit =
+            lastBuiltStructure.map { Self.withoutLook(structure) == Self.withoutLook($0) } ?? false
         if isLiveEdit {
             applyLive(project)
             return
         }
+        scheduleFullRebuild(of: project)
+    }
+
+    private func scheduleFullRebuild(of project: Project) {
         buildTask?.cancel()
         liveTask?.cancel()
         liveTask = nil
@@ -39,7 +51,7 @@ final class TimelinePreviewer {
             } catch {
                 return
             }
-            await rebuild(project, moveOnly: false)
+            await rebuild(project, mode: .full)
         }
     }
 
@@ -49,7 +61,7 @@ final class TimelinePreviewer {
         liveTask = Task {
             while let next = pendingLiveProject, !Task.isCancelled {
                 pendingLiveProject = nil
-                await rebuild(next, moveOnly: true)
+                await rebuild(next, mode: .transformsOnly)
             }
             if !Task.isCancelled { liveTask = nil }
         }
@@ -82,16 +94,15 @@ final class TimelinePreviewer {
         return copy
     }
 
-    private func rebuild(_ project: Project, moveOnly: Bool) async {
+    private func rebuild(_ project: Project, mode: RebuildMode) async {
         do {
             let built = try await builder.build(from: project)
             guard !Task.isCancelled else { return }
             lastBuiltStructure = Self.withoutText(project)
             if built.durationInSeconds > 0 {
-                if moveOnly {
-                    player.updateTransforms(built)
-                } else {
-                    player.setTimeline(built, at: store.playheadInSeconds)
+                switch mode {
+                case .transformsOnly: player.updateTransforms(built)
+                case .full: player.setTimeline(built, at: store.playheadInSeconds)
                 }
             } else {
                 player.setTimeline(nil, at: store.playheadInSeconds)

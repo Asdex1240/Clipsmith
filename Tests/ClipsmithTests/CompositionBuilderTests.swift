@@ -15,7 +15,9 @@ final class CompositionBuilderTests: XCTestCase {
     override func setUpWithError() throws {
         directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        builder = CompositionBuilder(stillImages: StillImageVideoWriter(directory: directory.appendingPathComponent("stills")))
+        builder = CompositionBuilder(
+            stillImages: StillImageVideoWriter(
+                directory: directory.appendingPathComponent("stills")))
         project = Project(name: "Test")
     }
 
@@ -138,7 +140,8 @@ final class CompositionBuilderTests: XCTestCase {
         let writer = StillImageVideoWriter(directory: directory.appendingPathComponent("cache"))
 
         let first = try await writer.makeVideo(from: image, size: CanvasFormat.landscape.renderSize)
-        let second = try await writer.makeVideo(from: image, size: CanvasFormat.landscape.renderSize)
+        let second = try await writer.makeVideo(
+            from: image, size: CanvasFormat.landscape.renderSize)
 
         XCTAssertEqual(first, second)
     }
@@ -165,10 +168,13 @@ final class CompositionBuilderTests: XCTestCase {
     }
 
     private func makeImage(named name: String) throws -> URL {
-        let bitmap = try XCTUnwrap(NSBitmapImageRep(
-            bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 36, bitsPerSample: 8, samplesPerPixel: 4,
-            hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
-        ))
+        let bitmap = try XCTUnwrap(
+            NSBitmapImageRep(
+                bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 36, bitsPerSample: 8,
+                samplesPerPixel: 4,
+                hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0,
+                bitsPerPixel: 0
+            ))
         let png = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
         let url = directory.appendingPathComponent(name)
         try png.write(to: url)

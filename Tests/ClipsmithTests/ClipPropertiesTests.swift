@@ -32,7 +32,8 @@ final class ClipPropertiesTests: XCTestCase {
     func testAudioCannotBeDetachedOverExistingAudio() {
         let clip = TestClips.video(start: 0)
         project.addClip(clip, toTrack: mainTrackID)
-        project.addClip(TestClips.audio(start: 5, duration: 10), toTrack: project.track(withRole: .audio)!.id)
+        project.addClip(
+            TestClips.audio(start: 5, duration: 10), toTrack: project.track(withRole: .audio)!.id)
 
         XCTAssertNil(project.detachAudio(ofClip: clip.id))
         XCTAssertFalse(mainClips[0].isAudioDetached)

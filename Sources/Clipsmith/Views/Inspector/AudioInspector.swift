@@ -47,11 +47,13 @@ struct AudioInspector: View {
     }
 
     private var fadeInBinding: Binding<Double> {
-        Binding(get: { clip.fadeInDurationInSeconds }, set: { store.setFadeIn(of: clip.id, to: $0) })
+        Binding(
+            get: { clip.fadeInDurationInSeconds }, set: { store.setFadeIn(of: clip.id, to: $0) })
     }
 
     private var fadeOutBinding: Binding<Double> {
-        Binding(get: { clip.fadeOutDurationInSeconds }, set: { store.setFadeOut(of: clip.id, to: $0) })
+        Binding(
+            get: { clip.fadeOutDurationInSeconds }, set: { store.setFadeOut(of: clip.id, to: $0) })
     }
 
     private func seconds(_ value: TimeInterval) -> String {

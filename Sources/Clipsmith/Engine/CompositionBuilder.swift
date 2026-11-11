@@ -1,7 +1,9 @@
 import Foundation
 
 protocol CompositionBuilding {
-    func build(from project: Project, renderSize: CGSize, framesPerSecond: Int32) async throws -> BuiltComposition
+    func build(
+        from project: Project, renderSize: CGSize, framesPerSecond: Int32
+    ) async throws -> BuiltComposition
 }
 
 extension CompositionBuilding {
@@ -20,7 +22,9 @@ struct CompositionBuilder: CompositionBuilding {
 
     var stillImages: StillImageVideoMaking = StillImageVideoWriter()
 
-    func build(from project: Project, renderSize: CGSize, framesPerSecond: Int32) async throws -> BuiltComposition {
+    func build(
+        from project: Project, renderSize: CGSize, framesPerSecond: Int32
+    ) async throws -> BuiltComposition {
         let assembler = CompositionAssembler(
             renderSize: renderSize,
             framesPerSecond: framesPerSecond,

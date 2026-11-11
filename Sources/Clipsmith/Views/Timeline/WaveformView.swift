@@ -23,7 +23,9 @@ struct WaveformView: View {
             let width = size.width / CGFloat(count)
             for (index, peak) in columns.enumerated() {
                 let height = max(1, CGFloat(pow(peak, Self.visualGain)) * size.height)
-                let rect = CGRect(x: CGFloat(index) * width, y: (size.height - height) / 2, width: max(width - 0.5, 0.5), height: height)
+                let rect = CGRect(
+                    x: CGFloat(index) * width, y: (size.height - height) / 2,
+                    width: max(width - 0.5, 0.5), height: height)
                 context.fill(Path(rect), with: .color(color))
             }
         }

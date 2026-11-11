@@ -5,7 +5,9 @@ struct Project: Codable, Identifiable, Equatable {
     var name: String
     var canvas: CanvasFormat = .landscape
     var autoFitCanvas = true
-    var tracks: [Track] = [Track(role: .text), Track(role: .broll), Track(role: .main), Track(role: .audio)]
+    var tracks: [Track] = [
+        Track(role: .text), Track(role: .broll), Track(role: .main), Track(role: .audio),
+    ]
     var markers: [Marker] = []
 }
 

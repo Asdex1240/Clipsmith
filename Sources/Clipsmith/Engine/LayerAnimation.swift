@@ -8,7 +8,8 @@ enum LayerAnimation {
     private static let minimumStepsWhenEased = 12
 
     static func samplePoints(
-        for clip: Clip, from start: TimeInterval, to end: TimeInterval, extraAnchors: [TimeInterval] = []
+        for clip: Clip, from start: TimeInterval, to end: TimeInterval,
+        extraAnchors: [TimeInterval] = []
     ) -> [TimeInterval] {
         guard end > start else { return [start] }
         let anchors = (clip.keyframes.map { clip.startInSeconds + $0.timeInSeconds } + extraAnchors)
@@ -28,9 +29,12 @@ enum LayerAnimation {
         let a = clip.visualState(atClipTime: from - clip.startInSeconds)
         let b = clip.visualState(atClipTime: to - clip.startInSeconds)
         let turnSteps = abs(b.rotationInDegrees - a.rotationInDegrees) / maximumDegreesPerStep
-        let zoomSteps = abs(b.scale - a.scale) / max(min(a.scale, b.scale), 0.01) / maximumScaleChangePerStep
+        let zoomSteps =
+            abs(b.scale - a.scale) / max(min(a.scale, b.scale), 0.01) / maximumScaleChangePerStep
         var easedSteps = 1.0
-        if clip.eased(from: from - clip.startInSeconds) { easedSteps = Double(minimumStepsWhenEased) }
+        if clip.eased(from: from - clip.startInSeconds) {
+            easedSteps = Double(minimumStepsWhenEased)
+        }
         return min(max(Int(ceil(max(turnSteps, zoomSteps, easedSteps))), 1), maximumStepsPerSpan)
     }
 }

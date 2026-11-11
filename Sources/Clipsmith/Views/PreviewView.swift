@@ -32,11 +32,13 @@ struct PreviewView: View {
                 time: store.playheadInSeconds
             )
             .background(.black)
-            .overlay { CanvasDragOverlay(
+            .overlay {
+                CanvasDragOverlay(
                     store: store,
                     renderSize: controller.timelineOverlay?.renderSize,
                     visualFrames: controller.visualFrames
-                ) }
+                )
+            }
         } else {
             emptyState(localized("preview.timelineEmpty"))
         }
@@ -78,14 +80,20 @@ struct PreviewView: View {
             }
             .disabled(!canPlay)
             .help("\(playbackTitle) (\(EditorShortcuts.displayKeys(for: .togglePlayback)))")
-            Text("\(store.playheadInSeconds.clockString) / \(store.project.durationInSeconds.clockString)")
-                .monospacedDigit()
-                .foregroundStyle(.secondary)
+            Text(positionText)
+            .monospacedDigit()
+            .foregroundStyle(.secondary)
             Spacer()
             CanvasPicker(store: store)
             modePicker
         }
         .padding(8)
+    }
+
+    private var positionText: String {
+        let current = store.playheadInSeconds.clockString
+        let total = store.project.durationInSeconds.clockString
+        return "\(current) / \(total)"
     }
 
     private var playbackTitle: String {

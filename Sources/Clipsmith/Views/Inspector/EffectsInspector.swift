@@ -24,12 +24,22 @@ struct EffectsInspector: View {
         VStack(alignment: .leading, spacing: 10) {
             Text(localized("inspector.effects.section")).font(.subheadline.bold())
             presets
-            slider("inspector.effects.brightness", \.brightness, ColorAdjustments.brightnessRange, display: .percent)
-            slider("inspector.effects.contrast", \.contrast, ColorAdjustments.contrastRange, display: .percent)
-            slider("inspector.effects.saturation", \.saturation, ColorAdjustments.saturationRange, display: .percent)
-            slider("inspector.effects.temperature", \.temperature, ColorAdjustments.temperatureRange, display: .signedNumber)
-            Button(localized("inspector.effects.reset")) { store.setColor(of: clip.id, to: ColorAdjustments()) }
-                .disabled(clip.color.isIdentity)
+            slider(
+                "inspector.effects.brightness", \.brightness, ColorAdjustments.brightnessRange,
+                display: .percent)
+            slider(
+                "inspector.effects.contrast", \.contrast, ColorAdjustments.contrastRange,
+                display: .percent)
+            slider(
+                "inspector.effects.saturation", \.saturation, ColorAdjustments.saturationRange,
+                display: .percent)
+            slider(
+                "inspector.effects.temperature", \.temperature, ColorAdjustments.temperatureRange,
+                display: .signedNumber)
+            Button(localized("inspector.effects.reset")) {
+                store.setColor(of: clip.id, to: ColorAdjustments())
+            }
+            .disabled(clip.color.isIdentity)
             Divider()
             Text(localized("inspector.crop.section")).font(.subheadline.bold())
             cropSlider("inspector.crop.left", \.left)
@@ -37,20 +47,27 @@ struct EffectsInspector: View {
             cropSlider("inspector.crop.top", \.top)
             cropSlider("inspector.crop.bottom", \.bottom)
             Text(localized("inspector.crop.hint")).font(.caption).foregroundStyle(.secondary)
-            Button(localized("inspector.crop.reset")) { store.setCrop(of: clip.id, to: CropInsets()) }
-                .disabled(clip.crop.isNone)
+            Button(localized("inspector.crop.reset")) {
+                store.setCrop(of: clip.id, to: CropInsets())
+            }
+            .disabled(clip.crop.isNone)
         }
     }
 
     private var presets: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(localized("inspector.effects.presets")).font(.caption).foregroundStyle(.secondary)
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 70), spacing: 4)], alignment: .leading, spacing: 4) {
+            LazyVGrid(
+                columns: [GridItem(.adaptive(minimum: 70), spacing: 4)], alignment: .leading,
+                spacing: 4
+            ) {
                 ForEach(ColorPreset.allCases, id: \.self) { preset in
-                    Button(Self.title(of: preset)) { store.setColor(of: clip.id, to: preset.adjustments) }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
-                        .tint(presetTint(for: preset))
+                    Button(Self.title(of: preset)) {
+                        store.setColor(of: clip.id, to: preset.adjustments)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .tint(presetTint(for: preset))
                 }
             }
         }
@@ -71,27 +88,33 @@ struct EffectsInspector: View {
                     .monospacedDigit()
                     .foregroundStyle(.secondary)
             }
-            Slider(
-                value: Binding(
-                    get: { value },
-                    set: { newValue in
-                        var adjustments = clip.color
-                        adjustments[keyPath: path] = newValue
-                        store.setColor(of: clip.id, to: adjustments)
-                    }
-                ),
-                in: range
-            )
+            Slider(value: colorBinding(path, value: value), in: range)
         }
     }
 
-    private func cropSlider(_ key: String.LocalizationValue, _ path: WritableKeyPath<CropInsets, Double>) -> some View {
+    private func colorBinding(
+        _ path: WritableKeyPath<ColorAdjustments, Double>, value: Double
+    ) -> Binding<Double> {
+        Binding(
+            get: { value },
+            set: { newValue in
+                var adjustments = clip.color
+                adjustments[keyPath: path] = newValue
+                store.setColor(of: clip.id, to: adjustments)
+            }
+        )
+    }
+
+    private func cropSlider(
+        _ key: String.LocalizationValue, _ path: WritableKeyPath<CropInsets, Double>
+    ) -> some View {
         let value = clip.crop[keyPath: path]
         return VStack(alignment: .leading, spacing: 2) {
             HStack {
                 Text(localized(key))
                 Spacer()
-                Text("\(Int((value * 100).rounded()))%").monospacedDigit().foregroundStyle(.secondary)
+                Text("\(Int((value * 100).rounded()))%").monospacedDigit().foregroundStyle(
+                    .secondary)
             }
             Slider(
                 value: Binding(

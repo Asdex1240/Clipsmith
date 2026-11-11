@@ -14,7 +14,8 @@ final class DocumentControllerTests: XCTestCase {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         store = ProjectStore(project: Project(name: "Test"))
         library = MediaLibrary(loader: NeverLoader())
-        recovery = RecoveryStore(fileURL: directory.appendingPathComponent("recovery/Recovery.clipsmith"))
+        recovery = RecoveryStore(
+            fileURL: directory.appendingPathComponent("recovery/Recovery.clipsmith"))
         document = DocumentController(store: store, library: library, recovery: recovery)
     }
 
@@ -152,7 +153,9 @@ final class DocumentControllerTests: XCTestCase {
         store.setProjectName("Draft")
         document.autosave()
         let relaunchedStore = ProjectStore(project: Project(name: "Fresh"))
-        let relaunched = DocumentController(store: relaunchedStore, library: MediaLibrary(loader: NeverLoader()), recovery: recovery)
+        let relaunched = DocumentController(
+            store: relaunchedStore, library: MediaLibrary(loader: NeverLoader()), recovery: recovery
+        )
 
         relaunched.checkForRecovery()
         XCTAssertTrue(relaunched.recoveryIsAvailable)

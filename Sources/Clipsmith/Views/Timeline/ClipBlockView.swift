@@ -66,7 +66,10 @@ struct ClipBlockView: View {
                 trimHandle(.trailing)
             }
         }
-        .frame(width: max(clip.durationInSeconds * pointsPerSecond, 2), height: TimelineMetrics.laneHeight)
+        .frame(
+            width: max(clip.durationInSeconds * pointsPerSecond, 2),
+            height: TimelineMetrics.laneHeight
+        )
         .overlay(alignment: .bottomLeading) { keyframeMarks }
         .overlay(alignment: .topTrailing) {
             if clip.groupID != nil {
@@ -76,7 +79,10 @@ struct ClipBlockView: View {
                     .allowsHitTesting(false)
             }
         }
-        .offset(x: clip.startInSeconds * pointsPerSecond + moveTranslation.width + companionOffset, y: moveTranslation.height)
+        .offset(
+            x: clip.startInSeconds * pointsPerSecond + moveTranslation.width + companionOffset,
+            y: moveTranslation.height
+        )
         .zIndex(stackingOrder)
         .onTapGesture(perform: onSelect)
         .gesture(moveGesture)
@@ -106,8 +112,11 @@ struct ClipBlockView: View {
     @ViewBuilder
     private var waveform: some View {
         if let waveformPeaks, !waveformPeaks.isEmpty {
-            WaveformView(peaks: waveformPeaks, clip: clip, pointsPerSecond: pointsPerSecond, color: .white.opacity(0.55))
-                .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius))
+            WaveformView(
+                peaks: waveformPeaks, clip: clip, pointsPerSecond: pointsPerSecond,
+                color: .white.opacity(0.55)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius))
         }
     }
 
@@ -120,12 +129,16 @@ struct ClipBlockView: View {
         DragGesture(minimumDistance: Self.minimumDragDistance, coordinateSpace: .global)
             .onChanged { value in
                 if !isSelected { onSelect() }
-                moveTranslation = CGSize(width: value.translation.width, height: allowedVerticalTravel(value.translation.height))
+                moveTranslation = CGSize(
+                    width: value.translation.width,
+                    height: allowedVerticalTravel(value.translation.height))
                 onDragChange(value.translation.width)
             }
             .onEnded { value in
                 let proposedStart = clip.startInSeconds + value.translation.width / pointsPerSecond
-                let laneOffset = Int((allowedVerticalTravel(value.translation.height) / TimelineMetrics.laneStride).rounded())
+                let laneOffset = Int(
+                    (allowedVerticalTravel(value.translation.height) / TimelineMetrics.laneStride)
+                        .rounded())
                 moveTranslation = .zero
                 onDragChange(nil)
                 onMove(proposedStart, laneOffset)

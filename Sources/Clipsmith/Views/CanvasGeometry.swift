@@ -11,6 +11,16 @@ enum CanvasGeometry {
     private static let fullTurnInDegrees = 360.0
     private static let halfTurnInDegrees = 180.0
 
+    static func rotated(
+        _ x: Double, _ y: Double, around center: CGPoint, degrees: Double
+    ) -> CGPoint {
+        let radians = degrees * .pi / halfTurnInDegrees
+        return CGPoint(
+            x: center.x + x * cos(radians) - y * sin(radians),
+            y: center.y + x * sin(radians) + y * cos(radians)
+        )
+    }
+
     static func snappedAngle(_ degrees: Double) -> Double {
         var normalized = degrees.truncatingRemainder(dividingBy: fullTurnInDegrees)
         if normalized > halfTurnInDegrees { normalized -= fullTurnInDegrees }
@@ -20,11 +30,15 @@ enum CanvasGeometry {
         return nearest
     }
 
-    static func magnetized(_ delta: CGSize, from frame: CGRect, canvas: CGSize, reach: Double) -> CGSize {
+    static func magnetized(
+        _ delta: CGSize, from frame: CGRect, canvas: CGSize, reach: Double
+    ) -> CGSize {
         let moved = frame.offsetBy(dx: delta.width, dy: delta.height)
         return CGSize(
-            width: delta.width + pull(low: moved.minX, high: moved.maxX, limit: canvas.width, reach: reach),
-            height: delta.height + pull(low: moved.minY, high: moved.maxY, limit: canvas.height, reach: reach)
+            width: delta.width
+                + pull(low: moved.minX, high: moved.maxX, limit: canvas.width, reach: reach),
+            height: delta.height
+                + pull(low: moved.minY, high: moved.maxY, limit: canvas.height, reach: reach)
         )
     }
 
@@ -35,7 +49,8 @@ enum CanvasGeometry {
         return nearest
     }
 
-    static func edges(of frame: CGRect, moving delta: CGSize, in canvas: CGSize) -> Set<CanvasEdge> {
+    static func edges(of frame: CGRect, moving delta: CGSize, in canvas: CGSize) -> Set<CanvasEdge>
+    {
         var result: Set<CanvasEdge> = []
         if delta.width < 0, frame.minX <= edgeTolerance { result.insert(.left) }
         if delta.width > 0, frame.maxX >= canvas.width - edgeTolerance { result.insert(.right) }

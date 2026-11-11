@@ -3,14 +3,18 @@ import XCTest
 
 @MainActor
 final class SubtitleTests: XCTestCase {
-    private func word(_ text: String, _ start: TimeInterval, _ duration: TimeInterval = 0.3) -> TranscribedWord {
+    private func word(
+        _ text: String, _ start: TimeInterval, _ duration: TimeInterval = 0.3
+    ) -> TranscribedWord {
         TranscribedWord(text: text, startInSeconds: start, durationInSeconds: duration)
     }
 
     // MARK: Grouping
 
     func testWordsCloseTogetherShareALine() {
-        let lines = SubtitleGrouper.lines(from: [word("Hello", 0), word("there", 0.4), word("friend", 0.8)])
+        let lines = SubtitleGrouper.lines(from: [
+            word("Hello", 0), word("there", 0.4), word("friend", 0.8),
+        ])
 
         XCTAssertEqual(lines.map(\.text), ["Hello there friend"])
         XCTAssertEqual(lines[0].startInSeconds, 0)
@@ -18,7 +22,9 @@ final class SubtitleTests: XCTestCase {
     }
 
     func testALongPauseStartsANewLine() {
-        let lines = SubtitleGrouper.lines(from: [word("One", 0), word("two", 0.4), word("three", 3)])
+        let lines = SubtitleGrouper.lines(from: [
+            word("One", 0), word("two", 0.4), word("three", 3),
+        ])
 
         XCTAssertEqual(lines.map(\.text), ["One two", "three"])
     }
@@ -36,7 +42,10 @@ final class SubtitleTests: XCTestCase {
 
         XCTAssertGreaterThan(lines.count, 1)
         XCTAssertTrue(lines.allSatisfy { $0.text.count <= SubtitleGrouper.maximumCharacters })
-        XCTAssertTrue(lines.allSatisfy { $0.durationInSeconds <= SubtitleGrouper.maximumDurationInSeconds + 1e-9 })
+        XCTAssertTrue(
+            lines.allSatisfy {
+                $0.durationInSeconds <= SubtitleGrouper.maximumDurationInSeconds + 1e-9
+            })
     }
 
     func testShortLinesStayLongEnoughToReadWithoutOverlapping() {
@@ -46,13 +55,16 @@ final class SubtitleTests: XCTestCase {
         let spaced = SubtitleGrouper.lines(from: [word("Hi.", 0, 0.2), word("Bye", 0.5, 0.2)])
         XCTAssertEqual(spaced.map(\.text), ["Hi.", "Bye"])
         XCTAssertEqual(spaced[0].endInSeconds, 0.5, accuracy: 1e-9)
-        XCTAssertGreaterThanOrEqual(spaced[1].durationInSeconds, SubtitleGrouper.minimumDurationInSeconds)
+        XCTAssertGreaterThanOrEqual(
+            spaced[1].durationInSeconds, SubtitleGrouper.minimumDurationInSeconds)
     }
 
     func testEmptyWordsAndUnorderedInputAreHandled() {
         XCTAssertTrue(SubtitleGrouper.lines(from: []).isEmpty)
         XCTAssertTrue(SubtitleGrouper.lines(from: [word("  ", 0)]).isEmpty)
-        XCTAssertEqual(SubtitleGrouper.lines(from: [word("two", 0.4), word("one", 0)]).map(\.text), ["one two"])
+        XCTAssertEqual(
+            SubtitleGrouper.lines(from: [word("two", 0.4), word("one", 0)]).map(\.text), ["one two"]
+        )
     }
 
     // MARK: Timeline mapping
@@ -99,7 +111,9 @@ final class SubtitleTests: XCTestCase {
         var error: Error?
         var onCall: (@Sendable (ClosedRange<TimeInterval>, Locale) -> Void)?
 
-        func transcribe(url: URL, sourceRange: ClosedRange<TimeInterval>, locale: Locale) async throws -> [TranscribedWord] {
+        func transcribe(
+            url: URL, sourceRange: ClosedRange<TimeInterval>, locale: Locale
+        ) async throws -> [TranscribedWord] {
             onCall?(sourceRange, locale)
             if let error { throw error }
             return words
@@ -108,7 +122,9 @@ final class SubtitleTests: XCTestCase {
 
     private func makeStore() -> (ProjectStore, Clip) {
         let store = ProjectStore(project: Project(name: "T"))
-        store.addMedia(TestClips.mediaItem(duration: 10), toTrack: store.project.track(withRole: .main)!.id, at: 0)
+        store.addMedia(
+            TestClips.mediaItem(duration: 10), toTrack: store.project.track(withRole: .main)!.id,
+            at: 0)
         return (store, store.selectedClip!)
     }
 
@@ -125,7 +141,8 @@ final class SubtitleTests: XCTestCase {
             TranscribedWord(text: "mundo.", startInSeconds: 1.5, durationInSeconds: 0.5),
             TranscribedWord(text: "Adiós", startInSeconds: 5, durationInSeconds: 0.5),
         ]
-        let controller = SubtitleController(store: store, transcriber: StubTranscriber(words: words))
+        let controller = SubtitleController(
+            store: store, transcriber: StubTranscriber(words: words))
 
         controller.generate(for: clip.id, locale: Locale(identifier: "es_ES"))
         await settle(controller)
@@ -140,7 +157,8 @@ final class SubtitleTests: XCTestCase {
     func testTheClipRangeAndChosenLanguageReachTheTranscriber() async {
         let (store, clip) = makeStore()
         nonisolated(unsafe) var seen: (ClosedRange<TimeInterval>, String)?
-        let transcriber = StubTranscriber(words: [], error: SubtitleError.noSpeech) { range, locale in
+        let transcriber = StubTranscriber(words: [], error: SubtitleError.noSpeech) {
+            range, locale in
             seen = (range, locale.identifier)
         }
         let controller = SubtitleController(store: store, transcriber: transcriber)
@@ -154,7 +172,8 @@ final class SubtitleTests: XCTestCase {
 
     func testFailuresAreReportedAndNothingIsAdded() async {
         let (store, clip) = makeStore()
-        let controller = SubtitleController(store: store, transcriber: StubTranscriber(error: SubtitleError.notAuthorized))
+        let controller = SubtitleController(
+            store: store, transcriber: StubTranscriber(error: SubtitleError.notAuthorized))
 
         controller.generate(for: clip.id, locale: .current)
         await settle(controller)
@@ -176,7 +195,8 @@ final class SubtitleTests: XCTestCase {
     func testAllSubtitlesAreOneUndoStep() async {
         let (store, clip) = makeStore()
         let words = [word("Uno", 1), word("dos.", 1.4), word("tres", 5)]
-        let controller = SubtitleController(store: store, transcriber: StubTranscriber(words: words))
+        let controller = SubtitleController(
+            store: store, transcriber: StubTranscriber(words: words))
 
         controller.generate(for: clip.id, locale: .current)
         await settle(controller)
@@ -200,7 +220,8 @@ final class SubtitleTests: XCTestCase {
     func testSpeechRecognitionRefusesToRunOutsideThePackagedApp() async {
         do {
             _ = try await SpeechTranscriber().transcribe(
-                url: URL(fileURLWithPath: "/tmp/none.mp4"), sourceRange: 0...1, locale: Locale(identifier: "en_US")
+                url: URL(fileURLWithPath: "/tmp/none.mp4"), sourceRange: 0...1,
+                locale: Locale(identifier: "en_US")
             )
             XCTFail("Expected an error")
         } catch {
@@ -211,8 +232,14 @@ final class SubtitleTests: XCTestCase {
     func testDefaultLanguageFollowsTheSystemWhenSupported() {
         let locales = ["en_US", "es_ES", "es_MX", "fr_FR"].map(Locale.init(identifier:))
 
-        XCTAssertEqual(SubtitleInspector.defaultIdentifier(in: locales, system: Locale(identifier: "es_MX")), "es_MX")
-        XCTAssertEqual(SubtitleInspector.defaultIdentifier(in: locales, system: Locale(identifier: "es_AR")), "es_ES")
-        XCTAssertEqual(SubtitleInspector.defaultIdentifier(in: locales, system: Locale(identifier: "ja_JP")), "en_US")
+        XCTAssertEqual(
+            SubtitleInspector.defaultIdentifier(in: locales, system: Locale(identifier: "es_MX")),
+            "es_MX")
+        XCTAssertEqual(
+            SubtitleInspector.defaultIdentifier(in: locales, system: Locale(identifier: "es_AR")),
+            "es_ES")
+        XCTAssertEqual(
+            SubtitleInspector.defaultIdentifier(in: locales, system: Locale(identifier: "ja_JP")),
+            "en_US")
     }
 }

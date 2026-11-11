@@ -29,7 +29,8 @@ final class LocalizationAuditTests: XCTestCase {
     func testNoTranslationIsEmpty() throws {
         for language in ["en", "es"] {
             let table = try translations(for: language)
-            let empty = table.filter { $0.value.trimmingCharacters(in: .whitespaces).isEmpty }.keys.sorted()
+            let empty = table.filter { $0.value.trimmingCharacters(in: .whitespaces).isEmpty }.keys
+                .sorted()
 
             XCTAssertEqual(empty, [], "Empty \(language) translations")
         }
@@ -40,13 +41,17 @@ final class LocalizationAuditTests: XCTestCase {
         let spanish = try translations(for: "es")
 
         for (key, englishText) in english {
-            XCTAssertEqual(placeholders(in: englishText), placeholders(in: spanish[key] ?? ""), "Placeholders differ for \(key)")
+            XCTAssertEqual(
+                placeholders(in: englishText), placeholders(in: spanish[key] ?? ""),
+                "Placeholders differ for \(key)")
         }
     }
 
     private func translations(for language: String) throws -> [String: String] {
         let url = try XCTUnwrap(
-            Bundle.module.url(forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: language)
+            Bundle.module.url(
+                forResource: "Localizable", withExtension: "strings", subdirectory: nil,
+                localization: language)
         )
         return try XCTUnwrap(NSDictionary(contentsOf: url) as? [String: String])
     }
@@ -62,14 +67,17 @@ final class LocalizationAuditTests: XCTestCase {
     private func keysReferencedInCode(knownPrefixes: Set<String>) throws -> Set<String> {
         let regex = try NSRegularExpression(pattern: #""([A-Za-z]+(?:\.[A-Za-z0-9]+)+)""#)
         var found = Set<String>()
-        let enumerator = try XCTUnwrap(FileManager.default.enumerator(at: sourcesDirectory, includingPropertiesForKeys: nil))
+        let enumerator = try XCTUnwrap(
+            FileManager.default.enumerator(at: sourcesDirectory, includingPropertiesForKeys: nil))
         for case let file as URL in enumerator where file.pathExtension == "swift" {
             let text = try String(contentsOf: file, encoding: .utf8)
             let range = NSRange(text.startIndex..., in: text)
             for match in regex.matches(in: text, range: range) {
                 guard let keyRange = Range(match.range(at: 1), in: text) else { continue }
                 let key = String(text[keyRange])
-                if let prefix = key.split(separator: ".").first, knownPrefixes.contains(String(prefix)) {
+                if let prefix = key.split(separator: ".").first,
+                    knownPrefixes.contains(String(prefix))
+                {
                     found.insert(key)
                 }
             }
@@ -80,6 +88,8 @@ final class LocalizationAuditTests: XCTestCase {
     private func placeholders(in text: String) -> [String] {
         let regex = try? NSRegularExpression(pattern: #"%(?:\d+\$)?[@dfs]"#)
         let range = NSRange(text.startIndex..., in: text)
-        return (regex?.matches(in: text, range: range) ?? []).compactMap { Range($0.range, in: text).map { String(text[$0]) } }
+        return (regex?.matches(in: text, range: range) ?? []).compactMap {
+            Range($0.range, in: text).map { String(text[$0]) }
+        }
     }
 }

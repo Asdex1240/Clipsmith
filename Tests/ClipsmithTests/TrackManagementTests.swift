@@ -73,8 +73,8 @@ final class TrackManagementTests: XCTestCase {
 
         project.moveTrack(top, direction: .down)
 
-        // The two overlay tracks swap places; every other track stays where it was.
-        XCTAssertEqual(project.tracks.map(\.id).filter { [top, original].contains($0) }, [original, top])
+        XCTAssertEqual(
+            project.tracks.map(\.id).filter { [top, original].contains($0) }, [original, top])
         XCTAssertEqual(roles, [.text, .broll, .broll, .main, .audio])
     }
 
@@ -93,7 +93,9 @@ final class TrackManagementTests: XCTestCase {
     func testNamesAndTitles() {
         let second = project.addTrack(role: .broll)!
         let first = project.track(withRole: .broll)!
-        XCTAssertEqual(project.title(of: project.tracks.first { $0.id == second }!), "\(Track.Role.broll.title) 1")
+        XCTAssertEqual(
+            project.title(of: project.tracks.first { $0.id == second }!),
+            "\(Track.Role.broll.title) 1")
         XCTAssertEqual(project.title(of: project.track(withRole: .main)!), Track.Role.main.title)
 
         project.renameTrack(first.id, to: "  Logos ")
@@ -128,7 +130,8 @@ final class TrackManagementTests: XCTestCase {
     func testDetachedSoundGoesToAFreeAudioTrack() throws {
         let video = TestClips.video(start: 0, sourceEnd: 5)
         project.addClip(video, toTrack: project.track(withRole: .main)!.id)
-        project.addClip(TestClips.audio(start: 0, duration: 8), toTrack: project.track(withRole: .audio)!.id)
+        project.addClip(
+            TestClips.audio(start: 0, duration: 8), toTrack: project.track(withRole: .audio)!.id)
         XCTAssertFalse(project.canDetachAudio(ofClip: video.id))
 
         let extra = project.addTrack(role: .audio)!
@@ -142,10 +145,13 @@ final class TrackManagementTests: XCTestCase {
     // MARK: Rendering
 
     private func solidPNG(_ color: NSColor, in directory: URL, named name: String) throws -> URL {
-        let bitmap = try XCTUnwrap(NSBitmapImageRep(
-            bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 36, bitsPerSample: 8, samplesPerPixel: 4,
-            hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
-        ))
+        let bitmap = try XCTUnwrap(
+            NSBitmapImageRep(
+                bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 36, bitsPerSample: 8,
+                samplesPerPixel: 4,
+                hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0,
+                bitsPerPixel: 0
+            ))
         let context = try XCTUnwrap(NSGraphicsContext(bitmapImageRep: bitmap))
         NSGraphicsContext.saveGraphicsState()
         NSGraphicsContext.current = context
@@ -158,19 +164,23 @@ final class TrackManagementTests: XCTestCase {
     }
 
     func testTheTrackHigherInTheListIsDrawnOnTop() async throws {
-        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         let white = try solidPNG(.white, in: directory, named: "white.png")
         let black = try solidPNG(.black, in: directory, named: "black.png")
         func still(_ url: URL) -> Clip {
-            Clip(sourceURL: url, mediaKind: .image, startInSeconds: 0, sourceStartInSeconds: 0, sourceEndInSeconds: 3)
+            Clip(
+                sourceURL: url, mediaKind: .image, startInSeconds: 0, sourceStartInSeconds: 0,
+                sourceEndInSeconds: 3)
         }
         project.addClip(still(black), toTrack: project.track(withRole: .main)!.id)
         project.addClip(still(white), toTrack: project.track(withRole: .broll)!.id)
         let top = project.addTrack(role: .broll)!
         let middle = project.tracks(withRole: .broll).first { $0.id != top }!
-        let builder = CompositionBuilder(stillImages: StillImageVideoWriter(directory: directory.appendingPathComponent("s")))
+        let builder = CompositionBuilder(
+            stillImages: StillImageVideoWriter(directory: directory.appendingPathComponent("s")))
 
         func brightness(of project: Project) async throws -> Double {
             let built = try await builder.build(from: project)
@@ -180,7 +190,6 @@ final class TrackManagementTests: XCTestCase {
             return try KeyframeTests.brightness(of: try await generator.image(at: 1.0.cmTime).image)
         }
 
-        // The white overlay is on a lower overlay track than the empty one, but above main.
         let whiteOnTop = try await brightness(of: project)
         project.moveTrack(project.track(withRole: .main)!.id, direction: .up)
         project.moveTrack(project.track(withRole: .main)!.id, direction: .up)
@@ -192,30 +201,38 @@ final class TrackManagementTests: XCTestCase {
     }
 
     func testClipsOnTwoOverlayTracksAreBothDrawn() async throws {
-        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         let white = try solidPNG(.white, in: directory, named: "white.png")
         let extra = project.addTrack(role: .broll)!
-        var overlay = Clip(sourceURL: white, mediaKind: .image, startInSeconds: 0, sourceStartInSeconds: 0, sourceEndInSeconds: 3)
+        var overlay = Clip(
+            sourceURL: white, mediaKind: .image, startInSeconds: 0, sourceStartInSeconds: 0,
+            sourceEndInSeconds: 3)
         overlay.opacity = 0.5
         project.addClip(overlay, toTrack: extra)
         project.addClip(
-            Clip(sourceURL: white, mediaKind: .image, startInSeconds: 0, sourceStartInSeconds: 0, sourceEndInSeconds: 3),
+            Clip(
+                sourceURL: white, mediaKind: .image, startInSeconds: 0, sourceStartInSeconds: 0,
+                sourceEndInSeconds: 3),
             toTrack: project.track(withRole: .main)!.id
         )
-        let builder = CompositionBuilder(stillImages: StillImageVideoWriter(directory: directory.appendingPathComponent("s")))
+        let builder = CompositionBuilder(
+            stillImages: StillImageVideoWriter(directory: directory.appendingPathComponent("s")))
 
         let built = try await builder.build(from: project)
 
         XCTAssertTrue(built.skippedClipIDs.isEmpty)
         XCTAssertEqual(built.composition.tracks(withMediaType: .video).count, 2)
-        let instruction = try XCTUnwrap(built.videoComposition?.instructions.first as? AVVideoCompositionInstruction)
+        let instruction = try XCTUnwrap(
+            built.videoComposition?.instructions.first as? AVVideoCompositionInstruction)
         XCTAssertEqual(instruction.layerInstructions.count, 2)
     }
 
     func testTwoAudioTracksMakeTwoMixTracks() async throws {
-        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         let url = directory.appendingPathComponent("tone.wav")
@@ -224,8 +241,11 @@ final class TrackManagementTests: XCTestCase {
         buffer.frameLength = 44_100 * 3
         try AVAudioFile(forWriting: url, settings: format.settings).write(from: buffer)
         func sound() -> Clip {
-            Clip(sourceURL: url, mediaKind: .audio, startInSeconds: 0, sourceStartInSeconds: 0, sourceEndInSeconds: 3, sourceDurationInSeconds: 3)
-                .settingVolume(0.5)
+            Clip(
+                sourceURL: url, mediaKind: .audio, startInSeconds: 0, sourceStartInSeconds: 0,
+                sourceEndInSeconds: 3, sourceDurationInSeconds: 3
+            )
+            .settingVolume(0.5)
         }
         let extra = project.addTrack(role: .audio)!
         project.addClip(sound(), toTrack: project.track(withRole: .audio)!.id)

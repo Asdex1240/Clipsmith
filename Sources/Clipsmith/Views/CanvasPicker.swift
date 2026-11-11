@@ -55,13 +55,16 @@ private struct CanvasSettings: View {
         VStack(alignment: .leading, spacing: 2) {
             ForEach(CanvasFormat.presets) { preset in
                 let resized = preset.scaled(toShortSide: canvas.shortSide)
-                Button { store.setCanvas(resized) } label: {
+                Button {
+                    store.setCanvas(resized)
+                } label: {
                     HStack {
                         Image(systemName: "checkmark")
                             .opacity(checkmarkOpacity(for: preset))
                         Text(preset.aspectLabel ?? "")
                         Spacer()
-                        Text("\(resized.width)×\(resized.height)").foregroundStyle(.secondary).monospacedDigit()
+                        Text("\(resized.width)×\(resized.height)").foregroundStyle(.secondary)
+                            .monospacedDigit()
                     }
                     .contentShape(Rectangle())
                 }
@@ -108,7 +111,8 @@ private struct CanvasSettings: View {
 
     private var parsedCustomSize: CanvasFormat? {
         guard let width = Int(widthText), let height = Int(heightText),
-              width > 0, height > 0 else { return nil }
+            width > 0, height > 0
+        else { return nil }
         return CanvasFormat(width: width, height: height)
     }
 

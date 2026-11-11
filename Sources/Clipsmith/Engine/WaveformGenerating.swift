@@ -9,8 +9,11 @@ struct AVWaveformGenerator: WaveformGenerating {
 
     func peaks(for url: URL) async -> [Float] {
         let asset = AVURLAsset(url: url)
-        guard let track = try? await asset.loadTracks(withMediaType: .audio).first else { return [] }
-        return await Task.detached(priority: .utility) { readPeaks(from: asset, track: track) }.value
+        guard let track = try? await asset.loadTracks(withMediaType: .audio).first else {
+            return []
+        }
+        return await Task.detached(priority: .utility) { readPeaks(from: asset, track: track) }
+            .value
     }
 
     private func readPeaks(from asset: AVURLAsset, track: AVAssetTrack) -> [Float] {
@@ -44,7 +47,8 @@ struct AVWaveformGenerator: WaveformGenerating {
         var samples = [Int16](repeating: 0, count: length / MemoryLayout<Int16>.size)
         samples.withUnsafeMutableBytes { pointer in
             guard let base = pointer.baseAddress else { return }
-            CMBlockBufferCopyDataBytes(block, atOffset: 0, dataLength: pointer.count, destination: base)
+            CMBlockBufferCopyDataBytes(
+                block, atOffset: 0, dataLength: pointer.count, destination: base)
         }
         return samples
     }

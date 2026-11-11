@@ -59,8 +59,14 @@ final class WaveformTests: XCTestCase {
     }
 
     func testResamplerWithInvalidInputIsEmpty() {
-        XCTAssertTrue(WaveformResampler.columns(peaks: [1], peaksPerSecond: 1, sourceStart: 0, sourceEnd: 0, columnCount: 3).isEmpty)
-        XCTAssertTrue(WaveformResampler.columns(peaks: [1], peaksPerSecond: 1, sourceStart: 0, sourceEnd: 1, columnCount: 0).isEmpty)
+        XCTAssertTrue(
+            WaveformResampler.columns(
+                peaks: [1], peaksPerSecond: 1, sourceStart: 0, sourceEnd: 0, columnCount: 3
+            ).isEmpty)
+        XCTAssertTrue(
+            WaveformResampler.columns(
+                peaks: [1], peaksPerSecond: 1, sourceStart: 0, sourceEnd: 1, columnCount: 0
+            ).isEmpty)
     }
 
     func testGeneratorSeesSilenceFollowedBySound() async throws {
@@ -76,7 +82,8 @@ final class WaveformTests: XCTestCase {
     }
 
     func testGeneratorReturnsNothingForFilesWithoutAudio() async throws {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).png")
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "\(UUID().uuidString).png")
         try Data("x".utf8).write(to: url)
         defer { try? FileManager.default.removeItem(at: url) }
 
@@ -99,15 +106,19 @@ final class WaveformTests: XCTestCase {
     }
 
     private func makeWav(silenceSeconds: Double, toneSeconds: Double) throws -> URL {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).wav")
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "\(UUID().uuidString).wav")
         let format = try XCTUnwrap(AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1))
         let silenceFrames = Int(format.sampleRate * silenceSeconds)
         let toneFrames = Int(format.sampleRate * toneSeconds)
-        let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(silenceFrames + toneFrames)))
+        let buffer = try XCTUnwrap(
+            AVAudioPCMBuffer(
+                pcmFormat: format, frameCapacity: AVAudioFrameCount(silenceFrames + toneFrames)))
         buffer.frameLength = AVAudioFrameCount(silenceFrames + toneFrames)
         let channel = try XCTUnwrap(buffer.floatChannelData?[0])
         for frame in 0..<toneFrames {
-            channel[silenceFrames + frame] = 0.8 * sin(Float(frame) * 2 * .pi * 440 / Float(format.sampleRate))
+            channel[silenceFrames + frame] =
+                0.8 * sin(Float(frame) * 2 * .pi * 440 / Float(format.sampleRate))
         }
         try AVAudioFile(forWriting: url, settings: format.settings).write(from: buffer)
         return url

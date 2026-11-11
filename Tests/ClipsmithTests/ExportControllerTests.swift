@@ -20,17 +20,21 @@ final class ExportControllerTests: XCTestCase {
     }
 
     func testFailureIsReportedWithTheErrorMessage() async {
-        let controller = ExportController(store: store, exporter: StubExporter(outcome: .failure(.failed("disk full"))))
+        let controller = ExportController(
+            store: store, exporter: StubExporter(outcome: .failure(.failed("disk full"))))
 
         controller.start(to: destination)
         await waitUntilFinished(controller)
 
-        guard case .failed(let message) = controller.state else { return XCTFail("Expected failure") }
+        guard case .failed(let message) = controller.state else {
+            return XCTFail("Expected failure")
+        }
         XCTAssertTrue(message.contains("disk full"))
     }
 
     func testExporterCancellationReturnsToIdle() async {
-        let controller = ExportController(store: store, exporter: StubExporter(outcome: .failure(.cancelled)))
+        let controller = ExportController(
+            store: store, exporter: StubExporter(outcome: .failure(.cancelled)))
 
         controller.start(to: destination)
         await waitUntilFinished(controller)
@@ -39,7 +43,8 @@ final class ExportControllerTests: XCTestCase {
     }
 
     func testCancelStopsAnExportInProgress() async {
-        let controller = ExportController(store: store, exporter: StubExporter(outcome: .waitsForCancellation))
+        let controller = ExportController(
+            store: store, exporter: StubExporter(outcome: .waitsForCancellation))
 
         controller.start(to: destination)
         XCTAssertTrue(controller.isExporting)
@@ -62,7 +67,8 @@ final class ExportControllerTests: XCTestCase {
     }
 
     func testProgressIsClampedBetweenZeroAndOne() async {
-        let controller = ExportController(store: store, exporter: StubExporter(outcome: .reportsProgress([0.4, 1.7])))
+        let controller = ExportController(
+            store: store, exporter: StubExporter(outcome: .reportsProgress([0.4, 1.7])))
 
         controller.start(to: destination)
         await waitUntilFinished(controller)
@@ -87,7 +93,8 @@ final class ExportControllerTests: XCTestCase {
     }
 
     func testResetDoesNothingWhileExporting() async {
-        let controller = ExportController(store: store, exporter: StubExporter(outcome: .waitsForCancellation))
+        let controller = ExportController(
+            store: store, exporter: StubExporter(outcome: .waitsForCancellation))
         controller.start(to: destination)
 
         controller.reset()

@@ -60,7 +60,8 @@ final class ClipSpeedTests: XCTestCase {
 
         XCTAssertEqual(trimmed.sourceStartInSeconds, 2, accuracy: 1e-9)
         XCTAssertEqual(trimmed.durationInSeconds, 4, accuracy: 1e-9)
-        XCTAssertEqual(clip.trimmedTrailing(to: 3, notAfter: .infinity).sourceEndInSeconds, 6, accuracy: 1e-9)
+        XCTAssertEqual(
+            clip.trimmedTrailing(to: 3, notAfter: .infinity).sourceEndInSeconds, 6, accuracy: 1e-9)
     }
 
     func testSpeedSurvivesSavingAndOldFilesDefaultToNormalSpeed() throws {
@@ -69,9 +70,11 @@ final class ClipSpeedTests: XCTestCase {
         let decoded = try JSONDecoder().decode(Clip.self, from: JSONEncoder().encode(clip))
         XCTAssertEqual(decoded.speed, 1.5)
 
-        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(clip)) as? [String: Any])
+        var json = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: JSONEncoder().encode(clip)) as? [String: Any])
         json.removeValue(forKey: "speed")
-        let legacy = try JSONDecoder().decode(Clip.self, from: JSONSerialization.data(withJSONObject: json))
+        let legacy = try JSONDecoder().decode(
+            Clip.self, from: JSONSerialization.data(withJSONObject: json))
         XCTAssertEqual(legacy.speed, 1)
     }
 
@@ -81,7 +84,8 @@ final class ClipSpeedTests: XCTestCase {
     }
 
     func testCompositionPlaysAnAudioClipAtItsSpeed() async throws {
-        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         let url = directory.appendingPathComponent("tone.wav")

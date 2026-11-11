@@ -26,7 +26,8 @@ enum SubtitleGrouper {
     static func lines(from words: [TranscribedWord]) -> [SubtitleLine] {
         var lines: [SubtitleLine] = []
         var current: [TranscribedWord] = []
-        for word in words.sorted(by: { $0.startInSeconds < $1.startInSeconds }) where !trimmed(word).isEmpty {
+        for word in words.sorted(by: { $0.startInSeconds < $1.startInSeconds })
+        where !trimmed(word).isEmpty {
             if let last = current.last, shouldBreak(before: word, after: last, in: current) {
                 lines.append(line(from: current))
                 current = []
@@ -41,10 +42,14 @@ enum SubtitleGrouper {
         word.text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private static func shouldBreak(before word: TranscribedWord, after last: TranscribedWord, in current: [TranscribedWord]) -> Bool {
+    private static func shouldBreak(
+        before word: TranscribedWord, after last: TranscribedWord, in current: [TranscribedWord]
+    ) -> Bool {
         if word.startInSeconds - last.endInSeconds > pauseBreakInSeconds { return true }
         if let ending = trimmed(last).last, sentenceEndings.contains(ending) { return true }
-        if word.endInSeconds - (current.first?.startInSeconds ?? 0) > maximumDurationInSeconds { return true }
+        if word.endInSeconds - (current.first?.startInSeconds ?? 0) > maximumDurationInSeconds {
+            return true
+        }
         let length = current.map(trimmed).joined(separator: " ").count + 1 + trimmed(word).count
         return length > maximumCharacters
     }
@@ -61,8 +66,11 @@ enum SubtitleGrouper {
         lines.enumerated().map { index, line in
             var latestEnd = TimeInterval.infinity
             if index + 1 < lines.count { latestEnd = lines[index + 1].startInSeconds }
-            let end = min(max(line.endInSeconds, line.startInSeconds + minimumDurationInSeconds), latestEnd)
-            return SubtitleLine(text: line.text, startInSeconds: line.startInSeconds, endInSeconds: max(end, line.startInSeconds))
+            let end = min(
+                max(line.endInSeconds, line.startInSeconds + minimumDurationInSeconds), latestEnd)
+            return SubtitleLine(
+                text: line.text, startInSeconds: line.startInSeconds,
+                endInSeconds: max(end, line.startInSeconds))
         }
     }
 }

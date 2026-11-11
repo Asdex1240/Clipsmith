@@ -7,7 +7,8 @@ enum MediaBookmarks {
     }
 
     static func makeBookmark(for url: URL) -> Data? {
-        try? url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
+        try? url.bookmarkData(
+            options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
     }
 
     static func resolve(original: URL, bookmark: Data?) -> Resolution {

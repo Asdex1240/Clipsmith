@@ -7,7 +7,9 @@ struct EasingMenu: View {
     var body: some View {
         Menu {
             ForEach(Easing.allCases, id: \.self) { option in
-                Toggle(Self.title(of: option), isOn: Binding(get: { easing == option }, set: { _ in onChange(option) }))
+                Toggle(
+                    Self.title(of: option),
+                    isOn: Binding(get: { easing == option }, set: { _ in onChange(option) }))
             }
         } label: {
             Image(systemName: Self.symbol(of: easing))

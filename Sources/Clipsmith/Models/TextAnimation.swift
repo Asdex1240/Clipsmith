@@ -28,7 +28,10 @@ struct TextAnimation: Codable, Equatable {
 
     var isNone: Bool { inKind == .none && outKind == .none }
 
-    init(inKind: TextAnimationKind = .none, outKind: TextAnimationKind = .none, durationInSeconds: TimeInterval = defaultDuration) {
+    init(
+        inKind: TextAnimationKind = .none, outKind: TextAnimationKind = .none,
+        durationInSeconds: TimeInterval = defaultDuration
+    ) {
         self.inKind = inKind
         self.outKind = outKind
         self.durationInSeconds = durationInSeconds
@@ -43,7 +46,8 @@ struct TextAnimation: Codable, Equatable {
         let window = min(durationInSeconds, clipDuration / 2)
         guard window > 0 else { return .identity }
         let arriving = Self.effect(of: inKind, shown: Easing.easeOut.apply(time / window))
-        let leaving = Self.effect(of: outKind, shown: Easing.easeOut.apply((clipDuration - time) / window))
+        let leaving = Self.effect(
+            of: outKind, shown: Easing.easeOut.apply((clipDuration - time) / window))
         return TextAnimationState(
             opacity: arriving.opacity * leaving.opacity,
             offsetY: arriving.offsetY + leaving.offsetY,
@@ -72,9 +76,13 @@ struct TextAnimation: Codable, Equatable {
         switch kind {
         case .none: return .identity
         case .fade: return TextAnimationState(opacity: shown)
-        case .slideUp: return TextAnimationState(opacity: shown, offsetY: (1 - shown) * slideDistance)
-        case .slideDown: return TextAnimationState(opacity: shown, offsetY: -(1 - shown) * slideDistance)
-        case .pop: return TextAnimationState(opacity: shown, scale: popStartScale + (1 - popStartScale) * shown)
+        case .slideUp:
+            return TextAnimationState(opacity: shown, offsetY: (1 - shown) * slideDistance)
+        case .slideDown:
+            return TextAnimationState(opacity: shown, offsetY: -(1 - shown) * slideDistance)
+        case .pop:
+            return TextAnimationState(
+                opacity: shown, scale: popStartScale + (1 - popStartScale) * shown)
         }
     }
 }
@@ -88,7 +96,9 @@ extension TextAnimation {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         inKind = try container.decodeIfPresent(TextAnimationKind.self, forKey: .inKind) ?? .none
         outKind = try container.decodeIfPresent(TextAnimationKind.self, forKey: .outKind) ?? .none
-        durationInSeconds = try container.decodeIfPresent(TimeInterval.self, forKey: .durationInSeconds) ?? Self.defaultDuration
+        durationInSeconds =
+            try container.decodeIfPresent(TimeInterval.self, forKey: .durationInSeconds)
+            ?? Self.defaultDuration
     }
 }
 

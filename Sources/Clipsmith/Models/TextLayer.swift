@@ -21,8 +21,12 @@ struct TextLayer: Codable, Equatable {
     static let subtitleFontSize = 54.0
     static let subtitlePositionY = 0.88
 
-    static func subtitle(_ content: String, style: TextStylePreset = .classic, animation: TextAnimation = TextAnimation()) -> TextLayer {
-        var layer = TextLayer(content: content, fontSize: subtitleFontSize, positionY: subtitlePositionY)
+    static func subtitle(
+        _ content: String, style: TextStylePreset = .classic,
+        animation: TextAnimation = TextAnimation()
+    ) -> TextLayer {
+        var layer = TextLayer(
+            content: content, fontSize: subtitleFontSize, positionY: subtitlePositionY)
         style.apply(to: &layer)
         layer.animation = animation
         return layer
@@ -56,12 +60,14 @@ extension TextLayer {
         color = try container.decode(RGBAColor.self, forKey: .color)
         positionX = try container.decode(Double.self, forKey: .positionX)
         positionY = try container.decode(Double.self, forKey: .positionY)
-        rotationInDegrees = try container.decodeIfPresent(Double.self, forKey: .rotationInDegrees) ?? 0
+        rotationInDegrees =
+            try container.decodeIfPresent(Double.self, forKey: .rotationInDegrees) ?? 0
         strokeWidth = try container.decodeIfPresent(Double.self, forKey: .strokeWidth) ?? 0
         strokeColor = try container.decodeIfPresent(RGBAColor.self, forKey: .strokeColor) ?? .black
         backgroundColor = try container.decodeIfPresent(RGBAColor.self, forKey: .backgroundColor)
         hasShadow = try container.decodeIfPresent(Bool.self, forKey: .hasShadow) ?? true
-        animation = try container.decodeIfPresent(TextAnimation.self, forKey: .animation) ?? TextAnimation()
+        animation =
+            try container.decodeIfPresent(TextAnimation.self, forKey: .animation) ?? TextAnimation()
     }
 
     func encode(to encoder: Encoder) throws {
@@ -72,7 +78,9 @@ extension TextLayer {
         try container.encode(color, forKey: .color)
         try container.encode(positionX, forKey: .positionX)
         try container.encode(positionY, forKey: .positionY)
-        if rotationInDegrees != 0 { try container.encode(rotationInDegrees, forKey: .rotationInDegrees) }
+        if rotationInDegrees != 0 {
+            try container.encode(rotationInDegrees, forKey: .rotationInDegrees)
+        }
         if strokeWidth != 0 {
             try container.encode(strokeWidth, forKey: .strokeWidth)
             try container.encode(strokeColor, forKey: .strokeColor)
