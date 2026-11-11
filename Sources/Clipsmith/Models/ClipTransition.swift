@@ -1,12 +1,5 @@
 import Foundation
 
-enum TransitionKind: String, Codable, CaseIterable {
-    case dissolve
-    case fadeBlack
-    case slideLeft
-    case slideRight
-}
-
 struct ClipTransition: Codable, Equatable {
     static let durationRange = 0.25...3.0
     static let defaultDuration = 1.0

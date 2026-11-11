@@ -1,30 +1,5 @@
 import AVFoundation
 
-enum ExportError: Error, LocalizedError {
-    case nothingToExport
-    case cannotCreateSession
-    case cancelled
-    case failed(String)
-
-    var errorDescription: String? {
-        switch self {
-        case .nothingToExport: return localized("error.export.empty")
-        case .cannotCreateSession: return localized("error.export.session")
-        case .cancelled: return localized("error.export.cancelled")
-        case .failed(let reason): return String(format: localized("error.export.failed"), reason)
-        }
-    }
-}
-
-protocol Exporting {
-    func export(
-        _ project: Project,
-        with settings: ExportSettings,
-        to destination: URL,
-        progress: @escaping @Sendable (Double) -> Void
-    ) async throws
-}
-
 struct ProjectExporter: Exporting {
     private static let progressPollInterval: Duration = .milliseconds(100)
 

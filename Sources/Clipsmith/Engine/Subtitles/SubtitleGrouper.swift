@@ -1,21 +1,5 @@
 import Foundation
 
-struct TranscribedWord: Equatable {
-    let text: String
-    let startInSeconds: TimeInterval
-    let durationInSeconds: TimeInterval
-
-    var endInSeconds: TimeInterval { startInSeconds + durationInSeconds }
-}
-
-struct SubtitleLine: Equatable {
-    let text: String
-    let startInSeconds: TimeInterval
-    let endInSeconds: TimeInterval
-
-    var durationInSeconds: TimeInterval { endInSeconds - startInSeconds }
-}
-
 enum SubtitleGrouper {
     static let maximumCharacters = 42
     static let maximumDurationInSeconds: TimeInterval = 4

@@ -2,12 +2,6 @@ import AVFoundation
 import ImageIO
 import OSLog
 
-enum CompositionError: Error {
-    case missingSource
-    case missingTrack(URL)
-    case cannotCreateTrack
-}
-
 final class CompositionAssembler {
     private static let scaleToleranceInSeconds: TimeInterval = 1e-6
     private static let heldFrameInSeconds: TimeInterval = 1.0 / 30

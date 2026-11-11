@@ -124,3 +124,18 @@ struct ContentView: View {
         player.showTimeline(at: store.playheadInSeconds)
     }
 }
+
+#Preview {
+    let store = PreviewFixtures.store()
+    let library = MediaLibrary()
+    let player = PlayerController()
+    let document = PreviewFixtures.document(store: store, library: library)
+    ContentView(
+        store: store, library: library, player: player,
+        previewer: TimelinePreviewer(store: store, player: player),
+        exporter: ExportController(store: store), subtitles: SubtitleController(store: store),
+        document: document, documentActions: DocumentActions(document: document),
+        thumbnails: CachedThumbnailGenerator(), waveforms: WaveformStore()
+    )
+    .frame(width: 1280, height: 800)
+}

@@ -42,3 +42,9 @@ struct RelinkView: View {
         if document.missingMedia.isEmpty { onDismiss() }
     }
 }
+
+#Preview {
+    let store = PreviewFixtures.store()
+    let document = PreviewFixtures.document(store: store, library: MediaLibrary())
+    RelinkView(document: document, actions: DocumentActions(document: document), onDismiss: {})
+}

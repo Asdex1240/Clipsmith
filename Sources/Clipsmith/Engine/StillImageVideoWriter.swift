@@ -2,15 +2,6 @@ import AVFoundation
 import AppKit
 import CryptoKit
 
-enum StillImageError: Error {
-    case unreadableImage(URL)
-    case writingFailed(URL)
-}
-
-protocol StillImageVideoMaking {
-    func makeVideo(from imageURL: URL, size: CGSize, mode: FitMode) async throws -> URL
-}
-
 extension StillImageVideoMaking {
     func makeVideo(from imageURL: URL, size: CGSize) async throws -> URL {
         try await makeVideo(from: imageURL, size: size, mode: .fit)
