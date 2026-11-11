@@ -148,6 +148,10 @@ extension ProjectStore {
         return ranges.count
     }
 
+    func setNoiseReduction(of id: Clip.ID, to level: NoiseReductionLevel?) {
+        mutate { $0.setNoiseReduction(of: id, to: level) }
+    }
+
     func clearDucking(of id: Clip.ID) {
         mutate { $0.setDucking(of: id, to: nil) }
     }

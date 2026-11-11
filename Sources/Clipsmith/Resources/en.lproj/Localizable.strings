@@ -84,6 +84,14 @@
 "inspector.ducking.done" = "Volume lowered in %d stretches of speech.";
 "inspector.ducking.noSpeech" = "No speech found in the main track.";
 "inspector.ducking.hint" = "Lowers this clip wherever there is speech in the main track. Apply it again after moving the speech.";
+"inspector.noise.title" = "Noise reduction";
+"inspector.noise.off" = "Off";
+"inspector.noise.light" = "Light";
+"inspector.noise.medium" = "Medium";
+"inspector.noise.strong" = "Strong";
+"inspector.noise.processing" = "Cleaning up the audio…";
+"inspector.noise.failed" = "The noise could not be reduced: %@";
+"inspector.noise.hint" = "Lowers steady background noise such as wind, hum or hiss. Best for speech; it can also dull sustained notes in music. The export uses the cleaned audio.";
 "inspector.audio.fadeIn" = "Fade in";
 "inspector.audio.extract" = "Extract audio";
 "inspector.audio.extract.help" = "Moves the sound to the audio track. The audio track must be free under this clip.";

@@ -4,6 +4,7 @@ struct InspectorView: View {
     let store: ProjectStore
     let subtitles: SubtitleController
     let waveforms: WaveformStore
+    let denoise: DenoiseStore
 
     private var multipleSelectionHintKey: String.LocalizationValue {
         if store.selectionIsGrouped { return "inspector.multiple.grouped" }
@@ -40,7 +41,7 @@ struct InspectorView: View {
                         SpeedInspector(store: store, clip: clip)
                     }
                     if hasAudioControls(for: clip) {
-                        AudioInspector(store: store, waveforms: waveforms, clip: clip)
+                        AudioInspector(store: store, waveforms: waveforms, denoise: denoise, clip: clip)
                     }
                     if hasAudioControls(for: clip) {
                         SilenceInspector(store: store, waveforms: waveforms, clip: clip)
@@ -116,5 +117,6 @@ struct InspectorView: View {
 #Preview {
     let store = PreviewFixtures.store()
     InspectorView(
-        store: store, subtitles: SubtitleController(store: store), waveforms: WaveformStore())
+        store: store, subtitles: SubtitleController(store: store), waveforms: WaveformStore(),
+        denoise: DenoiseStore())
 }

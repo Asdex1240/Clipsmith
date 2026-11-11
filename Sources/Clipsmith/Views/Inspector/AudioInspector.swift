@@ -3,6 +3,7 @@ import SwiftUI
 struct AudioInspector: View {
     let store: ProjectStore
     let waveforms: WaveformStore
+    let denoise: DenoiseStore
     let clip: Clip
 
     @State private var normalizeMessage: String?
@@ -27,6 +28,7 @@ struct AudioInspector: View {
                 range: 0...fadeRange, unit: .seconds, defaultValue: Self.noFade
             )
             normalizeControls
+            noiseControls
             if store.project.trackRole(ofClip: clip.id) == .audio { duckingControls }
             if clip.mediaKind == .video, store.project.trackRole(ofClip: clip.id) == .main {
                 Button(localized("inspector.audio.extract")) { store.detachAudio(ofClip: clip.id) }
@@ -44,6 +46,44 @@ struct AudioInspector: View {
         if let normalizeMessage {
             Text(normalizeMessage).font(.caption).foregroundStyle(.secondary)
         }
+    }
+
+    @ViewBuilder
+    private var noiseControls: some View {
+        Picker(localized("inspector.noise.title"), selection: noiseBinding) {
+            Text(localized("inspector.noise.off")).tag(NoiseReductionLevel?.none)
+            ForEach(NoiseReductionLevel.allCases) {
+                Text(Self.title(of: $0)).tag(Optional($0))
+            }
+        }
+        .pickerStyle(.segmented)
+        if denoise.isPreparing {
+            HStack {
+                ProgressView().controlSize(.small)
+                Text(localized("inspector.noise.processing")).font(.caption).foregroundStyle(
+                    .secondary)
+            }
+        } else if let failure = denoise.lastFailure {
+            Text(String(format: localized("inspector.noise.failed"), failure))
+                .font(.caption)
+                .foregroundStyle(Palette.warning)
+        }
+        Text(localized("inspector.noise.hint")).font(.caption).foregroundStyle(.secondary)
+    }
+
+    private static func title(of level: NoiseReductionLevel) -> String {
+        switch level {
+        case .light: return localized("inspector.noise.light")
+        case .medium: return localized("inspector.noise.medium")
+        case .strong: return localized("inspector.noise.strong")
+        }
+    }
+
+    private var noiseBinding: Binding<NoiseReductionLevel?> {
+        Binding(
+            get: { clip.noiseReduction },
+            set: { store.setNoiseReduction(of: clip.id, to: $0) }
+        )
     }
 
     @ViewBuilder
@@ -146,6 +186,7 @@ struct AudioInspector: View {
 
 #Preview {
     AudioInspector(
-        store: PreviewFixtures.store(), waveforms: WaveformStore(), clip: PreviewFixtures.videoClip)
+        store: PreviewFixtures.store(), waveforms: WaveformStore(), denoise: DenoiseStore(),
+        clip: PreviewFixtures.videoClip)
         .padding()
 }

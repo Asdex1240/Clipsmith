@@ -84,6 +84,14 @@
 "inspector.ducking.done" = "Volumen bajado en %d tramos de voz.";
 "inspector.ducking.noSpeech" = "No se encontró voz en la pista principal.";
 "inspector.ducking.hint" = "Baja este clip donde haya voz en la pista principal. Vuelve a aplicarlo si mueves la voz.";
+"inspector.noise.title" = "Reducción de ruido";
+"inspector.noise.off" = "No";
+"inspector.noise.light" = "Suave";
+"inspector.noise.medium" = "Media";
+"inspector.noise.strong" = "Fuerte";
+"inspector.noise.processing" = "Limpiando el audio…";
+"inspector.noise.failed" = "No se pudo reducir el ruido: %@";
+"inspector.noise.hint" = "Baja el ruido de fondo constante, como viento, zumbido o siseo. Va mejor con voz; también puede apagar notas sostenidas de música. La exportación usa el audio limpio.";
 "inspector.audio.fadeIn" = "Fundido de entrada";
 "inspector.audio.extract" = "Extraer audio";
 "inspector.audio.extract.help" = "Mueve el sonido a la pista de audio. La pista de audio debe estar libre bajo este clip.";

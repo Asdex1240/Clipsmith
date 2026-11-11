@@ -43,7 +43,9 @@ struct ContentView: View {
                     controller: player, store: store, proxies: previewer.proxies,
                     onSelectTimeline: showTimeline)
                     .frame(minWidth: Layout.previewMinWidth)
-                InspectorView(store: store, subtitles: subtitles, waveforms: waveforms)
+                InspectorView(
+                    store: store, subtitles: subtitles, waveforms: waveforms,
+                    denoise: previewer.denoise)
                     .frame(
                         minWidth: Layout.inspectorMinWidth, idealWidth: Layout.inspectorIdealWidth
                     )
