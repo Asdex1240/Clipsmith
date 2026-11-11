@@ -3,6 +3,7 @@ import SwiftUI
 struct PreviewView: View {
     let controller: PlayerController
     let store: ProjectStore
+    var proxies: ProxyStore?
     let onSelectTimeline: () -> Void
 
     var body: some View {
@@ -84,10 +85,28 @@ struct PreviewView: View {
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
             Spacer()
+            if let proxies { fastPreview(proxies) }
             CanvasPicker(store: store)
             modePicker
         }
         .padding(Design.Spacing.regular)
+    }
+
+    private func fastPreview(_ proxies: ProxyStore) -> some View {
+        HStack(spacing: Design.Spacing.compact) {
+            if proxies.isPreparing {
+                ProgressView().controlSize(.small)
+                Text(String(format: localized("preview.fast.preparing"), proxies.pendingCount))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Toggle(
+                localized("preview.fast"),
+                isOn: Binding(get: { proxies.isEnabled }, set: { proxies.setEnabled($0) })
+            )
+            .toggleStyle(.button)
+            .help(localized("preview.fast.help"))
+        }
     }
 
     private var positionText: String {

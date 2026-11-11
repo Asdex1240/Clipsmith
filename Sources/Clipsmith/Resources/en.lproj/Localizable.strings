@@ -4,6 +4,9 @@
 "library.import" = "Import…";
 "library.empty" = "Drop videos, audio or images here, or use Import.";
 "preview.empty" = "Select a media item to preview it";
+"preview.fast" = "Fast preview";
+"preview.fast.help" = "Plays a lighter copy of 4K videos while you edit. The export always uses the originals.";
+"preview.fast.preparing" = "Preparing %d";
 "preview.play" = "Play";
 "preview.pause" = "Pause";
 "alert.error.title" = "Could not import";
