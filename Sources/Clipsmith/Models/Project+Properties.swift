@@ -9,6 +9,14 @@ extension Project {
         updateClip(id) { $0.settingVolume(value) }
     }
 
+    mutating func setDucking(of id: Clip.ID, to ducking: ClipDucking?) {
+        updateClip(id) { $0.settingDucking(ducking) }
+    }
+
+    mutating func setDuckLevel(of id: Clip.ID, to level: Double) {
+        updateClip(id) { $0.settingDuckLevel(level) }
+    }
+
     mutating func setFadeIn(of id: Clip.ID, to seconds: TimeInterval) {
         updateClip(id) { $0.settingFadeIn(seconds) }
     }

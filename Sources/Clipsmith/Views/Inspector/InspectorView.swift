@@ -40,7 +40,7 @@ struct InspectorView: View {
                         SpeedInspector(store: store, clip: clip)
                     }
                     if hasAudioControls(for: clip) {
-                        AudioInspector(store: store, clip: clip)
+                        AudioInspector(store: store, waveforms: waveforms, clip: clip)
                     }
                     if hasAudioControls(for: clip) {
                         SilenceInspector(store: store, waveforms: waveforms, clip: clip)
