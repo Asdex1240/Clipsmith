@@ -15,16 +15,16 @@ struct AVNoiseReducer: NoiseReductionProcessing {
         try FileManager.default.createDirectory(
             at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
         let partial = destination.deletingPathExtension().appendingPathExtension("partial.caf")
-        try? FileManager.default.removeItem(at: partial)
+        FileManager.default.discardItemIgnoringFailure(at: partial)
         do {
             try write(
                 track: track, asset: asset, level: level, sampleRate: sampleRate,
                 channels: channels, to: partial)
         } catch {
-            try? FileManager.default.removeItem(at: partial)
+            FileManager.default.discardItemIgnoringFailure(at: partial)
             throw error
         }
-        try? FileManager.default.removeItem(at: destination)
+        FileManager.default.discardItemIgnoringFailure(at: destination)
         try FileManager.default.moveItem(at: partial, to: destination)
     }
 

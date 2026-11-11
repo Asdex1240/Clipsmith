@@ -26,6 +26,6 @@ struct RecoveryStore {
     }
 
     func clear() {
-        try? FileManager.default.removeItem(at: fileURL)
+        FileManager.default.discardItemIgnoringFailure(at: fileURL)
     }
 }

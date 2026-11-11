@@ -1,4 +1,3 @@
-import CryptoKit
 import Foundation
 import Observation
 
@@ -121,13 +120,6 @@ final class ProxyStore {
     }
 
     func cachedURL(for url: URL) -> URL {
-        let values = try? url.resourceValues(forKeys: [
-            .contentModificationDateKey, .fileSizeKey,
-        ])
-        let key =
-            "\(url.path)|\(values?.contentModificationDate?.timeIntervalSince1970 ?? 0)|\(values?.fileSize ?? 0)"
-        let digest = SHA256.hash(data: Data(key.utf8)).prefix(12).map { String(format: "%02x", $0) }
-            .joined()
-        return directory.appendingPathComponent("\(digest).mov")
+        directory.appendingPathComponent("\(FileFingerprint.digest(of: url)).mov")
     }
 }

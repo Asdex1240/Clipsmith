@@ -49,7 +49,7 @@ struct SpeechTranscriber: Transcribing {
         with recognizer: SFSpeechRecognizer
     ) async throws -> [TranscribedWord] {
         let audio = try await extractAudio(of: url, from: start, to: end)
-        defer { try? FileManager.default.removeItem(at: audio) }
+        defer { FileManager.default.discardItemIgnoringFailure(at: audio) }
         let recognized = try await recognize(audio, with: recognizer)
         return recognized.map {
             TranscribedWord(

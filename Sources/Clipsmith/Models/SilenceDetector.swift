@@ -15,38 +15,42 @@ enum SilenceDetector {
         let first = max(0, Int(start * peaksPerSecond))
         let last = min(Int(end * peaksPerSecond), peaks.count)
         guard first < last else { return [] }
-        var result: [Range<TimeInterval>] = []
+        return quietRuns(peaks: peaks, first: first, last: last, threshold: threshold)
+            .compactMap { run in
+                let from = Double(run.lowerBound) / peaksPerSecond
+                let to = Double(run.upperBound) / peaksPerSecond
+                guard to - from >= minimumDuration else { return nil }
+                var cutStart = from
+                if run.lowerBound != first { cutStart += padding }
+                var cutEnd = to
+                if run.upperBound != last { cutEnd -= padding }
+                guard cutEnd - cutStart >= Clip.minimumDurationInSeconds else { return nil }
+                return cutStart..<cutEnd
+            }
+    }
+
+    private static func quietRuns(
+        peaks: [Float], first: Int, last: Int, threshold: Float
+    ) -> [Range<Int>] {
+        var runs: [Range<Int>] = []
         var runStart: Int?
         for index in first...last {
-            let isQuiet = index < last && peaks[index] < threshold
-            if isQuiet {
+            if index < last, peaks[index] < threshold {
                 if runStart == nil { runStart = index }
                 continue
             }
-            guard let begin = runStart else { continue }
+            if let begin = runStart { runs.append(begin..<index) }
             runStart = nil
-            let from = Double(begin) / peaksPerSecond
-            let to = Double(index) / peaksPerSecond
-            guard to - from >= minimumDuration else { continue }
-            var cutStart = from
-            if begin != first { cutStart += padding }
-            var cutEnd = to
-            if index != last { cutEnd -= padding }
-            if cutEnd - cutStart >= Clip.minimumDurationInSeconds {
-                result.append(cutStart..<cutEnd)
-            }
         }
-        return result
+        return runs
     }
 
     static func timelineRanges(
         _ ranges: [Range<TimeInterval>], for clip: Clip
     ) -> [Range<TimeInterval>] {
         ranges.compactMap { range in
-            let start =
-                clip.startInSeconds + (range.lowerBound - clip.sourceStartInSeconds) / clip.speed
-            let end =
-                clip.startInSeconds + (range.upperBound - clip.sourceStartInSeconds) / clip.speed
+            let start = clip.timelineTime(forSourceTime: range.lowerBound)
+            let end = clip.timelineTime(forSourceTime: range.upperBound)
             let lower = max(start, clip.startInSeconds)
             let upper = min(end, clip.endInSeconds)
             guard upper - lower >= Clip.minimumDurationInSeconds else { return nil }

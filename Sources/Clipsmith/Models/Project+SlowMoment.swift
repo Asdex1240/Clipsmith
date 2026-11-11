@@ -9,6 +9,16 @@ enum SlowMoment {
     static let fractions = [0.1, 0.1, 0.6, 0.1, 0.1]
     static let tolerance: TimeInterval = 1e-6
 
+    static func boundaries(
+        from start: TimeInterval, sourceDuration: TimeInterval, speed: Double
+    ) -> [TimeInterval] {
+        var boundaries = [start]
+        for fraction in fractions {
+            boundaries.append(boundaries[boundaries.count - 1] + fraction * sourceDuration / speed)
+        }
+        return boundaries
+    }
+
     static func factors(for slowest: Double) -> [Double] {
         let step = (1 - slowest) / 3
         return [1 - step, 1 - 2 * step, slowest, 1 - 2 * step, 1 - step]
@@ -28,11 +38,8 @@ extension Project {
         else { return false }
         let slowest = min(
             max(factor, SlowMoment.factorRange.lowerBound), SlowMoment.factorRange.upperBound)
-        var boundaries = [time]
-        for fraction in SlowMoment.fractions {
-            boundaries.append(
-                boundaries[boundaries.count - 1] + fraction * sourceDuration / original.speed)
-        }
+        let boundaries = SlowMoment.boundaries(
+            from: time, sourceDuration: sourceDuration, speed: original.speed)
         guard time >= original.startInSeconds - tolerance,
             boundaries[5] <= original.endInSeconds + tolerance
         else { return false }

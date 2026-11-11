@@ -44,7 +44,7 @@ struct ProjectExporter: Exporting {
         else {
             throw ExportError.cannotCreateSession
         }
-        try? FileManager.default.removeItem(at: destination)
+        FileManager.default.discardItemIgnoringFailure(at: destination)
         session.outputURL = destination
         session.outputFileType = .mp4
         built.attachTextOverlayForExport()
@@ -65,13 +65,7 @@ struct ProjectExporter: Exporting {
                 try? await Task.sleep(for: Self.progressPollInterval)
             }
         }
-        await withTaskCancellationHandler {
-            await withCheckedContinuation { continuation in
-                session.exportAsynchronously { continuation.resume() }
-            }
-        } onCancel: {
-            sharedSession.cancelExport()
-        }
+        await session.exportUntilFinishedOrCancelled()
         poller.cancel()
     }
 
@@ -80,10 +74,10 @@ struct ProjectExporter: Exporting {
         case .completed:
             return
         case .cancelled:
-            try? FileManager.default.removeItem(at: destination)
+            FileManager.default.discardItemIgnoringFailure(at: destination)
             throw ExportError.cancelled
         default:
-            try? FileManager.default.removeItem(at: destination)
+            FileManager.default.discardItemIgnoringFailure(at: destination)
             throw ExportError.failed(session.error?.localizedDescription ?? "")
         }
     }

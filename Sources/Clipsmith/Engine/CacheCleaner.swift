@@ -93,7 +93,11 @@ struct CacheCleaner: Sendable {
     }
 
     private func remove(_ entry: Entry, into report: inout Report) {
-        guard (try? FileManager.default.removeItem(at: entry.url)) != nil else { return }
+        do {
+            try FileManager.default.removeItem(at: entry.url)
+        } catch {
+            return
+        }
         report.removedFiles += 1
         report.removedBytes += entry.size
     }

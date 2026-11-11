@@ -45,7 +45,6 @@ extension Project {
     ) -> [Clip] {
         let tolerance = removalToleranceInSeconds
         let length = range.upperBound - range.lowerBound
-        let minimum = Clip.minimumDurationInSeconds
         if clip.endInSeconds <= range.lowerBound + tolerance { return [clip] }
         if clip.startInSeconds >= range.upperBound - tolerance {
             var moved = clip
@@ -57,17 +56,9 @@ extension Project {
         {
             return []
         }
-        let keepsLeading = range.lowerBound - clip.startInSeconds >= minimum
-        let keepsTrailing = clip.endInSeconds - range.upperBound >= minimum
         var pieces: [Clip] = []
-        if clip.startInSeconds < range.lowerBound, keepsLeading {
-            pieces.append(
-                clip.trimmedTrailing(to: range.lowerBound, notAfter: range.upperBound))
-        }
-        guard keepsTrailing else { return pieces }
-        var trailing = clip.trimmedLeading(to: range.upperBound, notBefore: 0)
-        if let halves = clip.split(at: range.upperBound) { trailing = halves.right }
-        trailing.startInSeconds = range.lowerBound
+        if let leading = leadingPiece(of: clip, removing: range) { pieces.append(leading) }
+        guard var trailing = trailingPiece(of: clip, removing: range) else { return pieces }
         if !pieces.isEmpty, let group = clip.groupID {
             let replacement = newGroups[group] ?? UUID()
             newGroups[group] = replacement
@@ -75,5 +66,22 @@ extension Project {
         }
         pieces.append(trailing)
         return pieces
+    }
+
+    private static func leadingPiece(of clip: Clip, removing range: Range<TimeInterval>) -> Clip? {
+        guard clip.startInSeconds < range.lowerBound,
+            range.lowerBound - clip.startInSeconds >= Clip.minimumDurationInSeconds
+        else { return nil }
+        return clip.trimmedTrailing(to: range.lowerBound, notAfter: range.upperBound)
+    }
+
+    private static func trailingPiece(of clip: Clip, removing range: Range<TimeInterval>) -> Clip? {
+        guard clip.endInSeconds - range.upperBound >= Clip.minimumDurationInSeconds else {
+            return nil
+        }
+        var trailing = clip.trimmedLeading(to: range.upperBound, notBefore: 0)
+        if let halves = clip.split(at: range.upperBound) { trailing = halves.right }
+        trailing.startInSeconds = range.lowerBound
+        return trailing
     }
 }

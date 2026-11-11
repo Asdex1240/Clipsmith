@@ -30,7 +30,7 @@ final class StillImageVideoWriter: StillImageVideoMaking {
         }
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let partial = destination.appendingPathExtension("partial")
-        try? FileManager.default.removeItem(at: partial)
+        FileManager.default.discardItemIgnoringFailure(at: partial)
         try await write(imageAt: imageURL, size: size, mode: mode, to: partial)
         try FileManager.default.moveItem(at: partial, to: destination)
         return destination

@@ -20,19 +20,7 @@ extension ProjectStore {
         let ranges = HighlightSuggester.suggestions(
             peaks: peaks, from: clip.sourceStartInSeconds, to: clip.sourceEndInSeconds,
             duration: duration, count: count)
-        let existing = project.highlights
-        let fresh = ranges.map { range in
-            (
-                start: clip.startInSeconds + (range.lowerBound - clip.sourceStartInSeconds)
-                    / clip.speed,
-                end: clip.startInSeconds + (range.upperBound - clip.sourceStartInSeconds)
-                    / clip.speed
-            )
-        }.filter { candidate in
-            !existing.contains {
-                $0.startInSeconds < candidate.end && candidate.start < $0.endInSeconds
-            }
-        }
+        let fresh = newTimelineRanges(from: ranges, of: clip)
         guard !fresh.isEmpty else { return 0 }
         mutate { project in
             for range in fresh {
@@ -43,6 +31,22 @@ extension ProjectStore {
             }
         }
         return fresh.count
+    }
+
+    private func newTimelineRanges(
+        from sourceRanges: [ClosedRange<TimeInterval>], of clip: Clip
+    ) -> [(start: TimeInterval, end: TimeInterval)] {
+        let existing = project.highlights
+        return sourceRanges.map { range in
+            (
+                start: clip.timelineTime(forSourceTime: range.lowerBound),
+                end: clip.timelineTime(forSourceTime: range.upperBound)
+            )
+        }.filter { candidate in
+            !existing.contains {
+                $0.startInSeconds < candidate.end && candidate.start < $0.endInSeconds
+            }
+        }
     }
 
     static let faceSampleCount = 8

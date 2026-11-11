@@ -32,8 +32,8 @@ extension Clip {
     func duckingRangesOnTimeline() -> [Swift.Range<TimeInterval>] {
         guard let ducking else { return [] }
         return ducking.ranges.compactMap { range in
-            let start = startInSeconds + (range.start - sourceStartInSeconds) / speed
-            let end = startInSeconds + (range.end - sourceStartInSeconds) / speed
+            let start = timelineTime(forSourceTime: range.start)
+            let end = timelineTime(forSourceTime: range.end)
             guard end > start else { return nil }
             return start..<end
         }
@@ -41,12 +41,8 @@ extension Clip {
 
     func sourceRanges(from timeline: [Swift.Range<TimeInterval>]) -> [ClipDucking.Range] {
         timeline.compactMap { range in
-            let start = max(
-                sourceStartInSeconds,
-                sourceStartInSeconds + (range.lowerBound - startInSeconds) * speed)
-            let end = min(
-                sourceEndInSeconds,
-                sourceStartInSeconds + (range.upperBound - startInSeconds) * speed)
+            let start = max(sourceStartInSeconds, sourceTime(forTimelineTime: range.lowerBound))
+            let end = min(sourceEndInSeconds, sourceTime(forTimelineTime: range.upperBound))
             guard end > start else { return nil }
             return ClipDucking.Range(start: start, end: end)
         }
