@@ -31,7 +31,7 @@ struct LibraryView: View {
             Spacer()
             Button(localized("library.import")) { isImporterPresented = true }
         }
-        .padding(8)
+        .padding(Design.Spacing.regular)
     }
 
     @ViewBuilder
@@ -100,7 +100,7 @@ private struct MediaRow: View {
         HStack {
             thumbnailView
                 .frame(width: Self.thumbnailSize.width, height: Self.thumbnailSize.height)
-                .clipShape(RoundedRectangle(cornerRadius: 4))
+                .clipShape(RoundedRectangle(cornerRadius: Design.Radius.small))
             VStack(alignment: .leading) {
                 Text(item.name).lineLimit(1)
                 Text(item.durationInSeconds.clockString)
@@ -113,6 +113,7 @@ private struct MediaRow: View {
             }
             .buttonStyle(.borderless)
             .help(localized("library.addToTimeline"))
+            .accessibilityLabel(localized("library.addToTimeline"))
             .opacity(addButtonOpacity)
         }
         .contentShape(Rectangle())
@@ -140,7 +141,7 @@ private struct DragPreview: View {
     @State private var thumbnail: NSImage?
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: Design.Spacing.regular) {
             Group {
                 if let thumbnail {
                     Image(nsImage: thumbnail).resizable().scaledToFill()
@@ -149,14 +150,14 @@ private struct DragPreview: View {
                 }
             }
             .frame(width: 48, height: 32)
-            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .clipShape(RoundedRectangle(cornerRadius: Design.Radius.small))
             VStack(alignment: .leading, spacing: 0) {
                 Text(item.name).lineLimit(1).font(.caption.bold())
                 Text(item.durationInSeconds.clockString).font(.caption2).foregroundStyle(.secondary)
             }
         }
-        .padding(6)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+        .padding(Design.Spacing.compact)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: Design.Radius.large))
         .task { thumbnail = await thumbnails.thumbnail(for: item) }
     }
 }

@@ -7,9 +7,9 @@ struct SpeedInspector: View {
     private static let presets: [Double] = [0.25, 0.5, 1, 1.5, 2, 4]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: Design.Spacing.cozy) {
             Text(localized("inspector.speed.section")).font(.subheadline.bold())
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Design.Spacing.hairline) {
                 HStack {
                     Text(localized("inspector.speed.rate"))
                     Spacer()
@@ -19,7 +19,7 @@ struct SpeedInspector: View {
                     value: logBinding,
                     in: log2(Clip.speedRange.lowerBound)...log2(Clip.speedRange.upperBound))
             }
-            HStack(spacing: 4) {
+            HStack(spacing: Design.Spacing.tight) {
                 ForEach(Self.presets, id: \.self) { preset in
                     Button(Self.label(for: preset)) { store.setSpeed(of: clip.id, to: preset) }
                         .buttonStyle(.bordered)

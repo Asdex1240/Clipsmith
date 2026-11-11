@@ -10,7 +10,7 @@ struct DropPreview: Equatable {
 
     var tint: Color {
         if isValid { return .accentColor }
-        return .red
+        return Palette.invalid
     }
 
     var iconName: String {

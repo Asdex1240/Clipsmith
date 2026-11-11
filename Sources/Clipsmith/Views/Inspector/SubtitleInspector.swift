@@ -10,7 +10,7 @@ struct SubtitleInspector: View {
     private let locales = SpeechTranscriber.supportedLocales
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: Design.Spacing.cozy) {
             Text(localized("inspector.subtitles.section")).font(.subheadline.bold())
             Picker(localized("inspector.subtitles.language"), selection: selectedIdentifier) {
                 ForEach(locales, id: \.identifier) { locale in
@@ -62,11 +62,11 @@ struct SubtitleInspector: View {
                 systemImage: "checkmark.circle"
             )
             .font(.caption)
-            .foregroundStyle(.green)
+            .foregroundStyle(Palette.success)
         case .failed(let message):
             Label(message, systemImage: "exclamationmark.triangle")
                 .font(.caption)
-                .foregroundStyle(.orange)
+                .foregroundStyle(Palette.warning)
         }
     }
 

@@ -17,11 +17,11 @@ struct ClipBlockView: View {
     @State private var trimOrigin: TimeInterval?
 
     private static let minimumDragDistance: CGFloat = 3
-    private static let cornerRadius: CGFloat = 6
+    private static let cornerRadius = Design.Radius.medium
 
     private var blockFill: Color {
-        if isMissing { return Color.red.opacity(0.45) }
-        return fillColor
+        if isMissing { return Palette.missingClipFill }
+        return Palette.clipFill(for: clip.mediaKind)
     }
 
     private var blockTitle: String {
@@ -35,8 +35,8 @@ struct ClipBlockView: View {
     }
 
     private var borderColor: Color {
-        if isSelected { return .yellow }
-        return Color.white.opacity(0.25)
+        if isSelected { return Palette.selection }
+        return Palette.onMedia.opacity(Design.Opacity.subtleBorder)
     }
 
     private var borderWidth: CGFloat {
@@ -93,20 +93,11 @@ struct ClipBlockView: View {
             ForEach(clip.keyframes) { frame in
                 Image(systemName: "diamond.fill")
                     .font(.system(size: 7))
-                    .foregroundStyle(.yellow)
+                    .foregroundStyle(Palette.keyframe)
                     .offset(x: frame.timeInSeconds * pointsPerSecond - 3.5, y: -2)
             }
         }
         .allowsHitTesting(false)
-    }
-
-    private var fillColor: Color {
-        switch clip.mediaKind {
-        case .video: return .blue.opacity(0.55)
-        case .image: return .purple.opacity(0.55)
-        case .audio: return .green.opacity(0.55)
-        case .text: return .orange.opacity(0.65)
-        }
     }
 
     @ViewBuilder
@@ -114,7 +105,7 @@ struct ClipBlockView: View {
         if let waveformPeaks, !waveformPeaks.isEmpty {
             WaveformView(
                 peaks: waveformPeaks, clip: clip, pointsPerSecond: pointsPerSecond,
-                color: .white.opacity(0.55)
+                color: Palette.onMedia.opacity(Design.Opacity.waveform)
             )
             .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius))
         }
@@ -147,7 +138,7 @@ struct ClipBlockView: View {
 
     private func trimHandle(_ edge: ClipEdge) -> some View {
         Rectangle()
-            .fill(Color.white.opacity(0.35))
+            .fill(Palette.onMedia.opacity(Design.Opacity.handle))
             .frame(width: TimelineMetrics.trimHandleWidth)
             .contentShape(Rectangle())
             .gesture(trimGesture(edge))

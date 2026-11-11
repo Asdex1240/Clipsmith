@@ -6,7 +6,7 @@ struct ShortcutsView: View {
     private static let width: CGFloat = 380
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Design.Spacing.comfortable) {
             Text(localized("shortcuts.title")).font(.title2.bold())
             ForEach(EditorAction.allCases, id: \.self) { action in
                 HStack {
@@ -14,9 +14,10 @@ struct ShortcutsView: View {
                     Spacer()
                     Text(EditorShortcuts.displayKeys(for: action))
                         .monospaced()
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(.quaternary, in: RoundedRectangle(cornerRadius: 4))
+                        .padding(.horizontal, Design.Spacing.compact)
+                        .padding(.vertical, Design.Spacing.hairline)
+                        .background(
+                            .quaternary, in: RoundedRectangle(cornerRadius: Design.Radius.small))
                 }
             }
             HStack {
@@ -25,7 +26,7 @@ struct ShortcutsView: View {
                     .keyboardShortcut(.defaultAction)
             }
         }
-        .padding(20)
+        .padding(Design.Spacing.roomy)
         .frame(width: Self.width)
     }
 
