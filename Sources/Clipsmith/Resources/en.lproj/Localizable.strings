@@ -263,6 +263,9 @@
 "highlight.notSet" = "–";
 "highlight.name" = "Name";
 "highlight.autoFrame" = "Follow the face";
+"highlight.background" = "Vertical format";
+"highlight.background.fill" = "Fill";
+"highlight.background.blur" = "Blur";
 "highlight.framing" = "Framing";
 "highlight.goTo" = "Go to start";
 "highlight.delete" = "Delete highlight";

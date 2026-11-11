@@ -30,13 +30,18 @@ extension Project {
         let current = highlights[index]
         highlights[index] = Highlight(
             id: id, name: current.name, startInSeconds: start, endInSeconds: end,
-            framingOffsetX: current.framingOffsetX)
+            framingOffsetX: current.framingOffsetX, fitMode: current.fitMode)
         highlights.sort { $0.startInSeconds < $1.startInSeconds }
     }
 
     mutating func setHighlightFraming(_ id: Highlight.ID, offsetX: Double) {
         guard let index = highlights.firstIndex(where: { $0.id == id }) else { return }
         highlights[index].framingOffsetX = Highlight.clampedFraming(offsetX)
+    }
+
+    mutating func setHighlightFitMode(_ id: Highlight.ID, to mode: FitMode) {
+        guard let index = highlights.firstIndex(where: { $0.id == id }) else { return }
+        highlights[index].fitMode = mode
     }
 
     func extracting(_ highlight: Highlight) -> Project {
@@ -61,7 +66,8 @@ extension Project {
         else { return nil }
         piece.startInSeconds = max(0, piece.startInSeconds - highlight.startInSeconds)
         guard piece.mediaKind == .video || piece.mediaKind == .image else { return piece }
-        return piece.reframedForVertical(offsetX: highlight.framingOffsetX)
+        return piece.reframedForVertical(
+            offsetX: highlight.framingOffsetX, fitMode: highlight.fitMode)
     }
 
     private func shifted(_ marker: Marker, within highlight: Highlight) -> Marker? {
@@ -82,9 +88,10 @@ extension Project {
 }
 
 extension Clip {
-    fileprivate func reframedForVertical(offsetX framing: Double) -> Clip {
+    fileprivate func reframedForVertical(offsetX requested: Double, fitMode mode: FitMode) -> Clip {
+        let framing = mode == .fill ? requested : 0
         var clip = self
-        clip.fitMode = .fill
+        clip.fitMode = mode
         clip.offsetX = framing
         clip.offsetY = 0
         for index in clip.keyframes.indices {

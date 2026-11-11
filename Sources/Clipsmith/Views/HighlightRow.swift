@@ -24,14 +24,21 @@ struct HighlightRow: View {
                 .font(.caption)
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
-            ParameterSlider(
-                title: localized("highlight.framing"), value: framingBinding,
-                range: Highlight.framingRange, unit: .percent,
-                defaultValue: Self.defaultFraming)
-            Button(action: autoFrame) {
-                Label(localized("highlight.autoFrame"), systemImage: "face.dashed")
+            Picker(localized("highlight.background"), selection: fitModeBinding) {
+                Text(localized("highlight.background.fill")).tag(FitMode.fill)
+                Text(localized("highlight.background.blur")).tag(FitMode.blur)
             }
-            .disabled(isFraming)
+            .pickerStyle(.segmented)
+            if highlight.fitMode == .fill {
+                ParameterSlider(
+                    title: localized("highlight.framing"), value: framingBinding,
+                    range: Highlight.framingRange, unit: .percent,
+                    defaultValue: Self.defaultFraming)
+                Button(action: autoFrame) {
+                    Label(localized("highlight.autoFrame"), systemImage: "face.dashed")
+                }
+                .disabled(isFraming)
+            }
         }
         .padding(Design.Spacing.comfortable)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -85,6 +92,13 @@ struct HighlightRow: View {
         Binding(
             get: { highlight.name },
             set: { store.renameHighlight(highlight.id, to: $0) }
+        )
+    }
+
+    private var fitModeBinding: Binding<FitMode> {
+        Binding(
+            get: { highlight.fitMode },
+            set: { store.setHighlightFitMode(highlight.id, to: $0) }
         )
     }
 
