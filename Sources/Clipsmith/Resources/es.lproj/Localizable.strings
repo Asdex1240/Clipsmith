@@ -4,6 +4,9 @@
 "library.import" = "Importar…";
 "library.empty" = "Arrastra videos, audio o imágenes aquí, o usa Importar.";
 "preview.empty" = "Selecciona un medio para verlo";
+"preview.fast" = "Vista previa rápida";
+"preview.fast.help" = "Reproduce una copia más ligera de los vídeos 4K mientras editas. La exportación siempre usa los originales.";
+"preview.fast.preparing" = "Preparando %d";
 "preview.play" = "Reproducir";
 "preview.pause" = "Pausar";
 "alert.error.title" = "No se pudo importar";

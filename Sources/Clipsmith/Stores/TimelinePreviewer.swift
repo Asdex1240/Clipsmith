@@ -12,6 +12,7 @@ final class TimelinePreviewer {
     private let store: ProjectStore
     private let player: PlayerController
     private let builder: CompositionBuilding
+    let proxies: ProxyStore
     private let logger = Logger(subsystem: "Clipsmith", category: "preview")
     private var buildTask: Task<Void, Never>?
     private var lastBuiltStructure: Project?
@@ -20,15 +21,23 @@ final class TimelinePreviewer {
 
     init(
         store: ProjectStore, player: PlayerController,
-        builder: CompositionBuilding = CompositionBuilder()
+        builder: CompositionBuilding = CompositionBuilder(), proxies: ProxyStore? = nil
     ) {
         self.store = store
         self.player = player
         self.builder = builder
+        let proxies = proxies ?? ProxyStore()
+        self.proxies = proxies
+        proxies.onChange = { [weak self] in self?.proxiesDidChange() }
+    }
+
+    private func proxiesDidChange() {
+        scheduleFullRebuild(of: store.project)
     }
 
     func projectDidChange() {
         let project = store.project
+        proxies.prepare(for: project)
         let structure = Self.withoutText(project)
         guard structure != lastBuiltStructure else { return }
         let isLiveEdit =
@@ -96,7 +105,7 @@ final class TimelinePreviewer {
 
     private func rebuild(_ project: Project, mode: RebuildMode) async {
         do {
-            let built = try await builder.build(from: project)
+            let built = try await builder.build(from: proxies.substituting(project))
             guard !Task.isCancelled else { return }
             lastBuiltStructure = Self.withoutText(project)
             if built.durationInSeconds > 0 {

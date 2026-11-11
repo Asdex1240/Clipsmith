@@ -39,7 +39,9 @@ struct ContentView: View {
                 )
                 .frame(minWidth: Layout.libraryMinWidth, idealWidth: Layout.libraryIdealWidth)
                 .panelSurface()
-                PreviewView(controller: player, store: store, onSelectTimeline: showTimeline)
+                PreviewView(
+                    controller: player, store: store, proxies: previewer.proxies,
+                    onSelectTimeline: showTimeline)
                     .frame(minWidth: Layout.previewMinWidth)
                 InspectorView(store: store, subtitles: subtitles, waveforms: waveforms)
                     .frame(
