@@ -1,7 +1,7 @@
 import Foundation
 
 enum InspectorSectionID: String, CaseIterable {
-    case framing, keyframes, color, crop, text, textStyle, textAnimation, speed, audio, subtitles
+    case framing, keyframes, color, crop, text, textStyle, textAnimation, speed, audio, silences, subtitles
 
     var storageKey: String {
         "inspector.section.\(rawValue)"
@@ -18,6 +18,7 @@ enum InspectorSectionID: String, CaseIterable {
         case .textAnimation: return "inspector.textAnimation.section"
         case .speed: return "inspector.speed.section"
         case .audio: return "inspector.audio.section"
+        case .silences: return "inspector.silences.section"
         case .subtitles: return "inspector.subtitles.section"
         }
     }
@@ -33,6 +34,7 @@ enum InspectorSectionID: String, CaseIterable {
         case .textAnimation: return "wand.and.stars"
         case .speed: return "speedometer"
         case .audio: return "speaker.wave.2"
+        case .silences: return "waveform.path"
         case .subtitles: return "captions.bubble"
         }
     }

@@ -3,6 +3,7 @@ import SwiftUI
 struct InspectorView: View {
     let store: ProjectStore
     let subtitles: SubtitleController
+    let waveforms: WaveformStore
 
     private var multipleSelectionHintKey: String.LocalizationValue {
         if store.selectionIsGrouped { return "inspector.multiple.grouped" }
@@ -40,6 +41,9 @@ struct InspectorView: View {
                     }
                     if hasAudioControls(for: clip) {
                         AudioInspector(store: store, clip: clip)
+                    }
+                    if hasAudioControls(for: clip) {
+                        SilenceInspector(store: store, waveforms: waveforms, clip: clip)
                     }
                     if hasAudioControls(for: clip) {
                         SubtitleInspector(subtitles: subtitles, clip: clip)
@@ -111,5 +115,6 @@ struct InspectorView: View {
 
 #Preview {
     let store = PreviewFixtures.store()
-    InspectorView(store: store, subtitles: SubtitleController(store: store))
+    InspectorView(
+        store: store, subtitles: SubtitleController(store: store), waveforms: WaveformStore())
 }

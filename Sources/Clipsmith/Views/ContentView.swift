@@ -41,7 +41,7 @@ struct ContentView: View {
                 .panelSurface()
                 PreviewView(controller: player, store: store, onSelectTimeline: showTimeline)
                     .frame(minWidth: Layout.previewMinWidth)
-                InspectorView(store: store, subtitles: subtitles)
+                InspectorView(store: store, subtitles: subtitles, waveforms: waveforms)
                     .frame(
                         minWidth: Layout.inspectorMinWidth, idealWidth: Layout.inspectorIdealWidth
                     )

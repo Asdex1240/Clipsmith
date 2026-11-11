@@ -44,6 +44,14 @@ extension ProjectStore {
         mutate { $0.splitClips(targets, at: time) }
     }
 
+    @discardableResult
+    func removeSilences(_ ranges: [Range<TimeInterval>], from clipID: Clip.ID) -> Int {
+        guard !ranges.isEmpty else { return 0 }
+        var removed = 0
+        mutate { removed = $0.removeRanges(ranges, from: clipID) }
+        return removed
+    }
+
     func deleteSelectedClip() {
         let ids = selectedClipIDs
         guard !ids.isEmpty else { return }
