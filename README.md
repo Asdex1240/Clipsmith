@@ -2,11 +2,11 @@
 
 A fast, local video editor for macOS, inspired by CapCut and built for editing vlogs: trim raw footage, cut silences and mistakes, arrange clips, add text and music, and export to MP4.
 
-> **Status:** early development. The app currently opens an empty editor window; features land milestone by milestone.
+> **Status:** early development. The features below are implemented, but the app is still evolving and may change between versions.
 
 ## Features
 
-Planned for the first release:
+What it does:
 
 - **Projects** — create, save and open projects (`.clipsmith` files, JSON), with undo/redo, autosave recovery and relinking of moved or missing media.
 - **Media library** — import video, audio and images with thumbnails and durations.
@@ -105,11 +105,13 @@ CLIPSMITH_BENCHMARK=1 swift test --filter PerformanceBenchmarkTests
 
 ```
 Sources/Clipsmith/
-├── Models/   # Codable project model (Project, Track, Clip): the source of truth
-├── Stores/   # Observable state: project, media library, player, documents
-├── Persistence/ # Project files, media bookmarks, crash recovery
-├── Engine/   # AVFoundation composition, preview and export
-└── Views/    # SwiftUI: library, preview, timeline, inspector
+├── Models/       # Codable project model (Project, Track, Clip, Highlight): the source of truth
+├── Stores/       # Observable state: project, media library, player, export, subtitles
+├── Persistence/  # Project files, media bookmarks, crash recovery
+├── Engine/       # AVFoundation composition, effects, preview, export, subtitles
+├── Views/        # SwiftUI: library, preview, timeline, inspector, highlights, export
+└── Resources/    # Localizable.strings (en, es)
+Packaging/        # Scripts and metadata to build the .app
 Tests/ClipsmithTests/
 ```
 
@@ -118,6 +120,8 @@ The project model is independent of the playback engine. Preview and export both
 ## Tech stack
 
 Swift, SwiftUI, AVFoundation, Metal / Core Image.
+
+The app is bilingual (English and Spanish). Coding conventions live in [CODE_RULES.md](CODE_RULES.md) (in Spanish).
 
 ## Contributing
 
