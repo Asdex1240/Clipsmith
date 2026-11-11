@@ -80,6 +80,16 @@ final class ProxyStore {
         task?.cancel()
     }
 
+    func reset() async {
+        task?.cancel()
+        await task?.value
+        task = nil
+        proxyURLs = [:]
+        failed = []
+        queued = []
+        pendingCount = 0
+    }
+
     private func prepareOne(_ url: URL) async {
         defer {
             queued.remove(url)
@@ -88,6 +98,7 @@ final class ProxyStore {
         guard !Task.isCancelled, isEnabled else { return }
         let destination = cachedURL(for: url)
         if FileManager.default.fileExists(atPath: destination.path) {
+            CacheCleaner.touch(destination)
             register(url, proxy: destination)
             return
         }

@@ -42,6 +42,16 @@ final class DenoiseStore {
         task?.cancel()
     }
 
+    func reset() async {
+        task?.cancel()
+        await task?.value
+        task = nil
+        failed = []
+        queued = []
+        pendingCount = 0
+        lastFailure = nil
+    }
+
     private func run(_ request: (source: URL, level: NoiseReductionLevel)) async {
         let key = Self.key(request.source, request.level)
         defer {

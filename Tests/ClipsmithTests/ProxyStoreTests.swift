@@ -166,3 +166,92 @@ final class ProxyStoreTests: XCTestCase {
         XCTAssertEqual(notifications, 1)
     }
 }
+
+@MainActor
+final class CacheControllerTests: XCTestCase {
+    private var root: URL!
+    private var generator: ControllerFakeGenerator!
+
+    override func setUp() {
+        root = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "cache-controller-\(UUID().uuidString)")
+        generator = ControllerFakeGenerator()
+    }
+
+    override func tearDown() {
+        try? FileManager.default.removeItem(at: root)
+    }
+
+    private func project(_ url: URL) -> Project {
+        var project = Project(name: "T")
+        var clip = TestClips.video(start: 0, sourceEnd: 5)
+        clip.sourceURL = url
+        project.addClip(clip, toTrack: project.track(withRole: .main)!.id)
+        return project
+    }
+
+    func testClearingForgetsProxiesDeletesFilesAndRebuilds() async throws {
+        let big = URL(fileURLWithPath: "/tmp/clipsmith-cache-big.mp4")
+        let proxyDirectory = root.appendingPathComponent("proxies")
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: "cc-\(UUID().uuidString)"))
+        let proxies = ProxyStore(generator: generator, directory: proxyDirectory, defaults: defaults)
+        let denoise = DenoiseStore(cache: DenoisedAudioCache(directory: root.appendingPathComponent("clean")))
+        var cleared = 0
+        let controller = CacheController(
+            cleaner: CacheCleaner(directories: [proxyDirectory]), proxies: proxies, denoise: denoise,
+            onCleared: { cleared += 1 })
+        proxies.prepare(for: project(big))
+        for _ in 0..<200 where proxies.isPreparing { try await Task.sleep(for: .milliseconds(10)) }
+        await controller.refresh()
+        XCTAssertGreaterThan(controller.sizeInBytes, 0)
+        XCTAssertFalse(proxies.proxyURLs.isEmpty)
+
+        await controller.clear()
+
+        XCTAssertTrue(proxies.proxyURLs.isEmpty)
+        XCTAssertEqual(controller.sizeInBytes, 0)
+        XCTAssertGreaterThan(controller.lastFreedBytes ?? 0, 0)
+        XCTAssertEqual(cleared, 1)
+        XCTAssertFalse(controller.isWorking)
+        XCTAssertFalse(proxies.isPreparing)
+    }
+
+    func testAfterResettingProxiesCanBeMadeAgain() async {
+        let big = URL(fileURLWithPath: "/tmp/clipsmith-cache-big.mp4")
+        let defaults = UserDefaults(suiteName: "cc-\(UUID().uuidString)")!
+        let proxies = ProxyStore(
+            generator: generator, directory: root.appendingPathComponent("p"), defaults: defaults)
+
+        proxies.prepare(for: project(big))
+        for _ in 0..<200 where proxies.isPreparing { try? await Task.sleep(for: .milliseconds(10)) }
+        await proxies.reset()
+        try? FileManager.default.removeItem(at: root.appendingPathComponent("p"))
+        proxies.prepare(for: project(big))
+        for _ in 0..<200 where proxies.isPreparing { try? await Task.sleep(for: .milliseconds(10)) }
+
+        XCTAssertNotNil(proxies.proxyURLs[big])
+        XCTAssertEqual(generator.count, 2)
+    }
+}
+
+private final class ControllerFakeGenerator: ProxyGenerating, @unchecked Sendable {
+    private let lock = NSLock()
+    private var generated = 0
+
+    var count: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return generated
+    }
+
+    func needsProxy(for url: URL) async -> Bool { true }
+
+    func makeProxy(from url: URL, to destination: URL) async throws {
+        lock.lock()
+        generated += 1
+        lock.unlock()
+        try FileManager.default.createDirectory(
+            at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data(count: 1000).write(to: destination)
+    }
+}

@@ -26,6 +26,8 @@ What it does:
 
 Everything runs locally; there is no backend and no account.
 
+Lighter copies of 4K videos and cleaned audio are cached so they are not made twice. Files unused for 30 days are removed automatically, the cache is capped at 5 GB, and **Clipsmith → Settings** (`⌘,`) shows its size and lets you clear it.
+
 ## Requirements
 
 - macOS 14 or later (Apple Silicon)

@@ -42,6 +42,7 @@ struct DenoisedAudioCache: Sendable {
                 guard let level = clip.noiseReduction, let source = clip.sourceURL else { continue }
                 let cached = url(for: source, level: level)
                 if FileManager.default.fileExists(atPath: cached.path) {
+                    CacheCleaner.touch(cached)
                     copy.tracks[trackIndex].clips[clipIndex].audioOverrideURL = cached
                 }
             }
