@@ -31,6 +31,8 @@ struct Clip: Codable, Identifiable, Equatable {
     var crop = CropInsets()
     var groupID: UUID?
     var ducking: ClipDucking?
+    var noiseReduction: NoiseReductionLevel?
+    var audioOverrideURL: URL?
 
     var displayName: String {
         textLayer?.content ?? sourceURL?.lastPathComponent ?? ""
@@ -197,7 +199,7 @@ extension Clip {
         case id, sourceURL, mediaKind, startInSeconds, sourceStartInSeconds, sourceEndInSeconds
         case sourceDurationInSeconds, volume, fadeInDurationInSeconds, fadeOutDurationInSeconds
         case textLayer, fitMode, offsetX, offsetY, isAudioDetached, scale, rotationInDegrees, speed,
-            opacity, keyframes, transition, color, crop, groupID, ducking
+            opacity, keyframes, transition, color, crop, groupID, ducking, noiseReduction
     }
 
     init(from decoder: Decoder) throws {
@@ -235,6 +237,8 @@ extension Clip {
         crop = try container.decodeIfPresent(CropInsets.self, forKey: .crop) ?? CropInsets()
         groupID = try container.decodeIfPresent(UUID.self, forKey: .groupID)
         ducking = try container.decodeIfPresent(ClipDucking.self, forKey: .ducking)
+        noiseReduction = try container.decodeIfPresent(
+            NoiseReductionLevel.self, forKey: .noiseReduction)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -266,5 +270,6 @@ extension Clip {
         if !crop.isNone { try container.encode(crop, forKey: .crop) }
         try container.encodeIfPresent(groupID, forKey: .groupID)
         try container.encodeIfPresent(ducking, forKey: .ducking)
+        try container.encodeIfPresent(noiseReduction, forKey: .noiseReduction)
     }
 }

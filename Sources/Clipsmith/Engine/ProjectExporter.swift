@@ -4,6 +4,7 @@ struct ProjectExporter: Exporting {
     private static let progressPollInterval: Duration = .milliseconds(100)
 
     var builder: CompositionBuilding = CompositionBuilder()
+    var denoisedAudio = DenoisedAudioCache()
 
     func export(
         _ project: Project,
@@ -12,8 +13,9 @@ struct ProjectExporter: Exporting {
         progress: @escaping @Sendable (Double) -> Void
     ) async throws {
         guard project.durationInSeconds > 0 else { throw ExportError.nothingToExport }
+        let prepared = try await denoisedAudio.ensure(project)
         let built = try await builder.build(
-            from: project,
+            from: prepared,
             renderSize: settings.resolution.renderSize(for: project.canvas),
             framesPerSecond: Int32(settings.framesPerSecond)
         )

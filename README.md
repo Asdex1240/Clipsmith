@@ -14,7 +14,7 @@ What it does:
 - **Canvas** — the project's work area: presets (16:9, 9:16, 1:1, 4:5, 3:4, 4:3, 21:9), any custom width × height, a resolution shortcut (720p–4K) and automatic matching to the first clip you add. Each clip can be framed as *Fit* (bars), *Fill* (crop) or *Blur* (the whole clip over a blurred copy of itself).
 - **Preview** — real-time playback and scrubbing. *Fast preview* plays a lighter 720p copy of videos larger than Full HD while you edit; the export always uses the originals.
 - **Text** — text layers with font, size, color and position.
-- **Audio** — per-clip volume, fade in/out, visible waveforms, one-click volume normalization and automatic lowering of music (or any audio clip) under the speech of the main track.
+- **Audio** — per-clip volume, fade in/out, visible waveforms, one-click volume normalization, automatic lowering of music (or any audio clip) under the speech of the main track, and noise reduction for steady background noise such as wind, hum or hiss.
 - **Speed** — play a clip from 0.25× to 4×; its length on the timeline follows. A one-click *slow-motion moment* slows a stretch down smoothly and speeds back up.
 - **Animation** — keyframes for position, size, rotation and opacity, edited at the playhead.
 - **Transitions** — dissolve, fade through black or slide between touching clips.

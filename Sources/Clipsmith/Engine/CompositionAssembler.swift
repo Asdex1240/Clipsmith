@@ -151,7 +151,7 @@ final class CompositionAssembler {
 
     private func insertAudioTrack(of clip: Clip, in trackID: Track.ID) async throws -> Bool {
         guard clip.mediaKind != .image else { return false }
-        let asset = AVURLAsset(url: try sourceURL(of: clip))
+        let asset = AVURLAsset(url: try clip.audioOverrideURL ?? sourceURL(of: clip))
         guard let assetTrack = try await asset.loadTracks(withMediaType: .audio).first else {
             return false
         }
