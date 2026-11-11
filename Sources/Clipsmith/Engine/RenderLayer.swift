@@ -33,6 +33,15 @@ struct RenderLayer {
             CGAffineTransform(translationX: blend.shift(at: time) * renderSize.width, y: 0))
     }
 
+    func backgroundTransform(at time: TimeInterval) -> CGAffineTransform {
+        let filled = FitTransform.make(
+            naturalSize: naturalSize, preferredTransform: preferredTransform,
+            renderSize: renderSize, mode: .fill)
+        guard let blend else { return filled }
+        return filled.concatenating(
+            CGAffineTransform(translationX: blend.shift(at: time) * renderSize.width, y: 0))
+    }
+
     func opacity(at time: TimeInterval) -> Double {
         clip.visualState(atClipTime: time - clip.startInSeconds).opacity
             * (blend?.opacity(at: time) ?? 1)

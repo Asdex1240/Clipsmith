@@ -130,6 +130,8 @@
 "inspector.visual.framing" = "Encuadre";
 "inspector.visual.fit" = "Ajustar";
 "inspector.visual.fill" = "Rellenar";
+"inspector.visual.blur" = "Desenfoque";
+"inspector.visual.blur.hint" = "Se ve todo el clip; las zonas vacías se rellenan con una copia desenfocada.";
 "inspector.visual.fit.hint" = "Se ve todo el clip; las zonas vacías quedan en negro.";
 "inspector.visual.fill.hint" = "El clip cubre el lienzo; lo que sobresale se recorta.";
 "shortcut.trimStart" = "Recortar inicio hasta el cursor";

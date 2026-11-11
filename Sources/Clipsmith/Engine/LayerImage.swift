@@ -11,8 +11,17 @@ enum LayerImage {
         image = colorCorrected(image, with: layer.clip.color)
         let flipSource = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: sourceHeight)
         let flipCanvas = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: renderHeight)
-        image = image.transformed(
+        let source = image
+        image = source.transformed(
             by: flipSource.concatenating(layer.transform(at: time)).concatenating(flipCanvas))
+        if layer.clip.fitMode == .blur {
+            let background = BlurredBackground.make(
+                from: source,
+                fillTransform: flipSource.concatenating(layer.backgroundTransform(at: time))
+                    .concatenating(flipCanvas),
+                canvas: CGRect(origin: .zero, size: layer.renderSize))
+            image = image.composited(over: background)
+        }
         let opacity = layer.opacity(at: time)
         guard opacity > 0 else { return nil }
         if opacity < 1 {

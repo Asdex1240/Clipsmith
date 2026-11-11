@@ -130,6 +130,8 @@
 "inspector.visual.framing" = "Framing";
 "inspector.visual.fit" = "Fit";
 "inspector.visual.fill" = "Fill";
+"inspector.visual.blur" = "Blur";
+"inspector.visual.blur.hint" = "The whole clip is visible; empty areas are filled with a blurred copy of it.";
 "inspector.visual.fit.hint" = "The whole clip is visible; empty areas stay black.";
 "inspector.visual.fill.hint" = "The clip covers the canvas; what sticks out is cropped.";
 "shortcut.trimStart" = "Trim start to playhead";
