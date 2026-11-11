@@ -38,3 +38,8 @@ struct EasingMenu: View {
         }
     }
 }
+
+#Preview {
+    EasingMenu(easing: .easeInOut, onChange: { _ in })
+        .padding()
+}

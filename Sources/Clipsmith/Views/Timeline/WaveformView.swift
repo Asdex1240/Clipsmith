@@ -32,3 +32,11 @@ struct WaveformView: View {
         .allowsHitTesting(false)
     }
 }
+
+#Preview {
+    WaveformView(
+        peaks: PreviewFixtures.waveformPeaks, clip: PreviewFixtures.videoClip,
+        pointsPerSecond: 40, color: .green
+    )
+    .frame(width: 320, height: 40)
+}

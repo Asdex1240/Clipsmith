@@ -141,3 +141,8 @@ struct EffectsInspector: View {
         }
     }
 }
+
+#Preview {
+    EffectsInspector(store: PreviewFixtures.store(), clip: PreviewFixtures.videoClip)
+        .padding()
+}

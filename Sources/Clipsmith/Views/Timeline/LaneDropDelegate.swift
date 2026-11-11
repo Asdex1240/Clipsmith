@@ -101,3 +101,14 @@ struct DropGhostView: View {
             .allowsHitTesting(false)
     }
 }
+
+#Preview {
+    DropGhostView(
+        preview: DropPreview(
+            trackID: UUID(), start: 0, duration: 4, kind: .video, name: "sample.mov", isValid: true
+        ),
+        pointsPerSecond: 40
+    )
+    .frame(height: 48)
+    .padding()
+}

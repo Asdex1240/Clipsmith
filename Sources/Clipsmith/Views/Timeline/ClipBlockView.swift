@@ -170,3 +170,13 @@ struct ClipBlockView: View {
         }
     }
 }
+
+#Preview {
+    ClipBlockView(
+        clip: PreviewFixtures.videoClip, pointsPerSecond: 40, isSelected: true,
+        waveformPeaks: PreviewFixtures.waveformPeaks, isMissing: false,
+        onSelect: {}, onMove: { _, _ in }, onTrim: { _, _ in }
+    )
+    .frame(height: 48)
+    .padding()
+}

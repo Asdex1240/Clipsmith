@@ -136,3 +136,8 @@ struct VisualInspector: View {
         Binding(get: { clip.fitMode }, set: { store.setFitMode(of: clip.id, to: $0) })
     }
 }
+
+#Preview {
+    VisualInspector(store: PreviewFixtures.store(), clip: PreviewFixtures.videoClip)
+        .padding()
+}

@@ -40,3 +40,7 @@ struct TimelineRuler: View {
         context.draw(label, at: CGPoint(x: x + Self.labelOffset, y: 1), anchor: .topLeading)
     }
 }
+
+#Preview {
+    TimelineRuler(pointsPerSecond: 40, width: 480, onScrub: { _ in })
+}

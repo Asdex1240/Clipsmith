@@ -95,3 +95,9 @@ struct SubtitleInspector: View {
         return identifiers.first(where: { $0 == "en_US" }) ?? identifiers.first ?? "en_US"
     }
 }
+
+#Preview {
+    let store = PreviewFixtures.store()
+    SubtitleInspector(subtitles: SubtitleController(store: store), clip: PreviewFixtures.videoClip)
+        .padding()
+}

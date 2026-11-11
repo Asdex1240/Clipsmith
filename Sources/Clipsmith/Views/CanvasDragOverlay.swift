@@ -331,3 +331,11 @@ struct CanvasDragOverlay: View {
     // MARK: Magnet and guides
 
 }
+
+#Preview {
+    CanvasDragOverlay(
+        store: PreviewFixtures.store(), renderSize: CGSize(width: 1920, height: 1080),
+        visualFrames: [PreviewFixtures.videoClip.id: CGRect(x: 0, y: 0, width: 1920, height: 1080)]
+    )
+    .frame(width: 480, height: 270)
+}

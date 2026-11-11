@@ -53,8 +53,8 @@ struct ExportView: View {
                 }
             }
             Text(outputSizeText)
-            .monospacedDigit()
-            .foregroundStyle(.secondary)
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
             HStack {
                 Spacer()
                 Button(localized("export.cancel")) { dismiss() }
@@ -174,4 +174,8 @@ private extension VideoCodec {
         case .hevc: return localized("export.codec.hevc")
         }
     }
+}
+
+#Preview {
+    ExportView(controller: ExportController(store: PreviewFixtures.store()))
 }

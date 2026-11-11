@@ -127,3 +127,8 @@ private struct CanvasSettings: View {
         heightText = String(canvas.height)
     }
 }
+
+#Preview {
+    CanvasPicker(store: PreviewFixtures.store())
+        .padding()
+}

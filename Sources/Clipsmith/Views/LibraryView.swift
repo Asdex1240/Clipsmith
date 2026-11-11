@@ -160,3 +160,12 @@ private struct DragPreview: View {
         .task { thumbnail = await thumbnails.thumbnail(for: item) }
     }
 }
+
+#Preview {
+    @Previewable @State var selection: MediaItem.ID?
+    LibraryView(
+        library: MediaLibrary(), thumbnails: CachedThumbnailGenerator(),
+        selection: $selection, onAddToTimeline: { _ in }
+    )
+    .frame(width: 280, height: 360)
+}

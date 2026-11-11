@@ -335,3 +335,11 @@ private struct PlayheadHandle: Shape {
         return path
     }
 }
+
+#Preview {
+    TimelineView(
+        store: PreviewFixtures.store(), library: MediaLibrary(), waveforms: WaveformStore(),
+        missingMedia: []
+    )
+    .frame(width: 800, height: 320)
+}

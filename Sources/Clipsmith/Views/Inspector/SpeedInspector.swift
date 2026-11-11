@@ -53,3 +53,8 @@ struct SpeedInspector: View {
         return String(Int(speed)) + "×"
     }
 }
+
+#Preview {
+    SpeedInspector(store: PreviewFixtures.store(), clip: PreviewFixtures.videoClip)
+        .padding()
+}

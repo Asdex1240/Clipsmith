@@ -94,3 +94,8 @@ struct TransitionButton: View {
         }
     }
 }
+
+#Preview {
+    TransitionButton(store: PreviewFixtures.store(), clip: PreviewFixtures.videoClip)
+        .padding()
+}

@@ -108,3 +108,8 @@ struct InspectorView: View {
         return store.project.trackRole(ofClip: clip.id)?.playsAudio ?? false
     }
 }
+
+#Preview {
+    let store = PreviewFixtures.store()
+    InspectorView(store: store, subtitles: SubtitleController(store: store))
+}

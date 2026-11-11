@@ -81,8 +81,8 @@ struct PreviewView: View {
             .disabled(!canPlay)
             .help("\(playbackTitle) (\(EditorShortcuts.displayKeys(for: .togglePlayback)))")
             Text(positionText)
-            .monospacedDigit()
-            .foregroundStyle(.secondary)
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
             Spacer()
             CanvasPicker(store: store)
             modePicker
@@ -134,4 +134,11 @@ struct PreviewView: View {
             }
         )
     }
+}
+
+#Preview {
+    PreviewView(
+        controller: PlayerController(), store: PreviewFixtures.store(), onSelectTimeline: {}
+    )
+    .frame(width: 640, height: 400)
 }

@@ -76,3 +76,8 @@ struct AudioInspector: View {
         }
     }
 }
+
+#Preview {
+    AudioInspector(store: PreviewFixtures.store(), clip: PreviewFixtures.videoClip)
+        .padding()
+}

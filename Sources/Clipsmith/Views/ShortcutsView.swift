@@ -61,3 +61,7 @@ struct ShortcutsView: View {
         }
     }
 }
+
+#Preview {
+    ShortcutsView()
+}

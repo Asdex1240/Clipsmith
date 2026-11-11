@@ -228,3 +228,8 @@ struct TextInspector: View {
         }
     }
 }
+
+#Preview {
+    TextInspector(store: PreviewFixtures.store(), clip: PreviewFixtures.textClip)
+        .padding()
+}
