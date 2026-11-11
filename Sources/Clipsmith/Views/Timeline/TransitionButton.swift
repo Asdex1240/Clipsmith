@@ -14,11 +14,11 @@ struct TransitionButton: View {
 
     private var iconColor: Color {
         if clip.transition == nil { return .secondary }
-        return .white
+        return Palette.onMedia
     }
 
     private var badgeColor: Color {
-        if clip.transition == nil { return Color.black.opacity(0.55) }
+        if clip.transition == nil { return Palette.scrim.opacity(Design.Opacity.scrim) }
         return .accentColor
     }
 
@@ -64,13 +64,15 @@ struct TransitionButton: View {
                 .foregroundStyle(iconColor)
                 .frame(width: Self.size, height: Self.size)
                 .background(Circle().fill(badgeColor))
-                .overlay(Circle().stroke(Color.white.opacity(0.6), lineWidth: 1))
+                .overlay(
+                    Circle().stroke(Palette.onMedia.opacity(Design.Opacity.outline), lineWidth: 1))
         }
         .menuStyle(.button)
         .buttonStyle(.plain)
         .menuIndicator(.hidden)
         .fixedSize()
         .help(helpText)
+        .accessibilityLabel(helpText)
     }
 
     private var helpText: String {

@@ -15,7 +15,7 @@ struct VisualInspector: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: Design.Spacing.cozy) {
             Text(localized("inspector.visual.section")).font(.subheadline.bold())
             Picker(localized("inspector.visual.framing"), selection: framingBinding) {
                 Text(localized("inspector.visual.fit")).tag(FitMode.fit)
@@ -51,7 +51,7 @@ struct VisualInspector: View {
     }
 
     private var keyframes: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: Design.Spacing.compact) {
             Divider()
             Text(localized("inspector.keyframes.section")).font(.subheadline.bold())
             Text(localized(keyframesHintKey))
@@ -59,7 +59,8 @@ struct VisualInspector: View {
                 .foregroundStyle(.secondary)
             ForEach(clip.keyframes) { frame in
                 HStack {
-                    Image(systemName: "diamond.fill").foregroundStyle(.yellow).font(.caption)
+                    Image(systemName: "diamond.fill").foregroundStyle(Palette.keyframe).font(
+                        .caption)
                     Text((clip.startInSeconds + frame.timeInSeconds).clockString).monospacedDigit()
                     Spacer()
                     EasingMenu(easing: frame.easing) {
@@ -72,6 +73,7 @@ struct VisualInspector: View {
                     }
                     .buttonStyle(.borderless)
                     .help(localized("inspector.keyframes.go"))
+                    .accessibilityLabel(localized("inspector.keyframes.go"))
                     Button {
                         store.removeKeyframe(frame.id, from: clip.id)
                     } label: {
@@ -79,6 +81,7 @@ struct VisualInspector: View {
                     }
                     .buttonStyle(.borderless)
                     .help(localized("inspector.keyframes.remove"))
+                    .accessibilityLabel(localized("inspector.keyframes.remove"))
                 }
             }
             HStack {
@@ -122,7 +125,7 @@ struct VisualInspector: View {
         _ range: ClosedRange<Double>,
         _ valueText: String
     ) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: Design.Spacing.hairline) {
             HStack {
                 Text(localized(key))
                 Spacer()

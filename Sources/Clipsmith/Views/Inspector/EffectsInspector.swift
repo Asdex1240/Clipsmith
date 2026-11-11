@@ -10,7 +10,7 @@ struct EffectsInspector: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: Design.Spacing.cozy) {
             Text(localized("inspector.effects.section")).font(.subheadline.bold())
             presets
             slider(
@@ -44,11 +44,12 @@ struct EffectsInspector: View {
     }
 
     private var presets: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: Design.Spacing.tight) {
             Text(localized("inspector.effects.presets")).font(.caption).foregroundStyle(.secondary)
             LazyVGrid(
-                columns: [GridItem(.adaptive(minimum: 70), spacing: 4)], alignment: .leading,
-                spacing: 4
+                columns: [GridItem(.adaptive(minimum: 70), spacing: Design.Spacing.tight)],
+                alignment: .leading,
+                spacing: Design.Spacing.tight
             ) {
                 ForEach(ColorPreset.allCases, id: \.self) { preset in
                     Button(Self.title(of: preset)) {
@@ -69,7 +70,7 @@ struct EffectsInspector: View {
         display: SliderValueDisplay
     ) -> some View {
         let value = clip.color[keyPath: path]
-        return VStack(alignment: .leading, spacing: 2) {
+        return VStack(alignment: .leading, spacing: Design.Spacing.hairline) {
             HStack {
                 Text(localized(key))
                 Spacer()
@@ -98,7 +99,7 @@ struct EffectsInspector: View {
         _ key: String.LocalizationValue, _ path: WritableKeyPath<CropInsets, Double>
     ) -> some View {
         let value = clip.crop[keyPath: path]
-        return VStack(alignment: .leading, spacing: 2) {
+        return VStack(alignment: .leading, spacing: Design.Spacing.hairline) {
             HStack {
                 Text(localized(key))
                 Spacer()

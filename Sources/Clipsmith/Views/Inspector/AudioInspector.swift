@@ -7,7 +7,7 @@ struct AudioInspector: View {
     private static let volumeScale = 100.0
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: Design.Spacing.cozy) {
             Text(localized("inspector.audio.section")).font(.subheadline.bold())
             labeledSlider(
                 "inspector.audio.volume",
@@ -66,7 +66,7 @@ struct AudioInspector: View {
         range: ClosedRange<Double>,
         valueText: String
     ) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: Design.Spacing.hairline) {
             HStack {
                 Text(localized(key))
                 Spacer()

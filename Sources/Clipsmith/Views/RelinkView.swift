@@ -8,7 +8,7 @@ struct RelinkView: View {
     private static let width: CGFloat = 480
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Design.Spacing.spacious) {
             Text(localized("relink.title")).font(.title2.bold())
             Text(localized("relink.message")).foregroundStyle(.secondary)
             List(document.missingMedia, id: \.self) { url in
@@ -32,7 +32,7 @@ struct RelinkView: View {
                     .keyboardShortcut(.defaultAction)
             }
         }
-        .padding(20)
+        .padding(Design.Spacing.roomy)
         .frame(width: Self.width)
     }
 

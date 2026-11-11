@@ -12,8 +12,8 @@ struct CanvasDragOverlay: View {
 
     private static let space = "canvas"
     private static let magnetDistance = 10.0
-    private static let guideColor = Color.red
-    private static let centerGuideColor = Color.cyan
+    private static let guideColor = Palette.guideEdge
+    private static let centerGuideColor = Palette.guideCenter
     private static let guideWidth = 2.0
     private static let textRange = -0.25...1.25
     private static let offsetRange = -1.0...1.0
@@ -31,7 +31,7 @@ struct CanvasDragOverlay: View {
     @State private var reachedEdges: Set<CanvasEdge> = []
     @State private var centeredAxes: Set<CanvasAxis> = []
 
-    private static let selectedOutlineOpacity = 0.9
+    private static let selectedOutlineOpacity = Design.Opacity.selectedOutline
 
     private func outlineOpacity(of target: CanvasTarget) -> Double {
         if store.selectedClipID == target.id { return Self.selectedOutlineOpacity }
@@ -118,7 +118,7 @@ struct CanvasDragOverlay: View {
     ) -> some View {
         let center = screenCenter(of: target, fitted: fitted, scale: scale)
         return Rectangle()
-            .fill(Color.white.opacity(0.001))
+            .fill(Palette.onMedia.opacity(Design.Opacity.hitArea))
             .overlay {
                 Rectangle().strokeBorder(
                     Color.accentColor.opacity(outlineOpacity(of: target)),

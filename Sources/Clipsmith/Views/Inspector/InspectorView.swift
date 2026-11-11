@@ -13,7 +13,7 @@ struct InspectorView: View {
         VStack(alignment: .leading, spacing: 0) {
             Text(localized("panel.inspector"))
                 .font(.headline)
-                .padding(8)
+                .padding(Design.Spacing.regular)
             Divider()
             content
         }
@@ -25,7 +25,7 @@ struct InspectorView: View {
             multipleSelection
         } else if let clip = store.selectedClip {
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: Design.Spacing.spacious) {
                     if hasVisualControls(for: clip) {
                         VisualInspector(
                             store: store,
@@ -50,7 +50,7 @@ struct InspectorView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                .padding(12)
+                .padding(Design.Spacing.comfortable)
             }
         } else {
             ZStack {
@@ -64,7 +64,7 @@ struct InspectorView: View {
     }
 
     private var multipleSelection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Design.Spacing.comfortable) {
             Text(String(format: localized("inspector.multiple.title"), store.selectedClipIDs.count))
                 .font(.subheadline.bold())
             Text(localized(multipleSelectionHintKey))
@@ -84,7 +84,7 @@ struct InspectorView: View {
             }
             Spacer()
         }
-        .padding(12)
+        .padding(Design.Spacing.comfortable)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 

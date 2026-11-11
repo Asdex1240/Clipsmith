@@ -87,7 +87,7 @@ struct PreviewView: View {
             CanvasPicker(store: store)
             modePicker
         }
-        .padding(8)
+        .padding(Design.Spacing.regular)
     }
 
     private var positionText: String {

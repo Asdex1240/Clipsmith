@@ -35,7 +35,7 @@ private struct CanvasSettings: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Design.Spacing.comfortable) {
             Text(localized("canvas.title")).font(.headline)
             Text(localized("canvas.hint")).font(.caption).foregroundStyle(.secondary)
             presets
@@ -45,14 +45,14 @@ private struct CanvasSettings: View {
             Divider()
             Toggle(localized("canvas.autoFit"), isOn: autoFitBinding)
         }
-        .padding(16)
+        .padding(Design.Spacing.spacious)
         .frame(width: Self.width)
         .onAppear(perform: syncFields)
         .onChange(of: store.project.canvas) { syncFields() }
     }
 
     private var presets: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: Design.Spacing.hairline) {
             ForEach(CanvasFormat.presets) { preset in
                 let resized = preset.scaled(toShortSide: canvas.shortSide)
                 Button {

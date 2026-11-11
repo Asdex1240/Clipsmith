@@ -7,7 +7,7 @@ struct MarkerFlags: View {
     private static let flagWidth: CGFloat = 12
     private static let flagHeight: CGFloat = 14
     private static let popoverWidth: CGFloat = 220
-    private static let color = Color.orange
+    private static let color = Palette.marker
 
     @State private var editingID: Marker.ID?
 
@@ -37,6 +37,7 @@ struct MarkerFlags: View {
         }
         .contentShape(Rectangle())
         .help(displayName(of: marker))
+        .accessibilityLabel(displayName(of: marker))
         .offset(x: x - Self.flagWidth / 2, y: TimelineMetrics.rulerHeight - Self.flagHeight)
         .onTapGesture(count: 2) { editingID = marker.id }
         .onTapGesture { store.setPlayhead(near: marker.timeInSeconds) }
@@ -46,7 +47,7 @@ struct MarkerFlags: View {
     }
 
     private func editor(for marker: Marker) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: Design.Spacing.cozy) {
             Text(localized("marker.title")).font(.headline)
             TextField(localized("marker.name"), text: nameBinding(for: marker))
                 .textFieldStyle(.roundedBorder)

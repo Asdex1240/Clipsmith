@@ -47,6 +47,7 @@ struct TimelineView: View {
                 Image(systemName: "magnet")
             }
             .toggleStyle(.button)
+            .accessibilityLabel(snappingTitle)
             .help("\(snappingTitle) (\(EditorShortcuts.displayKeys(for: .toggleSnapping)))")
             toolbarButton(
                 "timeline.addText", systemImage: "textformat", shortcut: .addText,
@@ -97,8 +98,8 @@ struct TimelineView: View {
                 "timeline.zoomIn", systemImage: "plus.magnifyingglass", shortcut: .zoomIn,
                 action: store.zoomIn)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
+        .padding(.horizontal, Design.Spacing.regular)
+        .padding(.vertical, Design.Spacing.tight)
     }
 
     private func toolbarButton(
@@ -108,6 +109,7 @@ struct TimelineView: View {
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) { Image(systemName: systemImage) }
+            .accessibilityLabel(localized(key))
             .help("\(localized(key)) (\(EditorShortcuts.displayKeys(for: shortcut)))")
     }
 
@@ -128,12 +130,12 @@ struct TimelineView: View {
                         width: TimelineMetrics.trackLabelWidth, height: TimelineMetrics.laneHeight,
                         alignment: .leading
                     )
-                    .padding(.leading, 8)
+                    .padding(.leading, Design.Spacing.regular)
                     .contextMenu { trackMenu(for: track) }
             }
             addTrackMenu
                 .frame(width: TimelineMetrics.trackLabelWidth, alignment: .leading)
-                .padding(.leading, 8)
+                .padding(.leading, Design.Spacing.regular)
         }
     }
 
@@ -193,11 +195,11 @@ struct TimelineView: View {
         let size = Self.playheadHandleSize
         return ZStack(alignment: .top) {
             Rectangle()
-                .fill(Color.red)
+                .fill(Palette.playhead)
                 .frame(width: 1.5)
                 .allowsHitTesting(false)
             PlayheadHandle()
-                .fill(Color.red)
+                .fill(Palette.playhead)
                 .frame(width: size.width, height: size.height)
                 .contentShape(Rectangle())
                 .gesture(

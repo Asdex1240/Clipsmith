@@ -34,11 +34,14 @@ struct ContentView: View {
                     onAddToTimeline: store.appendToTimeline
                 )
                 .frame(minWidth: Layout.libraryMinWidth, idealWidth: Layout.libraryIdealWidth)
+                .panelSurface()
                 PreviewView(controller: player, store: store, onSelectTimeline: showTimeline)
                     .frame(minWidth: Layout.previewMinWidth)
                 InspectorView(store: store, subtitles: subtitles)
                     .frame(
-                        minWidth: Layout.inspectorMinWidth, idealWidth: Layout.inspectorIdealWidth)
+                        minWidth: Layout.inspectorMinWidth, idealWidth: Layout.inspectorIdealWidth
+                    )
+                    .panelSurface()
             }
             Divider()
             TimelineView(

@@ -14,11 +14,11 @@ struct ExportView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Design.Spacing.spacious) {
             Text(localized("export.title")).font(.title2.bold())
             content
         }
-        .padding(20)
+        .padding(Design.Spacing.roomy)
         .frame(width: Self.width)
         .interactiveDismissDisabled(controller.isExporting)
     }
@@ -34,7 +34,7 @@ struct ExportView: View {
     }
 
     private var settingsForm: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Design.Spacing.comfortable) {
             Form {
                 Picker(localized("export.preset"), selection: presetBinding) {
                     ForEach(ExportPreset.allCases) { Text($0.title).tag(Optional($0)) }
@@ -66,7 +66,7 @@ struct ExportView: View {
     }
 
     private func progressView(_ progress: Double) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Design.Spacing.comfortable) {
             Text(localized("export.exporting"))
             ProgressView(value: progress)
             HStack {
@@ -80,9 +80,9 @@ struct ExportView: View {
     }
 
     private func finishedView(_ url: URL) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label(localized("export.done"), systemImage: "checkmark.circle.fill").foregroundStyle(
-                .green)
+        VStack(alignment: .leading, spacing: Design.Spacing.comfortable) {
+            Label(localized("export.done"), systemImage: "checkmark.circle.fill")
+                .foregroundStyle(Palette.success)
             HStack {
                 Spacer()
                 Button(localized("export.showInFinder")) {
@@ -95,8 +95,9 @@ struct ExportView: View {
     }
 
     private func failedView(_ message: String) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label(message, systemImage: "exclamationmark.triangle.fill").foregroundStyle(.red)
+        VStack(alignment: .leading, spacing: Design.Spacing.comfortable) {
+            Label(message, systemImage: "exclamationmark.triangle.fill").foregroundStyle(
+                Palette.invalid)
             HStack {
                 Spacer()
                 Button(localized("export.close")) { closeAndReset() }

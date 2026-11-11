@@ -22,7 +22,7 @@ struct TextInspector: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: Design.Spacing.cozy) {
             Text(localized("inspector.text.section")).font(.subheadline.bold())
             TextField(
                 localized("inspector.text.content"), text: binding(\.content), axis: .vertical
@@ -52,12 +52,13 @@ struct TextInspector: View {
     // MARK: Style
 
     private var styleControls: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Design.Spacing.regular) {
             Divider()
             Text(localized("inspector.textStyle.section")).font(.subheadline.bold())
             LazyVGrid(
-                columns: [GridItem(.adaptive(minimum: 78), spacing: 4)], alignment: .leading,
-                spacing: 4
+                columns: [GridItem(.adaptive(minimum: 78), spacing: Design.Spacing.tight)],
+                alignment: .leading,
+                spacing: Design.Spacing.tight
             ) {
                 ForEach(TextStylePreset.allCases, id: \.self) { preset in
                     Button(Self.title(of: preset)) {
@@ -93,7 +94,7 @@ struct TextInspector: View {
     // MARK: Animation
 
     private var animationControls: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Design.Spacing.regular) {
             Divider()
             Text(localized("inspector.textAnimation.section")).font(.subheadline.bold())
             Picker(localized("inspector.textAnimation.in"), selection: binding(\.animation.inKind))
@@ -218,7 +219,7 @@ struct TextInspector: View {
         _ range: ClosedRange<Double>,
         _ valueText: String
     ) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: Design.Spacing.hairline) {
             HStack {
                 Text(localized(key))
                 Spacer()

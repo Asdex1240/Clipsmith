@@ -20,6 +20,8 @@ Planned for the first release:
 - **Transitions** — dissolve, fade through black or slide between touching clips.
 - **Color and crop** — brightness, contrast, saturation, temperature, one-click looks and a per-side crop.
 - **Subtitles** — generate text clips from the speech in a clip, on device where the language allows (needs the packaged app, see below).
+- **Silence removal** — find the silent stretches of a clip from its waveform (adjustable volume threshold and minimum length), review the proposed cuts, then split and ripple delete them in one undoable step.
+- **Highlights** — mark ranges of a vlog as clips (in/out points), reframe each one to vertical 9:16 and export several at once as separate MP4 files, ready for TikTok, Reels and Shorts.
 - **Export** — MP4 (H.264 / HEVC) at 720p, 1080p, 1440p, 4K or exactly the canvas size, with configurable frame rate and 16:9 / 9:16 presets.
 
 Everything runs locally; there is no backend and no account.
