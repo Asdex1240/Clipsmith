@@ -4,8 +4,15 @@ extension Project {
     private static let boundaryToleranceInSeconds: TimeInterval = 1e-6
 
     @discardableResult
-    mutating func removeRanges(_ ranges: [Range<TimeInterval>], from clipID: Clip.ID) -> Int {
+    mutating func removeRanges(
+        _ ranges: [Range<TimeInterval>], from clipID: Clip.ID, syncingAllTracks: Bool = false
+    ) -> Int {
         guard let clip = clip(withID: clipID) else { return 0 }
+        if syncingAllTracks {
+            let ordered = ranges.sorted { $0.lowerBound > $1.lowerBound }
+            ordered.forEach { removeTimeRange($0) }
+            return ordered.count
+        }
         var targets: Set<Clip.ID> = [clipID]
         if let group = clip.groupID {
             targets.formUnion(tracks.flatMap(\.clips).filter { $0.groupID == group }.map(\.id))

@@ -115,3 +115,93 @@ final class SilenceRemovalTests: XCTestCase {
         XCTAssertEqual(store.project.track(withRole: .main)!.clips.count, 1)
     }
 }
+
+final class TimeRemovalTests: XCTestCase {
+    private var project = Project(name: "T")
+
+    private func clips(_ role: Track.Role) -> [Clip] { project.track(withRole: role)!.clips }
+
+    private func add(_ clip: Clip, _ role: Track.Role) {
+        project.addClip(clip, toTrack: project.track(withRole: role)!.id)
+    }
+
+    func testOtherTracksStayInSyncWithTheCut() {
+        let video = TestClips.video(start: 0, sourceEnd: 20)
+        let music = TestClips.audio(start: 0, duration: 30)
+        add(video, .main)
+        add(music, .audio)
+
+        project.removeRanges([5..<8], from: video.id, syncingAllTracks: true)
+
+        XCTAssertEqual(clips(.main).map(\.durationInSeconds), [5, 12])
+        XCTAssertEqual(clips(.audio).map(\.startInSeconds), [0, 5])
+        XCTAssertEqual(clips(.audio).map(\.durationInSeconds), [5, 22])
+        XCTAssertEqual(project.durationInSeconds, 27, accuracy: 1e-9)
+    }
+
+    func testClipsInsideTheCutAreRemovedAndLaterOnesMove() {
+        let video = TestClips.video(start: 0, sourceEnd: 20)
+        add(video, .main)
+        add(Clip(text: TextLayer(content: "gone"), startInSeconds: 6, durationInSeconds: 1), .text)
+        add(Clip(text: TextLayer(content: "later"), startInSeconds: 12, durationInSeconds: 2), .text)
+
+        project.removeRanges([5..<8], from: video.id, syncingAllTracks: true)
+
+        XCTAssertEqual(clips(.text).compactMap { $0.textLayer?.content }, ["later"])
+        XCTAssertEqual(clips(.text).first?.startInSeconds ?? 0, 9, accuracy: 1e-9)
+    }
+
+    func testClipsOverlappingTheEdgesAreTrimmedWithoutOverlap() {
+        let video = TestClips.video(start: 0, sourceEnd: 20)
+        add(video, .main)
+        add(Clip(text: TextLayer(content: "a"), startInSeconds: 3, durationInSeconds: 4), .text)
+        add(Clip(text: TextLayer(content: "b"), startInSeconds: 7, durationInSeconds: 4), .text)
+
+        project.removeRanges([5..<8], from: video.id, syncingAllTracks: true)
+
+        let text = clips(.text)
+        XCTAssertEqual(text.map(\.startInSeconds), [3, 5])
+        XCTAssertEqual(text.map(\.durationInSeconds), [2, 3])
+        XCTAssertLessThanOrEqual(text[0].endInSeconds, text[1].startInSeconds + 1e-9)
+    }
+
+    func testMarkersAndHighlightsFollowTheCut() {
+        let video = TestClips.video(start: 0, sourceEnd: 30)
+        add(video, .main)
+        project.markers = [
+            Marker(timeInSeconds: 2), Marker(timeInSeconds: 6), Marker(timeInSeconds: 20),
+        ]
+        project.addHighlight(Highlight(name: "h", startInSeconds: 10, endInSeconds: 25))
+
+        project.removeRanges([5..<8], from: video.id, syncingAllTracks: true)
+
+        XCTAssertEqual(project.markers.map(\.timeInSeconds), [2, 17])
+        XCTAssertEqual(project.highlights.first?.startInSeconds ?? 0, 7, accuracy: 1e-9)
+        XCTAssertEqual(project.highlights.first?.endInSeconds ?? 0, 22, accuracy: 1e-9)
+    }
+
+    func testWithoutSyncingOtherTracksAreLeftAlone() {
+        let video = TestClips.video(start: 0, sourceEnd: 20)
+        let music = TestClips.audio(start: 0, duration: 30)
+        add(video, .main)
+        add(music, .audio)
+
+        project.removeRanges([5..<8], from: video.id, syncingAllTracks: false)
+
+        XCTAssertEqual(clips(.audio), [music])
+    }
+
+    @MainActor
+    func testSyncedRemovalIsOneUndoStep() {
+        let video = TestClips.video(start: 0, sourceEnd: 20)
+        add(video, .main)
+        add(TestClips.audio(start: 0, duration: 30), .audio)
+        let store = ProjectStore(project: project)
+
+        store.removeSilences([2..<4, 10..<12], from: video.id)
+        store.undo()
+
+        XCTAssertEqual(store.project.track(withRole: .main)!.clips.count, 1)
+        XCTAssertEqual(store.project.track(withRole: .audio)!.clips.count, 1)
+    }
+}

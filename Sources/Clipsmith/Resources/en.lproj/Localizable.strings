@@ -186,6 +186,7 @@
 "inspector.silences.find" = "Find silences";
 "inspector.silences.found" = "%d silences found (%@ in total). Click one to preview it.";
 "inspector.silences.none" = "No silences found with these settings.";
+"inspector.silences.sync" = "Keep the other tracks in sync";
 "inspector.silences.remove" = "Remove silences";
 "inspector.silences.hint" = "Finds the quiet stretches of this clip from its waveform. Removing them cuts each one and closes the gap in a single undoable step.";
 "inspector.subtitles.section" = "Subtitles";
