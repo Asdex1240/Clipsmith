@@ -233,3 +233,4 @@
 "inspector.reset" = "Reset";
 "inspector.section.expanded" = "Expanded";
 "inspector.section.collapsed" = "Collapsed";
+"highlight.defaultName" = "Highlight %d";

@@ -233,3 +233,4 @@
 "inspector.reset" = "Restablecer";
 "inspector.section.expanded" = "Expandido";
 "inspector.section.collapsed" = "Contraído";
+"highlight.defaultName" = "Clip %d";
