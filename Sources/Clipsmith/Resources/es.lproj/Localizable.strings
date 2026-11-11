@@ -217,6 +217,7 @@
 "textAnimation.slideDown" = "Bajar";
 "textAnimation.pop" = "Aparecer con rebote";
 "inspector.subtitles.style" = "Estilo";
+"inspector.subtitles.highlight" = "Resaltar la palabra que se dice";
 "inspector.subtitles.animation" = "Animación";
 "timeline.group" = "Agrupar clips seleccionados";
 "timeline.ungroup" = "Desagrupar";

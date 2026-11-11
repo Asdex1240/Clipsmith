@@ -34,12 +34,13 @@ struct TextLayer: Codable, Equatable {
     var backgroundColor: RGBAColor?
     var hasShadow = true
     var animation = TextAnimation()
+    var wordHighlight: WordHighlight?
 }
 
 extension TextLayer {
     private enum CodingKeys: String, CodingKey {
         case content, fontName, fontSize, color, positionX, positionY, rotationInDegrees
-        case strokeWidth, strokeColor, backgroundColor, hasShadow, animation
+        case strokeWidth, strokeColor, backgroundColor, hasShadow, animation, wordHighlight
     }
 
     init(from decoder: Decoder) throws {
@@ -58,6 +59,7 @@ extension TextLayer {
         hasShadow = try container.decodeIfPresent(Bool.self, forKey: .hasShadow) ?? true
         animation =
             try container.decodeIfPresent(TextAnimation.self, forKey: .animation) ?? TextAnimation()
+        wordHighlight = try container.decodeIfPresent(WordHighlight.self, forKey: .wordHighlight)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -78,5 +80,6 @@ extension TextLayer {
         try container.encodeIfPresent(backgroundColor, forKey: .backgroundColor)
         if !hasShadow { try container.encode(hasShadow, forKey: .hasShadow) }
         if !animation.isNone { try container.encode(animation, forKey: .animation) }
+        try container.encodeIfPresent(wordHighlight, forKey: .wordHighlight)
     }
 }

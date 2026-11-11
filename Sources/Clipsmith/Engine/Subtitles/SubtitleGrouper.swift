@@ -42,7 +42,12 @@ enum SubtitleGrouper {
         SubtitleLine(
             text: words.map(trimmed).joined(separator: " "),
             startInSeconds: words.first?.startInSeconds ?? 0,
-            endInSeconds: words.last?.endInSeconds ?? 0
+            endInSeconds: words.last?.endInSeconds ?? 0,
+            words: words.map { word in
+                TranscribedWord(
+                    text: trimmed(word), startInSeconds: word.startInSeconds,
+                    durationInSeconds: word.durationInSeconds)
+            }
         )
     }
 
@@ -54,7 +59,7 @@ enum SubtitleGrouper {
                 max(line.endInSeconds, line.startInSeconds + minimumDurationInSeconds), latestEnd)
             return SubtitleLine(
                 text: line.text, startInSeconds: line.startInSeconds,
-                endInSeconds: max(end, line.startInSeconds))
+                endInSeconds: max(end, line.startInSeconds), words: line.words)
         }
     }
 }

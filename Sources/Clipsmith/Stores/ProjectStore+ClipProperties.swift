@@ -90,10 +90,13 @@ extension ProjectStore {
     @discardableResult
     func addSubtitles(
         _ lines: [SubtitleLine], style: TextStylePreset = .classic,
-        animation: TextAnimation = TextAnimation()
+        animation: TextAnimation = TextAnimation(), highlightColor: RGBAColor? = nil
     ) -> Int {
         var added = 0
-        mutate { added = $0.addSubtitles(lines, style: style, animation: animation) }
+        mutate {
+            added = $0.addSubtitles(
+                lines, style: style, animation: animation, highlightColor: highlightColor)
+        }
         return added
     }
 

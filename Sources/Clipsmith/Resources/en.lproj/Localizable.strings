@@ -217,6 +217,7 @@
 "textAnimation.slideDown" = "Slide down";
 "textAnimation.pop" = "Pop";
 "inspector.subtitles.style" = "Style";
+"inspector.subtitles.highlight" = "Highlight the spoken word";
 "inspector.subtitles.animation" = "Animation";
 "timeline.group" = "Group selected clips";
 "timeline.ungroup" = "Ungroup";

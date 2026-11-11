@@ -170,14 +170,26 @@ extension Project {
     @discardableResult
     mutating func addSubtitles(
         _ lines: [SubtitleLine], style: TextStylePreset = .classic,
-        animation: TextAnimation = TextAnimation()
+        animation: TextAnimation = TextAnimation(), highlightColor: RGBAColor? = nil
     ) -> Int {
         lines.reduce(0) { added, line in
-            let layer = TextLayer.subtitle(line.text, style: style, animation: animation)
-            guard
-                addTextClip(layer, at: line.startInSeconds, duration: line.durationInSeconds) != nil
-            else { return added }
-            return added + 1
+            let segments = highlightColor == nil ? [] : SubtitleSegment.segments(of: line)
+            guard !segments.isEmpty, let highlightColor else {
+                let layer = TextLayer.subtitle(line.text, style: style, animation: animation)
+                guard
+                    addTextClip(layer, at: line.startInSeconds, duration: line.durationInSeconds)
+                        != nil
+                else { return added }
+                return added + 1
+            }
+            let placed = segments.reduce(0) { count, segment in
+                var layer = TextLayer.subtitle(line.text, style: style)
+                layer.wordHighlight = WordHighlight(index: segment.wordIndex, color: highlightColor)
+                let id = addTextClip(
+                    layer, at: segment.startInSeconds, duration: segment.durationInSeconds)
+                return count + (id == nil ? 0 : 1)
+            }
+            return added + (placed > 0 ? 1 : 0)
         }
     }
 
