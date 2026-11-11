@@ -41,15 +41,17 @@ struct ContentView: View {
                 .panelSurface()
                 PreviewView(
                     controller: player, store: store, proxies: previewer.proxies,
-                    onSelectTimeline: showTimeline)
-                    .frame(minWidth: Layout.previewMinWidth)
+                    onSelectTimeline: showTimeline
+                )
+                .frame(minWidth: Layout.previewMinWidth)
                 InspectorView(
                     store: store, subtitles: subtitles, waveforms: waveforms,
-                    denoise: previewer.denoise)
-                    .frame(
-                        minWidth: Layout.inspectorMinWidth, idealWidth: Layout.inspectorIdealWidth
-                    )
-                    .panelSurface()
+                    denoise: previewer.denoise
+                )
+                .frame(
+                    minWidth: Layout.inspectorMinWidth, idealWidth: Layout.inspectorIdealWidth
+                )
+                .panelSurface()
             }
             Divider()
             TimelineView(

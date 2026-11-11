@@ -35,3 +35,14 @@ struct CacheSettingsView: View {
         .task { await controller.refresh() }
     }
 }
+
+#Preview {
+    let previewer = TimelinePreviewer(store: PreviewFixtures.store(), player: PlayerController())
+    CacheSettingsView(
+        controller: CacheController(
+            cleaner: CacheCleaner(directories: []), proxies: previewer.proxies,
+            denoise: previewer.denoise, onCleared: {})
+    )
+    .padding()
+    .frame(width: 360)
+}

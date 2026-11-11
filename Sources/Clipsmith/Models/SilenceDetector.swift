@@ -28,8 +28,10 @@ enum SilenceDetector {
             let from = Double(begin) / peaksPerSecond
             let to = Double(index) / peaksPerSecond
             guard to - from >= minimumDuration else { continue }
-            let cutStart = from + (begin == first ? 0 : padding)
-            let cutEnd = to - (index == last ? 0 : padding)
+            var cutStart = from
+            if begin != first { cutStart += padding }
+            var cutEnd = to
+            if index != last { cutEnd -= padding }
             if cutEnd - cutStart >= Clip.minimumDurationInSeconds {
                 result.append(cutStart..<cutEnd)
             }
@@ -41,11 +43,14 @@ enum SilenceDetector {
         _ ranges: [Range<TimeInterval>], for clip: Clip
     ) -> [Range<TimeInterval>] {
         ranges.compactMap { range in
-            let start = clip.startInSeconds + (range.lowerBound - clip.sourceStartInSeconds) / clip.speed
-            let end = clip.startInSeconds + (range.upperBound - clip.sourceStartInSeconds) / clip.speed
+            let start =
+                clip.startInSeconds + (range.lowerBound - clip.sourceStartInSeconds) / clip.speed
+            let end =
+                clip.startInSeconds + (range.upperBound - clip.sourceStartInSeconds) / clip.speed
             let lower = max(start, clip.startInSeconds)
             let upper = min(end, clip.endInSeconds)
-            return upper - lower >= Clip.minimumDurationInSeconds ? lower..<upper : nil
+            guard upper - lower >= Clip.minimumDurationInSeconds else { return nil }
+            return lower..<upper
         }
     }
 }

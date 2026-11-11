@@ -12,7 +12,10 @@ struct WordHighlight: Codable, Equatable {
             .enumerated()
         {
             let length = word.utf16.count
-            if position == index { return length > 0 ? NSRange(location: location, length: length) : nil }
+            if position == index {
+                guard length > 0 else { return nil }
+                return NSRange(location: location, length: length)
+            }
             location += length + 1
         }
         return nil

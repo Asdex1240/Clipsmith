@@ -17,7 +17,8 @@ extension Project {
             moved.timeInSeconds = Self.timeAfterRemoving(range, from: marker.timeInSeconds)
             let isInside =
                 marker.timeInSeconds > range.lowerBound && marker.timeInSeconds < range.upperBound
-            return isInside ? nil : moved
+            guard !isInside else { return nil }
+            return moved
         }
         for index in highlights.indices {
             let highlight = highlights[index]
@@ -29,7 +30,9 @@ extension Project {
         }
     }
 
-    private static func timeAfterRemoving(_ range: Range<TimeInterval>, from time: TimeInterval)
+    private static func timeAfterRemoving(
+        _ range: Range<TimeInterval>, from time: TimeInterval
+    )
         -> TimeInterval
     {
         if time >= range.upperBound { return time - (range.upperBound - range.lowerBound) }

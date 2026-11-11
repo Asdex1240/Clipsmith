@@ -25,7 +25,8 @@ final class SubtitleController {
 
     func generate(
         for clipID: Clip.ID, locale: Locale, style: TextStylePreset = .classic,
-        animation: TextAnimation = TextAnimation(), highlightsSpokenWord: Bool = false
+        animation: TextAnimation = TextAnimation(),
+        wordHighlighting: SpokenWordHighlighting = .off
     ) {
         guard !isWorking, let clip = store.project.clip(withID: clipID), let url = clip.sourceURL,
             clip.mediaKind == .video || clip.mediaKind == .audio
@@ -36,7 +37,7 @@ final class SubtitleController {
                 let lines = try await subtitleLines(for: clip, from: url, locale: locale)
                 let added = store.addSubtitles(
                     lines, style: style, animation: animation,
-                    highlightColor: highlightsSpokenWord ? Self.highlightColor(for: style) : nil)
+                    highlightColor: spokenWordColor(for: style, wordHighlighting))
                 state = .finished(lineCount: added)
             } catch is CancellationError {
                 state = .idle
@@ -67,8 +68,16 @@ final class SubtitleController {
         if !isWorking { state = .idle }
     }
 
+    private func spokenWordColor(
+        for style: TextStylePreset, _ wordHighlighting: SpokenWordHighlighting
+    ) -> RGBAColor? {
+        guard wordHighlighting == .on else { return nil }
+        return Self.highlightColor(for: style)
+    }
+
     static func highlightColor(for style: TextStylePreset) -> RGBAColor {
-        style == .highlight ? .white : WordHighlight.defaultColor
+        if style == .highlight { return .white }
+        return WordHighlight.defaultColor
     }
 
     static func timelineLines(from lines: [SubtitleLine], for clip: Clip) -> [SubtitleLine] {

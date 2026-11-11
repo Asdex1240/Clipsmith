@@ -4,9 +4,14 @@ import XCTest
 final class HighlightSuggesterTests: XCTestCase {
     private let rate = WaveformSpec.peaksPerSecond
 
+    private func level(of second: Int, loud: Range<Int>) -> Float {
+        guard loud.contains(second) else { return 0.05 }
+        return 0.8
+    }
+
     private func peaks(seconds: Int, loud: Range<Int>) -> [Float] {
         (0..<seconds).flatMap { second in
-            [Float](repeating: loud.contains(second) ? 0.8 : 0.05, count: Int(rate))
+            [Float](repeating: level(of: second, loud: loud), count: Int(rate))
         }
     }
 
@@ -66,7 +71,8 @@ final class HighlightSuggesterTests: XCTestCase {
 
         XCTAssertGreaterThan(added, 0)
         XCTAssertEqual(store.project.highlights.count, added)
-        XCTAssertTrue(store.project.highlights.allSatisfy { $0.startInSeconds >= clip.startInSeconds })
+        XCTAssertTrue(
+            store.project.highlights.allSatisfy { $0.startInSeconds >= clip.startInSeconds })
         store.undo()
         XCTAssertTrue(store.project.highlights.isEmpty)
     }

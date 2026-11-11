@@ -35,15 +35,7 @@ struct AVNoiseReducer: NoiseReductionProcessing {
         let reader = try AVAssetReader(asset: asset)
         let output = AVAssetReaderTrackOutput(
             track: track,
-            outputSettings: [
-                AVFormatIDKey: kAudioFormatLinearPCM,
-                AVLinearPCMBitDepthKey: 32,
-                AVLinearPCMIsFloatKey: true,
-                AVLinearPCMIsBigEndianKey: false,
-                AVLinearPCMIsNonInterleaved: false,
-                AVSampleRateKey: sampleRate,
-                AVNumberOfChannelsKey: channels,
-            ])
+            outputSettings: Self.readerSettings(sampleRate: sampleRate, channels: channels))
         reader.add(output)
         guard reader.startReading(),
             let format = AVAudioFormat(
@@ -56,10 +48,31 @@ struct AVNoiseReducer: NoiseReductionProcessing {
         let denoisers = (0..<channels).map { _ in
             SpectralDenoiser(sampleRate: sampleRate, level: level)
         }
+        try process(output, reader: reader, with: denoisers, into: file, format: format)
+    }
+
+    private static func readerSettings(sampleRate: Double, channels: Int) -> [String: Any] {
+        [
+            AVFormatIDKey: kAudioFormatLinearPCM,
+            AVLinearPCMBitDepthKey: 32,
+            AVLinearPCMIsFloatKey: true,
+            AVLinearPCMIsBigEndianKey: false,
+            AVLinearPCMIsNonInterleaved: false,
+            AVSampleRateKey: sampleRate,
+            AVNumberOfChannelsKey: channels,
+        ]
+    }
+
+    private func process(
+        _ output: AVAssetReaderTrackOutput, reader: AVAssetReader,
+        with denoisers: [SpectralDenoiser], into file: AVAudioFile, format: AVAudioFormat
+    ) throws {
+        let channels = denoisers.count
         while let buffer = output.copyNextSampleBuffer() {
             try Task.checkCancellation()
             let samples = Self.channelSamples(of: buffer, channels: channels)
-            try append(denoisers.enumerated().map { $1.process(samples[$0]) }, to: file, format: format)
+            try append(
+                denoisers.enumerated().map { $1.process(samples[$0]) }, to: file, format: format)
         }
         guard reader.status == .completed else {
             throw NoiseReductionError.readFailed(reader.error?.localizedDescription ?? "")
@@ -78,7 +91,8 @@ struct AVNoiseReducer: NoiseReductionProcessing {
         buffer.frameLength = AVAudioFrameCount(frames)
         for (channel, values) in channelData.enumerated() {
             values.withUnsafeBufferPointer {
-                destination[channel].update(from: $0.baseAddress!, count: frames)
+                guard let source = $0.baseAddress else { return }
+                destination[channel].update(from: source, count: frames)
             }
         }
         try file.write(from: buffer)
@@ -91,8 +105,9 @@ struct AVNoiseReducer: NoiseReductionProcessing {
         let length = CMBlockBufferGetDataLength(block)
         var interleaved = [Float](repeating: 0, count: length / MemoryLayout<Float>.size)
         interleaved.withUnsafeMutableBytes {
+            guard let destination = $0.baseAddress else { return }
             _ = CMBlockBufferCopyDataBytes(
-                block, atOffset: 0, dataLength: length, destination: $0.baseAddress!)
+                block, atOffset: 0, dataLength: length, destination: destination)
         }
         let frames = interleaved.count / channels
         return (0..<channels).map { channel in

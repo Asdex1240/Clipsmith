@@ -118,7 +118,8 @@ final class TimelinePreviewer {
 
     private func rebuild(_ project: Project, mode: RebuildMode) async {
         do {
-            let built = try await builder.build(from: proxies.substituting(denoise.applying(project)))
+            let built = try await builder.build(
+                from: proxies.substituting(denoise.applying(project)))
             guard !Task.isCancelled else { return }
             lastBuiltStructure = Self.withoutText(project)
             if built.durationInSeconds > 0 {

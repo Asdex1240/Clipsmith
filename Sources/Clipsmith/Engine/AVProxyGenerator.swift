@@ -42,8 +42,3 @@ struct AVProxyGenerator: ProxyGenerating {
         try FileManager.default.moveItem(at: partial, to: destination)
     }
 }
-
-enum ProxyError: Error, Equatable {
-    case cannotCreateSession
-    case exportFailed(String)
-}

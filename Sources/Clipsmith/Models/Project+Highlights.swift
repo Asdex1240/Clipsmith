@@ -89,7 +89,8 @@ extension Project {
 
 extension Clip {
     fileprivate func reframedForVertical(offsetX requested: Double, fitMode mode: FitMode) -> Clip {
-        let framing = mode == .fill ? requested : 0
+        var framing = 0.0
+        if mode == .fill { framing = requested }
         var clip = self
         clip.fitMode = mode
         clip.offsetX = framing

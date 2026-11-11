@@ -104,7 +104,9 @@ final class ClipDuckingTests: XCTestCase {
         var clip = music()
         clip.ducking = ClipDucking(
             level: 0.2,
-            ranges: [ClipDucking.Range(start: 10, end: 12), ClipDucking.Range(start: 12.3, end: 14)])
+            ranges: [
+                ClipDucking.Range(start: 10, end: 12), ClipDucking.Range(start: 12.3, end: 14),
+            ])
 
         let steps = VolumeAutomation.steps(for: clip)
 
@@ -155,7 +157,8 @@ final class ClipDuckingTests: XCTestCase {
         XCTAssertEqual(count, 2)
         XCTAssertEqual(store.project.clip(withID: bed.id)?.ducking?.level, 0.3)
         store.setDuckLevel(of: bed.id, to: 5)
-        XCTAssertEqual(store.project.clip(withID: bed.id)?.ducking?.level, ClipDucking.levelRange.upperBound)
+        XCTAssertEqual(
+            store.project.clip(withID: bed.id)?.ducking?.level, ClipDucking.levelRange.upperBound)
         store.clearDucking(of: bed.id)
         XCTAssertNil(store.project.clip(withID: bed.id)?.ducking)
         store.undo()

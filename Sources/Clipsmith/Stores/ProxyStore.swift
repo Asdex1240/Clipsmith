@@ -61,7 +61,8 @@ final class ProxyStore {
         lastProject = project
         guard isEnabled else { return }
         let urls = Set(
-            project.tracks.flatMap(\.clips).filter { $0.mediaKind == .video }.compactMap(\.sourceURL))
+            project.tracks.flatMap(\.clips).filter { $0.mediaKind == .video }.compactMap(
+                \.sourceURL))
         let fresh = urls.filter {
             proxyURLs[$0] == nil && !failed.contains($0) && !queued.contains($0)
         }

@@ -9,7 +9,9 @@ struct DenoisedAudioCache: Sendable {
     var processor: NoiseReductionProcessing = AVNoiseReducer()
 
     func url(for source: URL, level: NoiseReductionLevel) -> URL {
-        let values = try? source.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
+        let values = try? source.resourceValues(forKeys: [
+            .contentModificationDateKey, .fileSizeKey,
+        ])
         let key =
             "\(source.path)|\(values?.contentModificationDate?.timeIntervalSince1970 ?? 0)|\(values?.fileSize ?? 0)|\(level.rawValue)|v\(Self.algorithmVersion)"
         let digest = SHA256.hash(data: Data(key.utf8)).prefix(12).map { String(format: "%02x", $0) }

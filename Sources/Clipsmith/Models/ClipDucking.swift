@@ -24,7 +24,8 @@ extension Clip {
 
     func settingDuckLevel(_ level: Double) -> Clip {
         guard var ducking else { return self }
-        ducking.level = min(max(level, ClipDucking.levelRange.lowerBound), ClipDucking.levelRange.upperBound)
+        ducking.level = min(
+            max(level, ClipDucking.levelRange.lowerBound), ClipDucking.levelRange.upperBound)
         return settingDucking(ducking)
     }
 
@@ -33,29 +34,21 @@ extension Clip {
         return ducking.ranges.compactMap { range in
             let start = startInSeconds + (range.start - sourceStartInSeconds) / speed
             let end = startInSeconds + (range.end - sourceStartInSeconds) / speed
-            return end > start ? start..<end : nil
+            guard end > start else { return nil }
+            return start..<end
         }
     }
 
     func sourceRanges(from timeline: [Swift.Range<TimeInterval>]) -> [ClipDucking.Range] {
         timeline.compactMap { range in
-            let start = max(sourceStartInSeconds, sourceStartInSeconds + (range.lowerBound - startInSeconds) * speed)
-            let end = min(sourceEndInSeconds, sourceStartInSeconds + (range.upperBound - startInSeconds) * speed)
-            return end > start ? ClipDucking.Range(start: start, end: end) : nil
+            let start = max(
+                sourceStartInSeconds,
+                sourceStartInSeconds + (range.lowerBound - startInSeconds) * speed)
+            let end = min(
+                sourceEndInSeconds,
+                sourceStartInSeconds + (range.upperBound - startInSeconds) * speed)
+            guard end > start else { return nil }
+            return ClipDucking.Range(start: start, end: end)
         }
-    }
-}
-
-enum DuckingPlanner {
-    static func timelineRanges(
-        voices: [(clip: Clip, peaks: [Float])]
-    ) -> [Range<TimeInterval>] {
-        let all = voices.flatMap { voice -> [Range<TimeInterval>] in
-            let source = SpeechActivity.ranges(
-                peaks: voice.peaks, from: voice.clip.sourceStartInSeconds,
-                to: voice.clip.sourceEndInSeconds)
-            return SilenceDetector.timelineRanges(source, for: voice.clip)
-        }
-        return SpeechActivity.merged(all, gap: SpeechActivity.mergeGapInSeconds)
     }
 }

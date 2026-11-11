@@ -121,58 +121,58 @@ enum TextOverlayLayers {
         of text: TextLayer, scale: Double, maximumWidth: CGFloat
     ) -> CGImage? {
         let fontSize = text.fontSize * scale
-        let font =
-            NSFont(name: text.fontName, size: fontSize) ?? NSFont.boldSystemFont(ofSize: fontSize)
-        let attributed = NSMutableAttributedString(
-            string: text.content, attributes: attributes(for: text, font: font, scale: scale))
-        if let highlight = text.wordHighlight, let range = highlight.range(in: text.content) {
-            attributed.addAttribute(
-                .foregroundColor,
-                value: NSColor(
-                    srgbRed: highlight.color.red, green: highlight.color.green,
-                    blue: highlight.color.blue, alpha: highlight.color.alpha),
-                range: range)
-        }
+        let attributed = attributedString(for: text, fontSize: fontSize, scale: scale)
         let measured = attributed.boundingRect(
             with: CGSize(width: maximumWidth, height: .greatestFiniteMagnitude),
             options: [.usesLineFragmentOrigin, .usesFontLeading]
         )
         var boxPadding = 0.0
         if text.backgroundColor != nil { boxPadding = fontSize * backgroundPaddingFraction }
-        let padding = imagePadding(for: text, fontSize: fontSize, boxPadding: boxPadding)
-        let width = Int(ceil(maximumWidth + 2 * padding))
-        let height = Int(ceil(measured.height + 2 * padding))
-        guard width > 0, height > 0, let context = makeContext(width: width, height: height) else {
-            return nil
-        }
-        NSGraphicsContext.saveGraphicsState()
-        NSGraphicsContext.current = NSGraphicsContext(cgContext: context, flipped: false)
-        if let background = text.backgroundColor {
-            let textWidth = min(ceil(measured.width), maximumWidth)
-            let box = backgroundBox(
-                textWidth: textWidth, textHeight: ceil(measured.height), padding: padding,
-                boxPadding: boxPadding, maximumWidth: maximumWidth)
-            fillBackground(background, in: box, cornerRadius: fontSize * backgroundCornerFraction)
-        }
-        attributed.draw(
-            with: CGRect(
-                x: padding, y: padding, width: maximumWidth, height: ceil(measured.height)),
-            options: [.usesLineFragmentOrigin, .usesFontLeading]
+        let layout = ImageLayout(
+            textSize: CGSize(width: ceil(measured.width), height: ceil(measured.height)),
+            maximumWidth: maximumWidth,
+            padding: imagePadding(for: text, fontSize: fontSize, boxPadding: boxPadding),
+            boxPadding: boxPadding
         )
-        NSGraphicsContext.restoreGraphicsState()
+        guard layout.pixelWidth > 0, layout.pixelHeight > 0,
+            let context = makeContext(width: layout.pixelWidth, height: layout.pixelHeight)
+        else { return nil }
+        draw(attributed, of: text, layout: layout, fontSize: fontSize, in: context)
         return context.makeImage()
     }
 
-    private static func backgroundBox(
-        textWidth: Double, textHeight: Double, padding: Double, boxPadding: Double,
-        maximumWidth: Double
-    ) -> CGRect {
-        CGRect(
-            x: padding + (maximumWidth - textWidth) / 2 - boxPadding,
-            y: padding - boxPadding,
-            width: textWidth + 2 * boxPadding,
-            height: textHeight + 2 * boxPadding
-        )
+    private static func attributedString(
+        for text: TextLayer, fontSize: Double, scale: Double
+    ) -> NSAttributedString {
+        let font =
+            NSFont(name: text.fontName, size: fontSize) ?? NSFont.boldSystemFont(ofSize: fontSize)
+        let attributed = NSMutableAttributedString(
+            string: text.content, attributes: attributes(for: text, font: font, scale: scale))
+        if let highlight = text.wordHighlight, let range = highlight.range(in: text.content) {
+            attributed.addAttribute(
+                .foregroundColor, value: nsColor(highlight.color), range: range)
+        }
+        return attributed
+    }
+
+    private static func draw(
+        _ attributed: NSAttributedString, of text: TextLayer, layout: ImageLayout,
+        fontSize: Double, in context: CGContext
+    ) {
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(cgContext: context, flipped: false)
+        if let background = text.backgroundColor {
+            fillBackground(
+                background, in: layout.backgroundBox,
+                cornerRadius: fontSize * backgroundCornerFraction)
+        }
+        attributed.draw(
+            with: layout.textRect, options: [.usesLineFragmentOrigin, .usesFontLeading])
+        NSGraphicsContext.restoreGraphicsState()
+    }
+
+    private static func nsColor(_ color: RGBAColor) -> NSColor {
+        NSColor(srgbRed: color.red, green: color.green, blue: color.blue, alpha: color.alpha)
     }
 
     private static func imagePadding(
@@ -297,5 +297,29 @@ enum TextOverlayLayers {
         animation.fillMode = .removed
         animation.isRemovedOnCompletion = true
         return animation
+    }
+}
+
+private struct ImageLayout {
+    let textSize: CGSize
+    let maximumWidth: Double
+    let padding: Double
+    let boxPadding: Double
+
+    var pixelWidth: Int { Int(ceil(maximumWidth + 2 * padding)) }
+    var pixelHeight: Int { Int(ceil(textSize.height + 2 * padding)) }
+
+    var textRect: CGRect {
+        CGRect(x: padding, y: padding, width: maximumWidth, height: textSize.height)
+    }
+
+    var backgroundBox: CGRect {
+        let textWidth = min(textSize.width, maximumWidth)
+        return CGRect(
+            x: padding + (maximumWidth - textWidth) / 2 - boxPadding,
+            y: padding - boxPadding,
+            width: textWidth + 2 * boxPadding,
+            height: textSize.height + 2 * boxPadding
+        )
     }
 }

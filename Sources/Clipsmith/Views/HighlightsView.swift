@@ -61,13 +61,9 @@ struct HighlightsView: View {
             case .working:
                 ProgressView().controlSize(.small)
             case .done(let count):
-                Text(
-                    count == 0
-                        ? localized("highlight.suggest.none")
-                        : String(format: localized("highlight.suggest.done"), count)
-                )
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                Text(suggestionSummary(count: count))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
         .padding(Design.Spacing.comfortable)
@@ -193,6 +189,11 @@ struct HighlightsView: View {
         }
     }
 
+    private func suggestionSummary(count: Int) -> String {
+        guard count > 0 else { return localized("highlight.suggest.none") }
+        return String(format: localized("highlight.suggest.done"), count)
+    }
+
     private func markButton(
         _ key: String.LocalizationValue, time: TimeInterval?, action: @escaping () -> Void
     ) -> some View {
@@ -214,6 +215,7 @@ struct HighlightsView: View {
 #Preview {
     let store = PreviewFixtures.store()
     HighlightsView(
-        store: store, exporter: HighlightExportController(store: store), waveforms: WaveformStore())
-        .frame(width: 280, height: 420)
+        store: store, exporter: HighlightExportController(store: store), waveforms: WaveformStore()
+    )
+    .frame(width: 280, height: 420)
 }

@@ -43,7 +43,8 @@ extension Highlight {
             name: try container.decode(String.self, forKey: .name),
             startInSeconds: try container.decode(TimeInterval.self, forKey: .startInSeconds),
             endInSeconds: try container.decode(TimeInterval.self, forKey: .endInSeconds),
-            framingOffsetX: try container.decodeIfPresent(Double.self, forKey: .framingOffsetX) ?? 0,
+            framingOffsetX: try container.decodeIfPresent(Double.self, forKey: .framingOffsetX)
+                ?? 0,
             fitMode: try container.decodeIfPresent(FitMode.self, forKey: .fitMode) ?? .fill
         )
     }

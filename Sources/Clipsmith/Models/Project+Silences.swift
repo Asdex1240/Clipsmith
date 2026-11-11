@@ -5,10 +5,10 @@ extension Project {
 
     @discardableResult
     mutating func removeRanges(
-        _ ranges: [Range<TimeInterval>], from clipID: Clip.ID, syncingAllTracks: Bool = false
+        _ ranges: [Range<TimeInterval>], from clipID: Clip.ID, scope: RippleScope = .ownTracks
     ) -> Int {
         guard let clip = clip(withID: clipID) else { return 0 }
-        if syncingAllTracks {
+        if scope == .allTracks {
             let ordered = ranges.sorted { $0.lowerBound > $1.lowerBound }
             ordered.forEach { removeTimeRange($0) }
             return ordered.count

@@ -13,7 +13,8 @@ extension ProjectStore {
 
     @discardableResult
     func suggestHighlights(
-        for clip: Clip, peaks: [Float], duration: TimeInterval = HighlightSuggester.defaultDurationInSeconds,
+        for clip: Clip, peaks: [Float],
+        duration: TimeInterval = HighlightSuggester.defaultDurationInSeconds,
         count: Int = HighlightSuggester.defaultCount
     ) -> Int {
         let ranges = HighlightSuggester.suggestions(
@@ -22,11 +23,15 @@ extension ProjectStore {
         let existing = project.highlights
         let fresh = ranges.map { range in
             (
-                start: clip.startInSeconds + (range.lowerBound - clip.sourceStartInSeconds) / clip.speed,
-                end: clip.startInSeconds + (range.upperBound - clip.sourceStartInSeconds) / clip.speed
+                start: clip.startInSeconds + (range.lowerBound - clip.sourceStartInSeconds)
+                    / clip.speed,
+                end: clip.startInSeconds + (range.upperBound - clip.sourceStartInSeconds)
+                    / clip.speed
             )
         }.filter { candidate in
-            !existing.contains { $0.startInSeconds < candidate.end && candidate.start < $0.endInSeconds }
+            !existing.contains {
+                $0.startInSeconds < candidate.end && candidate.start < $0.endInSeconds
+            }
         }
         guard !fresh.isEmpty else { return 0 }
         mutate { project in

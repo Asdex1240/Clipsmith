@@ -12,7 +12,8 @@ enum HighlightSuggester {
         duration: TimeInterval = defaultDurationInSeconds, count: Int = defaultCount,
         peaksPerSecond: Double = WaveformSpec.peaksPerSecond
     ) -> [ClosedRange<TimeInterval>] {
-        let energy = secondlyEnergy(peaks: peaks, from: start, to: end, peaksPerSecond: peaksPerSecond)
+        let energy = secondlyEnergy(
+            peaks: peaks, from: start, to: end, peaksPerSecond: peaksPerSecond)
         guard Double(energy.count) >= minimumSourceDurationInSeconds, count > 0 else { return [] }
         let window = min(Int(duration), energy.count)
         guard window > 0 else { return [] }
@@ -82,6 +83,7 @@ enum HighlightSuggester {
     }
 
     private static func value(_ energy: [Float], _ index: Int) -> Float {
-        index < energy.count ? energy[index] : 0
+        guard index < energy.count else { return 0 }
+        return energy[index]
     }
 }
