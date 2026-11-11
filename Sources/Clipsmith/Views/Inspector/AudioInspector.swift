@@ -53,8 +53,7 @@ struct AudioInspector: View {
         Picker(localized("inspector.noise.title"), selection: noiseBinding) {
             Text(localized("inspector.noise.off")).tag(NoiseReductionLevel?.none)
             ForEach(NoiseReductionLevel.allCases) {
-                Text(localized(String.LocalizationValue("inspector.noise.\($0.rawValue)")))
-                    .tag(Optional($0))
+                Text(Self.title(of: $0)).tag(Optional($0))
             }
         }
         .pickerStyle(.segmented)
@@ -70,6 +69,14 @@ struct AudioInspector: View {
                 .foregroundStyle(Palette.warning)
         }
         Text(localized("inspector.noise.hint")).font(.caption).foregroundStyle(.secondary)
+    }
+
+    private static func title(of level: NoiseReductionLevel) -> String {
+        switch level {
+        case .light: return localized("inspector.noise.light")
+        case .medium: return localized("inspector.noise.medium")
+        case .strong: return localized("inspector.noise.strong")
+        }
     }
 
     private var noiseBinding: Binding<NoiseReductionLevel?> {
