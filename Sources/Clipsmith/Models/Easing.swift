@@ -1,6 +1,5 @@
 import Foundation
 
-/// How a value moves between two points: evenly, or slowly at the start and/or the end.
 enum Easing: String, Codable, CaseIterable {
     case linear
     case easeIn
@@ -9,7 +8,6 @@ enum Easing: String, Codable, CaseIterable {
 
     var isLinear: Bool { self == .linear }
 
-    /// Maps how far through the time (0 to 1) we are to how far through the movement (0 to 1).
     func apply(_ time: Double) -> Double {
         let t = min(max(time, 0), 1)
         switch self {
@@ -20,7 +18,6 @@ enum Easing: String, Codable, CaseIterable {
         }
     }
 
-    /// The time (0 to 1) at which the movement reaches `progress`.
     func time(forProgress progress: Double) -> Double {
         guard !isLinear else { return min(max(progress, 0), 1) }
         var low = 0.0

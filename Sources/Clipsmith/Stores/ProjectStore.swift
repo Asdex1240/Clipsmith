@@ -20,18 +20,16 @@ final class ProjectStore {
         didSet { projectRevision += 1 }
     }
     private(set) var projectRevision = 0
-    /// The clip the inspector and the canvas work on: the one clicked last among the selected ones.
     private(set) var selectedClipID: Clip.ID?
     private(set) var selectedClipIDs: Set<Clip.ID> = []
     private(set) var playheadInSeconds: TimeInterval = 0
-    /// When on, clips, trims and the playhead snap to clip edges, markers and the start of the timeline.
     private(set) var isSnappingEnabled = true
     private(set) var pointsPerSecond = ProjectStore.defaultPointsPerSecond
     private var undoStack: [Project] = []
     private var redoStack: [Project] = []
     @ObservationIgnored private var lastMutationKey: String?
     @ObservationIgnored private var lastMutationDate = Date.distantPast
-    @ObservationIgnored private var clipboard: [(clip: Clip, trackID: Track.ID)] = []
+    @ObservationIgnored private var clipboard: [ClipboardEntry] = []
     @ObservationIgnored private let now: () -> Date
 
     init(project: Project, now: @escaping () -> Date = Date.init) {
@@ -45,7 +43,6 @@ final class ProjectStore {
 
     var hasMultipleSelected: Bool { selectedClipIDs.count > 1 }
 
-    /// The selected clips in timeline order.
     var selectedClips: [Clip] {
         project.tracks.flatMap(\.clips).filter { selectedClipIDs.contains($0.id) }.sorted { $0.startInSeconds < $1.startInSeconds }
     }
@@ -91,7 +88,6 @@ final class ProjectStore {
         restore(next)
     }
 
-    /// Selects one clip, together with the clips grouped with it.
     func selectClip(_ id: Clip.ID?) {
         guard let id else {
             setSelection([], primary: nil)
@@ -100,7 +96,6 @@ final class ProjectStore {
         setSelection(project.groupMembers(of: id), primary: id)
     }
 
-    /// Adds the clip (and its group) to the selection, or takes it out when it is already selected.
     func toggleSelection(of id: Clip.ID) {
         let members = project.groupMembers(of: id)
         guard !members.isEmpty else { return }
@@ -231,7 +226,6 @@ final class ProjectStore {
         mutate { $0.clearKeyframes(of: id) }
     }
 
-    /// Puts a visual clip back in the middle of the canvas at its natural size and orientation.
     func resetTransform(of id: Clip.ID) {
         mutate {
             $0.clearKeyframes(of: id)
@@ -320,7 +314,6 @@ final class ProjectStore {
         if added { selectClip(clip.id) }
     }
 
-    /// Where a dropped item of `duration` would start on `track`, after snapping and avoiding overlaps.
     func dropStart(duration: TimeInterval, on track: Track, near proposed: TimeInterval) -> TimeInterval {
         let snapped = snappedStart(proposed, duration: duration, excluding: nil)
         return track.nearestFreeStart(forDuration: duration, near: snapped, excluding: nil)
@@ -358,7 +351,6 @@ final class ProjectStore {
         selectClip(nil)
     }
 
-    /// Moves every selected clip by the same amount, keeping their positions relative to each other.
     func moveSelection(draggedClip id: Clip.ID, near proposedStart: TimeInterval) {
         let ids = selectedClipIDs
         guard let clip = project.clip(withID: id), ids.contains(id) else { return }
@@ -392,8 +384,8 @@ final class ProjectStore {
         if existing != selectedClipIDs { setSelection(existing, primary: selectedClipID) }
     }
 
-    func moveTrack(_ id: Track.ID, up: Bool) {
-        mutate { $0.moveTrack(id, up: up) }
+    func moveTrack(_ id: Track.ID, direction: TrackMoveDirection) {
+        mutate { $0.moveTrack(id, direction: direction) }
     }
 
     func renameTrack(_ id: Track.ID, to name: String) {
@@ -407,9 +399,7 @@ final class ProjectStore {
     }
 
     func copySelectedClip() {
-        let entries = selectedClips.compactMap { clip -> (clip: Clip, trackID: Track.ID)? in
-            project.location(of: clip.id).map { (clip, project.tracks[$0.track].id) }
-        }
+        let entries = project.clipboardEntries(for: selectedClips)
         guard !entries.isEmpty else { return }
         clipboard = entries
     }
@@ -424,36 +414,16 @@ final class ProjectStore {
         place(clipboard, shiftedBy: playheadInSeconds - first)
     }
 
-    /// Puts a copy of the selection right after it, each clip on its own track.
     func duplicateSelectedClip() {
-        let entries = selectedClips.compactMap { clip -> (clip: Clip, trackID: Track.ID)? in
-            project.location(of: clip.id).map { (clip, project.tracks[$0.track].id) }
-        }
-        guard let first = entries.map(\.clip.startInSeconds).min(), let last = entries.map(\.clip.endInSeconds).max() else { return }
+        let entries = project.clipboardEntries(for: selectedClips)
+        guard let first = entries.map(\.clip.startInSeconds).min(),
+              let last = entries.map(\.clip.endInSeconds).max() else { return }
         place(entries, shiftedBy: last - first)
     }
 
-    private func place(_ entries: [(clip: Clip, trackID: Track.ID)], shiftedBy offset: TimeInterval) {
-        var groups: [UUID: UUID] = [:]
-        let copies = entries.map { entry -> (clip: Clip, trackID: Track.ID?) in
-            var copy = entry.clip
-            copy.id = UUID()
-            copy.startInSeconds = max(0, entry.clip.startInSeconds + offset)
-            if let group = copy.groupID {
-                groups[group] = groups[group] ?? UUID()
-                copy.groupID = groups[group]
-            }
-            let trackID = project.tracks.first { $0.id == entry.trackID }?.id
-                ?? project.track(withRole: Track.Role.preferred(for: copy.mediaKind))?.id
-            return (copy, trackID)
-        }
+    private func place(_ entries: [ClipboardEntry], shiftedBy offset: TimeInterval) {
         var added: [Clip.ID] = []
-        mutate { project in
-            for (copy, trackID) in copies {
-                guard let trackID, project.addClip(copy, toTrack: trackID) else { continue }
-                added.append(copy.id)
-            }
-        }
+        mutate { added = $0.insertCopies(of: entries, shiftedBy: offset) }
         guard let last = added.last else { return }
         setSelection(Set(added), primary: last)
     }

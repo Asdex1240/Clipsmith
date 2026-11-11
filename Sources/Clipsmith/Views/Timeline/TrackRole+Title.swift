@@ -10,7 +10,6 @@ extension Track.Role {
 }
 
 extension Project {
-    /// The track's own name, or its role's with a number when there are several of that role.
     func title(of track: Track) -> String {
         if let name = track.name { return name }
         let position = ordinal(of: track)

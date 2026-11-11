@@ -1,6 +1,5 @@
 import AVFoundation
 
-/// How a transition changes one of the two layers it blends.
 struct LayerBlend {
     let transition: PlannedTransition
     let isOutgoing: Bool
@@ -15,8 +14,6 @@ struct LayerBlend {
         return isOutgoing ? values.outgoing : values.incoming
     }
 
-    /// Times where the look changes direction, plus extra samples when easing curves the movement,
-    /// since the ramps between samples are straight lines.
     var breakpoints: [TimeInterval] {
         let span = transition.windowEnd - transition.windowStart
         let corners = transition.kind.breakpoints.map { transition.easing.time(forProgress: $0) }
@@ -27,7 +24,6 @@ struct LayerBlend {
     private static let samplesWhenEased = 12
 }
 
-/// One visual clip as drawn on the canvas: where its frames come from and how its look changes over time.
 struct RenderLayer {
     let trackID: CMPersistentTrackID
     let clip: Clip
@@ -44,7 +40,6 @@ struct RenderLayer {
 
     var needsAnimation: Bool { clip.needsAnimatedLayer || blend != nil }
 
-    /// Maps the frame, in source pixels with a top-left origin, onto the canvas with a top-left origin.
     func transform(at time: TimeInterval) -> CGAffineTransform {
         let state = clip.visualState(atClipTime: time - clip.startInSeconds)
         let fitted = FitTransform.make(

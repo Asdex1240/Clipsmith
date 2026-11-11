@@ -1,11 +1,9 @@
 import AVFoundation
 import CoreImage
 
-/// One stretch of the timeline drawn by `EffectsCompositor`, with the layers to stack, topmost first.
 final class EffectsInstruction: NSObject, AVVideoCompositionInstructionProtocol {
     let timeRange: CMTimeRange
     let layers: [RenderLayer]
-    /// Text drawn over the layers; only set for exports, since the preview draws its own.
     let texts: [TextSprite]
     let enablePostProcessing = false
     let containsTweening = true
@@ -21,12 +19,9 @@ final class EffectsInstruction: NSObject, AVVideoCompositionInstructionProtocol 
     }
 }
 
-/// Draws frames with Core Image so clips can be color corrected and cropped, which layer instructions cannot do.
-/// It is only used when a clip needs those effects.
 final class EffectsCompositor: NSObject, AVVideoCompositing {
     private static let pixelFormat = kCVPixelFormatType_32BGRA
 
-    /// Color management is off so layers blend on the encoded values, exactly as the plain layer instructions do.
     private let context = CIContext(options: [.workingColorSpace: NSNull(), .outputColorSpace: NSNull()])
     private let queue = DispatchQueue(label: "Clipsmith.EffectsCompositor")
 
@@ -57,7 +52,6 @@ final class EffectsCompositor: NSObject, AVVideoCompositing {
         let bounds = CGRect(origin: .zero, size: size)
         let time = request.compositionTime.seconds
         var canvas = CIImage(color: .black).cropped(to: bounds)
-        // Layers arrive topmost first; draw the bottom one first.
         for layer in instruction.layers.reversed() {
             guard let frame = request.sourceFrame(byTrackID: layer.trackID),
                   let image = LayerImage.make(for: layer, frame: frame, at: time, renderHeight: size.height) else { continue }
@@ -72,13 +66,11 @@ final class EffectsCompositor: NSObject, AVVideoCompositing {
 }
 
 enum LayerImage {
-    /// The frame of a layer cropped, color corrected, placed on the canvas and faded, ready to be stacked.
     static func make(for layer: RenderLayer, frame: CVPixelBuffer, at time: TimeInterval, renderHeight: CGFloat) -> CIImage? {
         let sourceHeight = CGFloat(CVPixelBufferGetHeight(frame))
         var image = CIImage(cvPixelBuffer: frame)
         image = cropped(image, to: layer, sourceHeight: sourceHeight)
         image = colorCorrected(image, with: layer.clip.color)
-        // Layer transforms use a top-left origin and Core Image a bottom-left one, so flip in and out.
         let flipSource = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: sourceHeight)
         let flipCanvas = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: renderHeight)
         image = image.transformed(by: flipSource.concatenating(layer.transform(at: time)).concatenating(flipCanvas))
@@ -96,7 +88,6 @@ enum LayerImage {
         )
         guard state.opacity > 0 else { return nil }
         let size = CGSize(width: sprite.image.width, height: sprite.image.height)
-        // The canvas of Core Image points up, like Core Animation's, so a downward shift is negative.
         let placement = CGAffineTransform(translationX: -size.width / 2, y: -size.height / 2)
             .concatenating(CGAffineTransform(scaleX: state.scale, y: state.scale))
             .concatenating(CGAffineTransform(rotationAngle: sprite.rotationInRadians))
@@ -111,7 +102,6 @@ enum LayerImage {
     private static func cropped(_ image: CIImage, to layer: RenderLayer, sourceHeight: CGFloat) -> CIImage {
         let crop = layer.clip.crop
         guard !crop.isNone else { return image }
-        // Insets are relative to the picture as it is shown, so work in the oriented frame and map back to the source.
         let oriented = CGRect(origin: .zero, size: layer.naturalSize).applying(layer.preferredTransform)
         let visible = crop.visible(in: oriented)
         let source = visible.applying(layer.preferredTransform.inverted())
@@ -119,7 +109,6 @@ enum LayerImage {
         return image.cropped(to: rect)
     }
 
-    /// Core Image's neutral white point for the temperature control, in kelvin.
     private static let neutralKelvin = 6500.0
     private static let kelvinSpan = 3000.0
 

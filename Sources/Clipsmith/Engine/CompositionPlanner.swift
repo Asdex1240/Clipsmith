@@ -1,6 +1,5 @@
 import Foundation
 
-/// A transition running over `windowStart...windowEnd`, while the end of `outgoingClipID` is held under the start of `incomingClipID`.
 struct PlannedTransition: Equatable {
     let outgoingClipID: Clip.ID
     let incomingClipID: Clip.ID

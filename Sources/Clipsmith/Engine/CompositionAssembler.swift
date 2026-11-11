@@ -12,9 +12,7 @@ final class CompositionAssembler {
     private static let scaleToleranceInSeconds: TimeInterval = 1e-6
     private static let heldFrameInSeconds: TimeInterval = 1.0 / 30
 
-    /// What a visual clip was cut from, kept so a transition can borrow a little footage beyond its end.
     private struct VideoSource {
-        /// Kept so the track below stays valid until the composition is finished.
         let asset: AVURLAsset
         let assetTrack: AVAssetTrack
         let startInSeconds: TimeInterval
@@ -32,7 +30,6 @@ final class CompositionAssembler {
     private var placements: [Clip.ID: RenderLayer] = [:]
     private var videoSources: [Clip.ID: VideoSource] = [:]
     private var transitionTracks: [Track.ID: AVMutableCompositionTrack] = [:]
-    /// The held-over end of the outgoing clip, keyed by the incoming clip it blends into.
     private var tailPlacements: [Clip.ID: RenderLayer] = [:]
     private var skippedClipIDs: [Clip.ID] = []
     private var textClips: [Clip] = []
@@ -105,7 +102,6 @@ final class CompositionAssembler {
         visualFrames[clip.id] = contentFrame(of: clip, naturalSize: naturalSize, preferredTransform: preferredTransform)
     }
 
-    /// The area the picture itself covers (not the black bars), before the clip's offset.
     private func contentFrame(of clip: Clip, naturalSize: CGSize, preferredTransform: CGAffineTransform) -> CGRect {
         var size = naturalSize
         var transform = preferredTransform
@@ -241,7 +237,6 @@ final class CompositionAssembler {
         return instruction
     }
 
-    /// A clip's layer, preceded by the held end of the clip it is blending in from while a transition runs.
     private func layers(for clipID: Clip.ID, in segment: PlannedSegment) -> [RenderLayer] {
         guard let incoming = placements[clipID] else { return [] }
         guard let transition = segment.transitions.first(where: { $0.incomingClipID == clipID }),
@@ -286,8 +281,6 @@ final class CompositionAssembler {
         }
     }
 
-    /// Puts the end of the outgoing clip on a spare track under the start of the incoming one: its real footage
-    /// when the source continues past the cut, otherwise its last frame held still.
     private func insertTail(for transition: PlannedTransition) throws {
         guard let placement = placements[transition.outgoingClipID],
               let source = videoSources[transition.outgoingClipID] else { return }

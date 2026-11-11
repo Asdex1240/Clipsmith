@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// Chooses how values move away from a keyframe or through a transition.
 struct EasingMenu: View {
     let easing: Easing
     let onChange: (Easing) -> Void

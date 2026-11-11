@@ -21,7 +21,6 @@ struct TextLayer: Codable, Equatable {
     static let subtitleFontSize = 54.0
     static let subtitlePositionY = 0.88
 
-    /// The look of a generated subtitle: smaller than a title and low on the screen.
     static func subtitle(_ content: String, style: TextStylePreset = .classic, animation: TextAnimation = TextAnimation()) -> TextLayer {
         var layer = TextLayer(content: content, fontSize: subtitleFontSize, positionY: subtitlePositionY)
         style.apply(to: &layer)
@@ -35,12 +34,9 @@ struct TextLayer: Codable, Equatable {
     var color = RGBAColor.white
     var positionX = 0.5
     var positionY = TextLayer.defaultPositionY
-    /// Clockwise rotation around the text's center, in degrees.
     var rotationInDegrees = 0.0
-    /// Outline thickness as a fraction of the font size; 0 for none.
     var strokeWidth = 0.0
     var strokeColor = RGBAColor.black
-    /// A box behind the text; nil for none.
     var backgroundColor: RGBAColor?
     var hasShadow = true
     var animation = TextAnimation()

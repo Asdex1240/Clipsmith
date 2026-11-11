@@ -7,9 +7,6 @@ enum LayerAnimation {
     private static let maximumStepsPerSpan = 60
     private static let minimumStepsWhenEased = 12
 
-    /// Times (in timeline seconds) between `start` and `end` at which a layer's look is sampled.
-    /// Neighbouring samples are joined by straight ramps, so turns and zooms get extra samples
-    /// to keep the in-between frames from shrinking or skewing.
     static func samplePoints(
         for clip: Clip, from start: TimeInterval, to end: TimeInterval, extraAnchors: [TimeInterval] = []
     ) -> [TimeInterval] {

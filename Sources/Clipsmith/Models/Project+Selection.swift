@@ -1,15 +1,12 @@
 import Foundation
 
-/// Edits that act on several clips at once, and on clips grouped together.
 extension Project {
-    /// The clip together with every clip grouped with it.
     func groupMembers(of id: Clip.ID) -> Set<Clip.ID> {
         guard let clip = clip(withID: id) else { return [] }
         guard let group = clip.groupID else { return [id] }
         return Set(tracks.flatMap(\.clips).filter { $0.groupID == group }.map(\.id))
     }
 
-    /// `ids` plus the rest of every group they touch.
     func expandedToGroups(_ ids: Set<Clip.ID>) -> Set<Clip.ID> {
         ids.reduce(into: Set<Clip.ID>()) { result, id in result.formUnion(groupMembers(of: id)) }
     }
@@ -25,7 +22,6 @@ extension Project {
         return [0, playhead] + clipEdges + markers.map(\.timeInSeconds)
     }
 
-    /// Moves clips together by `delta` seconds, as far as they can go without running into other clips or before zero.
     @discardableResult
     mutating func moveClips(_ ids: Set<Clip.ID>, by delta: TimeInterval) -> TimeInterval {
         var lowest = -Double.infinity
@@ -62,13 +58,11 @@ extension Project {
         }
     }
 
-    /// Deletes clips and closes each gap; the latest ones go first so earlier ones keep their place.
     mutating func rippleDeleteClips(_ ids: Set<Clip.ID>) {
         let ordered = tracks.flatMap(\.clips).filter { ids.contains($0.id) }.sorted { $0.startInSeconds > $1.startInSeconds }
         ordered.forEach { rippleDeleteClip($0.id) }
     }
 
-    /// Splits each clip at `time`. The new second halves of a group form a group of their own.
     mutating func splitClips(_ ids: [Clip.ID], at time: TimeInterval) {
         var secondHalfGroups: [UUID: UUID] = [:]
         for id in ids {
@@ -80,7 +74,6 @@ extension Project {
         }
     }
 
-    /// Groups the clips so they are selected and moved together; false when there are fewer than two.
     @discardableResult
     mutating func group(_ ids: Set<Clip.ID>) -> Bool {
         guard ids.count >= 2 else { return false }
@@ -93,7 +86,6 @@ extension Project {
         return true
     }
 
-    /// Breaks up every group that any of the clips belongs to.
     mutating func ungroup(_ ids: Set<Clip.ID>) {
         let groups = Set(tracks.flatMap(\.clips).filter { ids.contains($0.id) }.compactMap(\.groupID))
         for trackIndex in tracks.indices {

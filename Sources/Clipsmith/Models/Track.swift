@@ -29,12 +29,18 @@ struct Track: Codable, Identifiable, Equatable {
 
     var id = UUID()
     var role: Role
-    /// A name chosen by the user; without one the track is called after its role.
     var name: String?
     var clips: [Clip] = []
 
     var endInSeconds: TimeInterval {
         clips.map(\.endInSeconds).max() ?? 0
+    }
+
+    func isFree(from start: TimeInterval, to end: TimeInterval) -> Bool {
+        !clips.contains { other in
+            start < other.endInSeconds - Self.overlapToleranceInSeconds
+                && end > other.startInSeconds + Self.overlapToleranceInSeconds
+        }
     }
 
     func previousEnd(before clip: Clip) -> TimeInterval {

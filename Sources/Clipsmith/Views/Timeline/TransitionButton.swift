@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// The small control on the cut between two touching clips where the transition between them is chosen.
 struct TransitionButton: View {
     let store: ProjectStore
     let clip: Clip

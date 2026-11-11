@@ -80,7 +80,6 @@ final class TextOverlayHostView: NSView {
         guard let size = shownOverlay?.renderSize, size.width > 0, size.height > 0 else { return }
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        // Uniform scale, centered: the overlay view can be larger than the letterboxed video.
         let scale = min(bounds.width / size.width, bounds.height / size.height)
         container.position = CGPoint(x: (bounds.width - size.width * scale) / 2, y: (bounds.height - size.height * scale) / 2)
         container.setAffineTransform(CGAffineTransform(scaleX: scale, y: scale))

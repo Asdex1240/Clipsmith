@@ -23,7 +23,6 @@ final class SubtitleController {
 
     var isWorking: Bool { state == .working }
 
-    /// Listens to the sound of a clip and adds a text clip for each spoken line, timed to the clip on the timeline.
     func generate(
         for clipID: Clip.ID, locale: Locale, style: TextStylePreset = .classic, animation: TextAnimation = TextAnimation()
     ) {
@@ -56,7 +55,6 @@ final class SubtitleController {
         if !isWorking { state = .idle }
     }
 
-    /// Lines timed in the file's seconds, moved to the timeline: shifted to where the clip sits and scaled by its speed.
     static func timelineLines(from lines: [SubtitleLine], for clip: Clip) -> [SubtitleLine] {
         lines.compactMap { line in
             let start = clip.startInSeconds + (line.startInSeconds - clip.sourceStartInSeconds) / clip.speed

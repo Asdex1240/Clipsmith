@@ -8,15 +8,12 @@ extension Clip {
         VisualState(offsetX: offsetX, offsetY: offsetY, scale: scale, rotationInDegrees: rotationInDegrees, opacity: opacity)
     }
 
-    /// True when the picture needs color correction or cropping, which the plain layer instructions cannot do.
     var hasLookEffects: Bool { !color.isIdentity || !crop.isNone }
 
     var isAnimated: Bool { !keyframes.isEmpty }
 
-    /// True when the clip needs per-frame values instead of one fixed transform.
     var needsAnimatedLayer: Bool { isAnimated || opacity != 1 }
 
-    /// True when the values just after `time` follow a curve instead of a straight line.
     func eased(from time: TimeInterval) -> Bool {
         !KeyframeInterpolation.easing(at: time + 1e-9, in: keyframes).isLinear
     }
@@ -32,7 +29,6 @@ extension Clip {
         KeyframeInterpolation.state(at: time, in: keyframes, fallback: staticVisualState)
     }
 
-    /// The clip as it looks at a timeline time: its offset, size, turn and opacity are the animated ones.
     func presented(atTimelineTime time: TimeInterval) -> Clip {
         guard isAnimated else { return self }
         var clip = self
@@ -45,8 +41,6 @@ extension Clip {
         return clip
     }
 
-    /// Edits the look of the clip. Without keyframes it changes the fixed values; with keyframes it sets
-    /// the keyframe at `timelineTime`, creating it if there is none there yet.
     func updatingVisual(at timelineTime: TimeInterval?, _ change: (inout VisualState) -> Void) -> Clip {
         if isAnimated, let timelineTime {
             return updatingKeyframe(atClipTime: timelineTime - startInSeconds, change)
@@ -97,7 +91,6 @@ extension Clip {
         opacity = state.opacity
     }
 
-    /// Keyframes follow the picture when the start of the clip moves by `delta` seconds.
     func shiftingKeyframes(by delta: TimeInterval) -> [Keyframe] {
         keyframes.map { frame in
             var shifted = frame

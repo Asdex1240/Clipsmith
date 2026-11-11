@@ -6,7 +6,6 @@ struct TimelineView: View {
     let waveforms: WaveformStore
     let missingMedia: Set<URL>
     @State private var dropPreview: DropPreview?
-    /// The clip being dragged and how far (in points), so the other selected clips can follow it.
     @State private var drag: (clipID: Clip.ID, offset: CGFloat)?
 
     private var pointsPerSecond: Double { store.pointsPerSecond }
@@ -77,7 +76,6 @@ struct TimelineView: View {
             .help("\(localized(key)) (\(EditorShortcuts.displayKeys(for: shortcut)))")
     }
 
-    /// Ruler, every lane and a row for the add-track button.
     private var contentHeight: CGFloat {
         TimelineMetrics.rulerHeight + CGFloat(store.project.tracks.count) * TimelineMetrics.laneStride + TimelineMetrics.laneHeight
     }
@@ -117,10 +115,10 @@ struct TimelineView: View {
 
     @ViewBuilder
     private func trackMenu(for track: Track) -> some View {
-        Button(localized("track.moveUp")) { store.moveTrack(track.id, up: true) }
-            .disabled(!store.project.canMoveTrack(track.id, up: true))
-        Button(localized("track.moveDown")) { store.moveTrack(track.id, up: false) }
-            .disabled(!store.project.canMoveTrack(track.id, up: false))
+        Button(localized("track.moveUp")) { store.moveTrack(track.id, direction: .up) }
+            .disabled(!store.project.canMoveTrack(track.id, direction: .up))
+        Button(localized("track.moveDown")) { store.moveTrack(track.id, direction: .down) }
+            .disabled(!store.project.canMoveTrack(track.id, direction: .down))
         Divider()
         Button(localized("track.remove"), role: .destructive) { store.removeTrack(track.id) }
             .disabled(!store.project.canRemoveTrack(track.id))
@@ -174,48 +172,63 @@ struct TimelineView: View {
                 .frame(width: width, height: TimelineMetrics.laneHeight)
                 .onTapGesture { store.selectClip(nil) }
             ForEach(track.clips) { clip in
-                ClipBlockView(
-                    clip: clip,
-                    pointsPerSecond: pointsPerSecond,
-                    isSelected: store.selectedClipIDs.contains(clip.id),
-                    allowsLaneChange: !(store.hasMultipleSelected && store.selectedClipIDs.contains(clip.id)),
-                    companionOffset: companionOffset(for: clip),
-                    waveformPeaks: waveformPeaks(for: clip, in: track),
-                    isMissing: clip.sourceURL.map(missingMedia.contains) ?? false,
-                    onSelect: { select(clip) },
-                    onMove: { start, laneOffset in move(clip, from: index, near: start, laneOffset: laneOffset) },
-                    onTrim: { edge, time in store.trimClip(clip.id, edge: edge, near: time) },
-                    onDragChange: { offset in drag = offset.map { (clip.id, $0) } }
-                )
-                .task(id: clip.sourceURL) { await loadWaveform(for: clip, in: track) }
+                clipBlock(for: clip, in: track, at: index)
             }
             ForEach(track.clips) { clip in
-                if store.project.clipBeforeAndTouching(clip.id) != nil {
-                    TransitionButton(store: store, clip: clip)
-                        .offset(x: clip.startInSeconds * pointsPerSecond - TransitionButton.size / 2, y: 2)
-                        .zIndex(2)
-                }
+                transitionButton(for: clip)
             }
         }
         .frame(width: width, height: TimelineMetrics.laneHeight, alignment: .topLeading)
-        .overlay(alignment: .topLeading) {
-            if let dropPreview, dropPreview.trackID == track.id {
-                DropGhostView(preview: dropPreview, pointsPerSecond: pointsPerSecond)
-            }
-        }
-        .overlay {
-            if let dropPreview, dropPreview.trackID == track.id {
-                Rectangle()
-                    .strokeBorder((dropPreview.isValid ? Color.accentColor : Color.red).opacity(0.6), lineWidth: 1.5)
-                    .allowsHitTesting(false)
-            }
-        }
+        .overlay(alignment: .topLeading) { dropGhost(on: track) }
+        .overlay { dropOutline(on: track) }
         .onDrop(
             of: [.plainText],
             delegate: LaneDropDelegate(
                 track: track, store: store, library: library, pointsPerSecond: pointsPerSecond, preview: $dropPreview
             )
         )
+    }
+
+    private func clipBlock(for clip: Clip, in track: Track, at index: Int) -> some View {
+        ClipBlockView(
+            clip: clip,
+            pointsPerSecond: pointsPerSecond,
+            isSelected: store.selectedClipIDs.contains(clip.id),
+            allowsLaneChange: !(store.hasMultipleSelected && store.selectedClipIDs.contains(clip.id)),
+            companionOffset: companionOffset(for: clip),
+            waveformPeaks: waveformPeaks(for: clip, in: track),
+            isMissing: clip.sourceURL.map(missingMedia.contains) ?? false,
+            onSelect: { select(clip) },
+            onMove: { start, laneOffset in move(clip, from: index, near: start, laneOffset: laneOffset) },
+            onTrim: { edge, time in store.trimClip(clip.id, edge: edge, near: time) },
+            onDragChange: { offset in drag = offset.map { (clip.id, $0) } }
+        )
+        .task(id: clip.sourceURL) { await loadWaveform(for: clip, in: track) }
+    }
+
+    @ViewBuilder
+    private func transitionButton(for clip: Clip) -> some View {
+        if store.project.clipBeforeAndTouching(clip.id) != nil {
+            TransitionButton(store: store, clip: clip)
+                .offset(x: clip.startInSeconds * pointsPerSecond - TransitionButton.size / 2, y: 2)
+                .zIndex(2)
+        }
+    }
+
+    @ViewBuilder
+    private func dropGhost(on track: Track) -> some View {
+        if let dropPreview, dropPreview.trackID == track.id {
+            DropGhostView(preview: dropPreview, pointsPerSecond: pointsPerSecond)
+        }
+    }
+
+    @ViewBuilder
+    private func dropOutline(on track: Track) -> some View {
+        if let dropPreview, dropPreview.trackID == track.id {
+            Rectangle()
+                .strokeBorder((dropPreview.isValid ? Color.accentColor : Color.red).opacity(0.6), lineWidth: 1.5)
+                .allowsHitTesting(false)
+        }
     }
 
     private func showsWaveform(_ clip: Clip, in track: Track) -> Bool {
@@ -232,10 +245,8 @@ struct TimelineView: View {
         await waveforms.load(url)
     }
 
-    /// Shift or command while clicking adds the clip to the selection (or takes it out); a plain click selects only it.
     private func select(_ clip: Clip) {
         if NSEvent.modifierFlags.intersection([.shift, .command]).isEmpty {
-            // Pressing on a clip that is already part of a multiple selection keeps it, so the whole set can be dragged.
             if !(store.hasMultipleSelected && store.selectedClipIDs.contains(clip.id)) { store.selectClip(clip.id) }
         } else {
             store.toggleSelection(of: clip.id)

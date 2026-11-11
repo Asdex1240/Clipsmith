@@ -11,7 +11,6 @@ struct TextOverlay: Equatable {
     }
 }
 
-/// A piece of text already drawn as an image, with where and when it shows. The center is measured from the bottom left.
 struct TextSprite {
     let startInSeconds: TimeInterval
     let endInSeconds: TimeInterval
@@ -26,6 +25,8 @@ enum TextOverlayLayers {
     private static let shadowOpacity = 0.6
     private static let shadowBlurFraction = 0.008
     private static let shadowPaddingFactor = 3.0
+    private static let shadowBlurScale = 10.0
+    private static let strokePercentScale = 100.0
 
     static func makeContainer(for overlay: TextOverlay) -> CALayer {
         let container = CALayer()
@@ -47,7 +48,6 @@ enum TextOverlayLayers {
         return container
     }
 
-    /// Layers for the live preview: not tied to any player item, shown or hidden by the caller via `opacity`.
     static func makeStaticLayers(for overlay: TextOverlay) -> [(clip: Clip, layer: CALayer)] {
         overlay.clips.compactMap { clip in
             guard let text = clip.textLayer,
@@ -56,7 +56,6 @@ enum TextOverlayLayers {
         }
     }
 
-    /// The text drawn ahead of time as images, for exports rendered by `EffectsCompositor` where Core Animation is unavailable.
     static func makeSprites(for overlay: TextOverlay) -> [TextSprite] {
         let maximumWidth = overlay.renderSize.width * maximumWidthFraction
         let scale = min(overlay.renderSize.width, overlay.renderSize.height) / TextLayer.referenceShortSide
@@ -98,12 +97,10 @@ enum TextOverlayLayers {
         layer.contents = image
         layer.bounds = CGRect(x: 0, y: 0, width: image.width, height: image.height)
         layer.position = CGPoint(x: text.positionX * renderSize.width, y: (1 - text.positionY) * renderSize.height)
-        // Core Animation's y axis points up, so a clockwise turn is a negative angle.
         layer.setAffineTransform(CGAffineTransform(rotationAngle: -text.rotationInDegrees * .pi / 180))
         return layer
     }
 
-    /// Size of the visible text in render-space points, used for hit-testing in the preview.
     static func textSize(of text: TextLayer, renderSize: CGSize) -> CGSize {
         let scale = min(renderSize.width, renderSize.height) / TextLayer.referenceShortSide
         let fontSize = text.fontSize * scale
@@ -127,15 +124,13 @@ enum TextOverlayLayers {
             with: CGSize(width: maximumWidth, height: .greatestFiniteMagnitude),
             options: [.usesLineFragmentOrigin, .usesFontLeading]
         )
-        let shadowPadding = text.hasShadow ? fontSize * shadowBlurFraction * shadowPaddingFactor * 10 : 0
         let boxPadding = text.backgroundColor == nil ? 0 : fontSize * backgroundPaddingFraction
-        let padding = ceil(max(shadowPadding, boxPadding, text.strokeWidth * fontSize, minimumPadding))
+        let padding = imagePadding(for: text, fontSize: fontSize, boxPadding: boxPadding)
         let width = Int(ceil(maximumWidth + 2 * padding))
         let height = Int(ceil(measured.height + 2 * padding))
         guard width > 0, height > 0, let context = makeContext(width: width, height: height) else { return nil }
-        let graphics = NSGraphicsContext(cgContext: context, flipped: false)
         NSGraphicsContext.saveGraphicsState()
-        NSGraphicsContext.current = graphics
+        NSGraphicsContext.current = NSGraphicsContext(cgContext: context, flipped: false)
         if let background = text.backgroundColor {
             let textWidth = min(ceil(measured.width), maximumWidth)
             let box = CGRect(
@@ -144,8 +139,7 @@ enum TextOverlayLayers {
                 width: textWidth + 2 * boxPadding,
                 height: ceil(measured.height) + 2 * boxPadding
             )
-            NSColor(srgbRed: background.red, green: background.green, blue: background.blue, alpha: background.alpha).setFill()
-            NSBezierPath(roundedRect: box, xRadius: fontSize * backgroundCornerFraction, yRadius: fontSize * backgroundCornerFraction).fill()
+            fillBackground(background, in: box, cornerRadius: fontSize * backgroundCornerFraction)
         }
         attributed.draw(
             with: CGRect(x: padding, y: padding, width: maximumWidth, height: ceil(measured.height)),
@@ -153,6 +147,16 @@ enum TextOverlayLayers {
         )
         NSGraphicsContext.restoreGraphicsState()
         return context.makeImage()
+    }
+
+    private static func imagePadding(for text: TextLayer, fontSize: Double, boxPadding: Double) -> Double {
+        let shadowPadding = text.hasShadow ? fontSize * shadowBlurFraction * shadowPaddingFactor * shadowBlurScale : 0
+        return ceil(max(shadowPadding, boxPadding, text.strokeWidth * fontSize, minimumPadding))
+    }
+
+    private static func fillBackground(_ background: RGBAColor, in box: CGRect, cornerRadius: Double) {
+        NSColor(srgbRed: background.red, green: background.green, blue: background.blue, alpha: background.alpha).setFill()
+        NSBezierPath(roundedRect: box, xRadius: cornerRadius, yRadius: cornerRadius).fill()
     }
 
     private static func attributes(for text: TextLayer, font: NSFont, scale: Double) -> [NSAttributedString.Key: Any] {
@@ -168,13 +172,12 @@ enum TextOverlayLayers {
         if text.hasShadow {
             let shadow = NSShadow()
             shadow.shadowColor = NSColor.black.withAlphaComponent(shadowOpacity)
-            shadow.shadowBlurRadius = text.fontSize * scale * shadowBlurFraction * 10
+            shadow.shadowBlurRadius = text.fontSize * scale * shadowBlurFraction * shadowBlurScale
             shadow.shadowOffset = .zero
             attributes[.shadow] = shadow
         }
         if text.strokeWidth > 0 {
-            // A negative width draws the outline and still fills the letters; it is a percentage of the font size.
-            attributes[.strokeWidth] = -text.strokeWidth * 100
+            attributes[.strokeWidth] = -text.strokeWidth * strokePercentScale
             attributes[.strokeColor] = NSColor(
                 srgbRed: text.strokeColor.red, green: text.strokeColor.green,
                 blue: text.strokeColor.blue, alpha: text.strokeColor.alpha
@@ -191,7 +194,6 @@ enum TextOverlayLayers {
         )
     }
 
-    /// Where the layer of a text sits, turned and scaled, at one moment of its animation. Core Animation's y axis points up.
     static func transform(for text: TextLayer, state: TextAnimationState, renderHeight: CGFloat) -> CGAffineTransform {
         CGAffineTransform(scaleX: state.scale, y: state.scale)
             .concatenating(CGAffineTransform(rotationAngle: -text.rotationInDegrees * .pi / 180))

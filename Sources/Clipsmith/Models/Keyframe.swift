@@ -1,8 +1,6 @@
 import Foundation
 
-/// The look of a visual clip at one moment: where it sits, how big it is, how it is turned and how opaque it is.
 struct VisualState: Codable, Equatable {
-    /// Shift on the canvas as a fraction of its width and height.
     var offsetX = 0.0
     var offsetY = 0.0
     var scale = 1.0
@@ -23,10 +21,8 @@ struct VisualState: Codable, Equatable {
 
 struct Keyframe: Codable, Equatable, Identifiable {
     var id = UUID()
-    /// Seconds after the start of the clip on the timeline.
     var timeInSeconds: TimeInterval
     var state: VisualState
-    /// How values leave this keyframe on their way to the next one.
     var easing = Easing.linear
 }
 
@@ -53,15 +49,12 @@ extension Keyframe {
 }
 
 enum KeyframeInterpolation {
-    /// The easing of the stretch between keyframes that contains `time`; linear outside them.
     static func easing(at time: TimeInterval, in keyframes: [Keyframe]) -> Easing {
         keyframes.last { $0.timeInSeconds <= time }.flatMap { frame in
             keyframes.contains { $0.timeInSeconds > time } ? frame.easing : nil
         } ?? .linear
     }
 
-    /// The state at `time` given keyframes sorted by time: it holds the first and last values outside them
-    /// and moves in a straight line between neighbours.
     static func state(at time: TimeInterval, in keyframes: [Keyframe], fallback: VisualState) -> VisualState {
         guard let first = keyframes.first, let last = keyframes.last else { return fallback }
         if time <= first.timeInSeconds { return first.state }

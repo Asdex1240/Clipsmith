@@ -18,32 +18,23 @@ struct Clip: Codable, Identifiable, Equatable {
     var fadeOutDurationInSeconds: TimeInterval = 0
     var textLayer: TextLayer?
     var fitMode = FitMode.fit
-    /// Shift of a visual clip on the canvas, as a fraction of the canvas width and height.
     var offsetX = 0.0
     var offsetY = 0.0
-    /// True once the sound of a video clip was extracted onto the audio track, so the video stays silent.
     var isAudioDetached = false
-    /// Size of a visual clip relative to its framed size, and its rotation in degrees (clockwise), both around the canvas center.
     var scale = 1.0
     var rotationInDegrees = 0.0
-    /// Playback rate of a video or audio clip: 2 plays twice as fast, 0.5 at half speed.
     var speed = 1.0
-    /// Fixed opacity of a visual clip; with keyframes the animated value is used instead.
     var opacity = 1.0
-    /// Values the visual look moves through over the clip; empty when the clip is not animated.
     var keyframes: [Keyframe] = []
-    /// How this clip comes in after the clip right before it; ignored when nothing touches its start.
     var transition: ClipTransition?
     var color = ColorAdjustments()
     var crop = CropInsets()
-    /// Clips sharing a group are selected, moved and copied together.
     var groupID: UUID?
 
     var displayName: String {
         textLayer?.content ?? sourceURL?.lastPathComponent ?? ""
     }
 
-    /// How much of the source the clip plays, regardless of its speed.
     var sourceSpanInSeconds: TimeInterval { sourceEndInSeconds - sourceStartInSeconds }
     var durationInSeconds: TimeInterval { sourceSpanInSeconds / speed }
     var supportsSpeed: Bool { mediaKind == .video || mediaKind == .audio }
@@ -117,7 +108,6 @@ struct Clip: Codable, Identifiable, Equatable {
         right.startInSeconds = time
         right.transition = nil
         if isAnimated {
-            // Each half keeps the animation it had at the cut, so the picture does not jump.
             let cut = time - startInSeconds
             let state = visualState(atClipTime: cut)
             left.keyframes = keyframes.filter { $0.timeInSeconds < cut } + [Keyframe(timeInSeconds: cut, state: state)]
@@ -161,8 +151,6 @@ struct Clip: Codable, Identifiable, Equatable {
         return clip
     }
 
-    /// Changes the playback rate, keeping the start; the clip grows or shrinks on the timeline.
-    /// `ceiling` is the latest time the clip may end at, so it never runs into the next clip.
     func settingSpeed(_ value: Double, notEndingAfter ceiling: TimeInterval = .infinity) -> Clip {
         guard supportsSpeed else { return self }
         var clip = self

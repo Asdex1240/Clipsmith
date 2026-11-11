@@ -68,10 +68,10 @@ final class TrackManagementTests: XCTestCase {
     func testTracksSwapWithTheNearestOneOfTheSameKind() {
         let top = project.addTrack(role: .broll)!
         let original = project.tracks(withRole: .broll).first { $0.id != top }!.id
-        XCTAssertTrue(project.canMoveTrack(top, up: false))
-        XCTAssertFalse(project.canMoveTrack(top, up: true))
+        XCTAssertTrue(project.canMoveTrack(top, direction: .down))
+        XCTAssertFalse(project.canMoveTrack(top, direction: .up))
 
-        project.moveTrack(top, up: false)
+        project.moveTrack(top, direction: .down)
 
         // The two overlay tracks swap places; every other track stays where it was.
         XCTAssertEqual(project.tracks.map(\.id).filter { [top, original].contains($0) }, [original, top])
@@ -79,12 +79,12 @@ final class TrackManagementTests: XCTestCase {
     }
 
     func testTracksNeverMoveAcrossKinds() {
-        XCTAssertFalse(project.canMoveTrack(project.track(withRole: .audio)!.id, up: true))
-        XCTAssertFalse(project.canMoveTrack(project.track(withRole: .text)!.id, up: false))
+        XCTAssertFalse(project.canMoveTrack(project.track(withRole: .audio)!.id, direction: .up))
+        XCTAssertFalse(project.canMoveTrack(project.track(withRole: .text)!.id, direction: .down))
     }
 
     func testMainCanBeRaisedAboveAnOverlayTrack() {
-        project.moveTrack(project.track(withRole: .main)!.id, up: true)
+        project.moveTrack(project.track(withRole: .main)!.id, direction: .up)
 
         XCTAssertEqual(roles, [.text, .main, .broll, .audio])
         XCTAssertEqual(project.videoTracksTopFirst.first?.role, .main)
@@ -182,8 +182,8 @@ final class TrackManagementTests: XCTestCase {
 
         // The white overlay is on a lower overlay track than the empty one, but above main.
         let whiteOnTop = try await brightness(of: project)
-        project.moveTrack(project.track(withRole: .main)!.id, up: true)
-        project.moveTrack(project.track(withRole: .main)!.id, up: true)
+        project.moveTrack(project.track(withRole: .main)!.id, direction: .up)
+        project.moveTrack(project.track(withRole: .main)!.id, direction: .up)
         let mainOnTop = try await brightness(of: project)
 
         XCTAssertGreaterThan(whiteOnTop, 0.9)

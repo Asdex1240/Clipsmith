@@ -4,9 +4,7 @@ struct ClipBlockView: View {
     let clip: Clip
     let pointsPerSecond: Double
     let isSelected: Bool
-    /// When several clips are selected they only slide along the timeline together, never to another track.
     var allowsLaneChange = true
-    /// How far, in points, another selected clip is being dragged; this clip follows it.
     var companionOffset: CGFloat = 0
     let waveformPeaks: [Float]?
     let isMissing: Bool

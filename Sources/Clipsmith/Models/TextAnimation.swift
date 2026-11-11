@@ -8,17 +8,14 @@ enum TextAnimationKind: String, Codable, CaseIterable {
     case pop
 }
 
-/// How a text is shifted, scaled and faded at one moment of its animation.
 struct TextAnimationState: Equatable {
     var opacity = 1.0
-    /// Shift as a fraction of the canvas height; positive moves the text down.
     var offsetY = 0.0
     var scale = 1.0
 
     static let identity = TextAnimationState()
 }
 
-/// How a text comes in and goes out. The default shows it as is.
 struct TextAnimation: Codable, Equatable {
     static let durationRange = 0.1...2.0
     static let defaultDuration = 0.4
@@ -37,12 +34,10 @@ struct TextAnimation: Codable, Equatable {
         self.durationInSeconds = durationInSeconds
     }
 
-    /// The same animation coming in and going out.
     static func both(_ kind: TextAnimationKind) -> TextAnimation {
         TextAnimation(inKind: kind, outKind: kind)
     }
 
-    /// The state `time` seconds after the text appears, for a text shown during `clipDuration` seconds.
     func state(atClipTime time: TimeInterval, clipDuration: TimeInterval) -> TextAnimationState {
         guard !isNone, clipDuration > 0 else { return .identity }
         let window = min(durationInSeconds, clipDuration / 2)
@@ -56,7 +51,6 @@ struct TextAnimation: Codable, Equatable {
         )
     }
 
-    /// Times, relative to the start of the text, where the look changes and has to be sampled for a straight-ramp renderer.
     func samplePoints(clipDuration: TimeInterval, framesPerSecond: Double = 30) -> [TimeInterval] {
         let window = min(durationInSeconds, clipDuration / 2)
         let step = 1 / framesPerSecond
@@ -98,7 +92,6 @@ extension TextAnimation {
     }
 }
 
-/// Ready-made looks for a text: they only set its style, never its words, size or place.
 enum TextStylePreset: String, CaseIterable {
     case classic
     case outlined

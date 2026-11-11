@@ -21,7 +21,6 @@ extension Project {
         updateClip(id) { $0.settingFitMode(mode) }
     }
 
-    /// `time` is the playhead: when the clip has keyframes, the change lands on the keyframe at that moment.
     mutating func setTransform(of id: Clip.ID, scale: Double, rotationInDegrees: Double, at time: TimeInterval? = nil) {
         updateClip(id) { clip in
             clip.updatingVisual(at: time) {
@@ -39,7 +38,6 @@ extension Project {
         }
     }
 
-    /// The visual clip that ends exactly where `id` starts on the same track, if any.
     func clipBeforeAndTouching(_ id: Clip.ID) -> Clip? {
         guard let position = location(of: id), [.main, .broll].contains(tracks[position.track].role) else { return nil }
         let track = tracks[position.track]
@@ -103,7 +101,6 @@ extension Project {
         }
     }
 
-    /// A video on the main track whose sound can still be moved to the audio track without overlapping other audio.
     func canDetachAudio(ofClip id: Clip.ID) -> Bool {
         guard let position = location(of: id), tracks[position.track].role == .main else { return false }
         let clip = tracks[position.track].clips[position.clip]
@@ -111,7 +108,6 @@ extension Project {
         return audioTrackWithRoom(for: clip) != nil
     }
 
-    /// Copies the sound of a video clip to the audio track, at the same time and range, and silences the video.
     @discardableResult
     mutating func detachAudio(ofClip id: Clip.ID) -> Clip.ID? {
         guard canDetachAudio(ofClip: id), let position = location(of: id),
@@ -154,7 +150,6 @@ extension Project {
         return addClip(clip, toTrack: track.id) ? clip.id : nil
     }
 
-    /// Adds a text clip for each line; returns how many fit on the text track.
     @discardableResult
     mutating func addSubtitles(
         _ lines: [SubtitleLine], style: TextStylePreset = .classic, animation: TextAnimation = TextAnimation()

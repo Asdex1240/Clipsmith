@@ -7,7 +7,6 @@ enum TransitionKind: String, Codable, CaseIterable {
     case slideRight
 }
 
-/// How a clip comes in after the clip right before it on the same track.
 struct ClipTransition: Codable, Equatable {
     static let durationRange = 0.25...3.0
     static let defaultDuration = 1.0
@@ -30,10 +29,8 @@ struct ClipTransition: Codable, Equatable {
 }
 
 extension TransitionKind {
-    /// How far through the transition the incoming clip has to be before the outgoing one is gone.
     static let dipFraction = 0.5
 
-    /// Opacity multipliers for the outgoing and incoming clip at `progress` (0 to 1).
     func opacity(at progress: Double) -> (outgoing: Double, incoming: Double) {
         switch self {
         case .dissolve:
@@ -46,7 +43,6 @@ extension TransitionKind {
         }
     }
 
-    /// Horizontal shift, as a fraction of the canvas width, of the outgoing and incoming clip at `progress`.
     func shift(at progress: Double) -> (outgoing: Double, incoming: Double) {
         switch self {
         case .slideLeft: return (-progress, 1 - progress)
@@ -55,7 +51,6 @@ extension TransitionKind {
         }
     }
 
-    /// Progress values where the look changes direction, which a straight ramp cannot follow.
     var breakpoints: [Double] {
         self == .fadeBlack ? [Self.dipFraction] : []
     }

@@ -60,7 +60,6 @@ struct SubtitleInspector: View {
         }
     }
 
-    /// The saved language, or the closest to the system one the first time.
     private var selectedIdentifier: Binding<String> {
         Binding(
             get: {
