@@ -180,6 +180,14 @@
 "preset.cool" = "Frío";
 "preset.vivid" = "Vivo";
 "preset.faded" = "Desvaído";
+"inspector.silences.section" = "Silencios";
+"inspector.silences.threshold" = "Umbral de volumen";
+"inspector.silences.minimum" = "Duración mínima";
+"inspector.silences.find" = "Buscar silencios";
+"inspector.silences.found" = "%d silencios encontrados (%@ en total). Haz clic en uno para verlo.";
+"inspector.silences.none" = "No se encontraron silencios con estos ajustes.";
+"inspector.silences.remove" = "Quitar silencios";
+"inspector.silences.hint" = "Busca los tramos en silencio de este clip a partir de su forma de onda. Al quitarlos se corta cada uno y se cierra el hueco en un solo paso deshacible.";
 "inspector.subtitles.section" = "Subtítulos";
 "inspector.subtitles.language" = "Idioma hablado";
 "inspector.subtitles.generate" = "Generar subtítulos";
