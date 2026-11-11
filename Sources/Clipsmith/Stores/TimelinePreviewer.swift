@@ -36,6 +36,13 @@ final class TimelinePreviewer {
         denoise.onChange = { [weak self] in self?.proxiesDidChange() }
     }
 
+    func cachesWereCleared() {
+        let project = store.project
+        scheduleFullRebuild(of: project)
+        proxies.prepare(for: project)
+        denoise.prepare(for: project)
+    }
+
     private func proxiesDidChange() {
         scheduleFullRebuild(of: store.project)
     }

@@ -25,6 +25,7 @@ final class StillImageVideoWriter: StillImageVideoMaking {
     func makeVideo(from imageURL: URL, size: CGSize, mode: FitMode) async throws -> URL {
         let destination = cachedURL(for: imageURL, size: size, mode: mode)
         if FileManager.default.fileExists(atPath: destination.path) {
+            CacheCleaner.touch(destination)
             return destination
         }
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
