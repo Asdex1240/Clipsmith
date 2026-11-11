@@ -14,9 +14,19 @@ struct VisualInspector: View {
         return "inspector.keyframes.hint"
     }
 
+    private static let neutralScale = 1.0
+    private static let neutralRotation = 0.0
+    private static let fullOpacity = 1.0
+
     var body: some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.cozy) {
-            Text(localized("inspector.visual.section")).font(.subheadline.bold())
+        VStack(alignment: .leading, spacing: Design.Spacing.comfortable) {
+            framingSection
+            keyframesSection
+        }
+    }
+
+    private var framingSection: some View {
+        InspectorSection(.framing) {
             Picker(localized("inspector.visual.framing"), selection: framingBinding) {
                 Text(localized("inspector.visual.fit")).tag(FitMode.fit)
                 Text(localized("inspector.visual.fill")).tag(FitMode.fill)
@@ -25,18 +35,17 @@ struct VisualInspector: View {
             Text(localized(fitHintKey))
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            slider(
-                "inspector.visual.scale", scaleBinding, Clip.scaleRange,
-                "\(Int((clip.scale * 100).rounded()))%")
-            slider(
-                "inspector.visual.rotation", rotationBinding, -180...180,
-                "\(Int(clip.rotationInDegrees.rounded()))°")
-            slider(
-                "inspector.visual.opacity", opacityBinding, 0...1,
-                "\(Int((clip.opacity * 100).rounded()))%")
+            ParameterSlider(
+                title: localized("inspector.visual.scale"), value: scaleBinding,
+                range: Clip.scaleRange, unit: .percent, defaultValue: Self.neutralScale)
+            ParameterSlider(
+                title: localized("inspector.visual.rotation"), value: rotationBinding,
+                range: -180...180, unit: .degrees, defaultValue: Self.neutralRotation)
+            ParameterSlider(
+                title: localized("inspector.visual.opacity"), value: opacityBinding,
+                range: 0...1, unit: .percent, defaultValue: Self.fullOpacity)
             Button(localized("inspector.visual.reset")) { store.resetTransform(of: clip.id) }
                 .disabled(isUntransformed)
-            keyframes
         }
     }
 
@@ -50,10 +59,8 @@ struct VisualInspector: View {
             && store.playheadInSeconds <= clip.endInSeconds
     }
 
-    private var keyframes: some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.compact) {
-            Divider()
-            Text(localized("inspector.keyframes.section")).font(.subheadline.bold())
+    private var keyframesSection: some View {
+        InspectorSection(.keyframes) {
             Text(localized(keyframesHintKey))
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -117,22 +124,6 @@ struct VisualInspector: View {
             get: { clip.rotationInDegrees },
             set: { store.setTransform(of: clip.id, scale: clip.scale, rotationInDegrees: $0) }
         )
-    }
-
-    private func slider(
-        _ key: String.LocalizationValue,
-        _ value: Binding<Double>,
-        _ range: ClosedRange<Double>,
-        _ valueText: String
-    ) -> some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.hairline) {
-            HStack {
-                Text(localized(key))
-                Spacer()
-                Text(valueText).monospacedDigit().foregroundStyle(.secondary)
-            }
-            Slider(value: value, in: range)
-        }
     }
 
     private var framingBinding: Binding<FitMode> {

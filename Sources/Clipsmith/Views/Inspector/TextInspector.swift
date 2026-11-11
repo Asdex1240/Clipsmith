@@ -17,13 +17,23 @@ struct TextInspector: View {
     ]
     private static let sizeRange = 20.0...240.0
 
+    private static let defaults = TextLayer(content: "")
+    private static let noAnimation = TextAnimation()
+
     private var layer: TextLayer {
         clip.textLayer ?? TextLayer(content: "")
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.cozy) {
-            Text(localized("inspector.text.section")).font(.subheadline.bold())
+        VStack(alignment: .leading, spacing: Design.Spacing.comfortable) {
+            contentSection
+            styleSection
+            animationSection
+        }
+    }
+
+    private var contentSection: some View {
+        InspectorSection(.text) {
             TextField(
                 localized("inspector.text.content"), text: binding(\.content), axis: .vertical
             )
@@ -32,46 +42,35 @@ struct TextInspector: View {
             Picker(localized("inspector.text.font"), selection: binding(\.fontName)) {
                 ForEach(fontOptions, id: \.postScript) { Text($0.name).tag($0.postScript) }
             }
-            slider(
-                "inspector.text.size", binding(\.fontSize), Self.sizeRange,
-                "\(Int(layer.fontSize)) pt")
             ColorPicker(
                 localized("inspector.text.color"), selection: colorBinding, supportsOpacity: false)
             slider(
-                "inspector.text.positionX", binding(\.positionX), 0...1, percent(layer.positionX))
+                "inspector.text.size", binding(\.fontSize), Self.sizeRange, .points,
+                Self.defaults.fontSize)
             slider(
-                "inspector.text.positionY", binding(\.positionY), 0...1, percent(layer.positionY))
+                "inspector.text.positionX", binding(\.positionX), 0...1, .percent,
+                Self.defaults.positionX)
             slider(
-                "inspector.text.rotation", binding(\.rotationInDegrees), -180...180,
-                "\(Int(layer.rotationInDegrees.rounded()))°")
-            styleControls
-            animationControls
+                "inspector.text.positionY", binding(\.positionY), 0...1, .percent,
+                Self.defaults.positionY)
+            slider(
+                "inspector.text.rotation", binding(\.rotationInDegrees), -180...180, .degrees,
+                Self.defaults.rotationInDegrees)
         }
     }
 
-    // MARK: Style
-
-    private var styleControls: some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.regular) {
-            Divider()
-            Text(localized("inspector.textStyle.section")).font(.subheadline.bold())
-            LazyVGrid(
-                columns: [GridItem(.adaptive(minimum: 78), spacing: Design.Spacing.tight)],
-                alignment: .leading,
-                spacing: Design.Spacing.tight
-            ) {
-                ForEach(TextStylePreset.allCases, id: \.self) { preset in
-                    Button(Self.title(of: preset)) {
-                        store.updateTextLayer(of: clip.id, field: "style") { preset.apply(to: &$0) }
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
+    private var styleSection: some View {
+        InspectorSection(.textStyle) {
+            PresetGrid(
+                items: TextStylePreset.allCases,
+                title: Self.title(of:),
+                isSelected: { _ in false },
+                action: { preset in
+                    store.updateTextLayer(of: clip.id, field: "style") { preset.apply(to: &$0) }
                 }
-            }
+            )
             slider(
-                "inspector.textStyle.outline", binding(\.strokeWidth),
-                0...TextLayer.maximumStrokeWidth,
-                percent(layer.strokeWidth / TextLayer.maximumStrokeWidth))
+                "inspector.textStyle.outline", outlineBinding, 0...1, .percent, 0)
             if layer.strokeWidth > 0 {
                 ColorPicker(
                     localized("inspector.textStyle.outlineColor"),
@@ -91,12 +90,8 @@ struct TextInspector: View {
         }
     }
 
-    // MARK: Animation
-
-    private var animationControls: some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.regular) {
-            Divider()
-            Text(localized("inspector.textAnimation.section")).font(.subheadline.bold())
+    private var animationSection: some View {
+        InspectorSection(.textAnimation) {
             Picker(localized("inspector.textAnimation.in"), selection: binding(\.animation.inKind))
             {
                 ForEach(TextAnimationKind.allCases, id: \.self) { Text(Self.title(of: $0)).tag($0) }
@@ -109,11 +104,20 @@ struct TextInspector: View {
             if !layer.animation.isNone {
                 slider(
                     "inspector.textAnimation.duration", binding(\.animation.durationInSeconds),
-                    TextAnimation.durationRange,
-                    String(format: "%.1f s", layer.animation.durationInSeconds)
-                )
+                    TextAnimation.durationRange, .seconds, Self.noAnimation.durationInSeconds)
             }
         }
+    }
+
+    private var outlineBinding: Binding<Double> {
+        Binding(
+            get: { layer.strokeWidth / TextLayer.maximumStrokeWidth },
+            set: { newValue in
+                store.updateTextLayer(of: clip.id, field: "strokeWidth") {
+                    $0.strokeWidth = newValue * TextLayer.maximumStrokeWidth
+                }
+            }
+        )
     }
 
     static func title(of kind: TextAnimationKind) -> String {
@@ -209,24 +213,16 @@ struct TextInspector: View {
         )
     }
 
-    private func percent(_ value: Double) -> String {
-        "\(Int((value * 100).rounded()))%"
-    }
-
     private func slider(
         _ key: String.LocalizationValue,
         _ value: Binding<Double>,
         _ range: ClosedRange<Double>,
-        _ valueText: String
+        _ unit: ParameterUnit,
+        _ defaultValue: Double
     ) -> some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.hairline) {
-            HStack {
-                Text(localized(key))
-                Spacer()
-                Text(valueText).monospacedDigit().foregroundStyle(.secondary)
-            }
-            Slider(value: value, in: range)
-        }
+        ParameterSlider(
+            title: localized(key), value: value, range: range, unit: unit,
+            defaultValue: defaultValue)
     }
 }
 

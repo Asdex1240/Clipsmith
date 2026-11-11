@@ -4,33 +4,43 @@ struct EffectsInspector: View {
     let store: ProjectStore
     let clip: Clip
 
-    private func presetTint(for preset: ColorPreset) -> Color? {
-        guard clip.color == preset.adjustments else { return nil }
-        return .accentColor
-    }
+    private static let neutral = ColorAdjustments()
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.cozy) {
-            Text(localized("inspector.effects.section")).font(.subheadline.bold())
-            presets
-            slider(
-                "inspector.effects.brightness", \.brightness, ColorAdjustments.brightnessRange,
-                display: .percent)
-            slider(
-                "inspector.effects.contrast", \.contrast, ColorAdjustments.contrastRange,
-                display: .percent)
-            slider(
-                "inspector.effects.saturation", \.saturation, ColorAdjustments.saturationRange,
-                display: .percent)
-            slider(
-                "inspector.effects.temperature", \.temperature, ColorAdjustments.temperatureRange,
-                display: .signedNumber)
+        VStack(alignment: .leading, spacing: Design.Spacing.comfortable) {
+            colorSection
+            cropSection
+        }
+    }
+
+    private var colorSection: some View {
+        InspectorSection(.color) {
+            PresetGrid(
+                items: ColorPreset.allCases,
+                title: Self.title(of:),
+                isSelected: { clip.color == $0.adjustments },
+                action: { store.setColor(of: clip.id, to: $0.adjustments) }
+            )
+            colorSlider(
+                "inspector.effects.brightness", \.brightness,
+                ColorAdjustments.brightnessRange, .percent)
+            colorSlider(
+                "inspector.effects.contrast", \.contrast, ColorAdjustments.contrastRange, .percent)
+            colorSlider(
+                "inspector.effects.saturation", \.saturation,
+                ColorAdjustments.saturationRange, .percent)
+            colorSlider(
+                "inspector.effects.temperature", \.temperature,
+                ColorAdjustments.temperatureRange, .signedNumber)
             Button(localized("inspector.effects.reset")) {
-                store.setColor(of: clip.id, to: ColorAdjustments())
+                store.setColor(of: clip.id, to: Self.neutral)
             }
             .disabled(clip.color.isIdentity)
-            Divider()
-            Text(localized("inspector.crop.section")).font(.subheadline.bold())
+        }
+    }
+
+    private var cropSection: some View {
+        InspectorSection(.crop) {
             cropSlider("inspector.crop.left", \.left)
             cropSlider("inspector.crop.right", \.right)
             cropSlider("inspector.crop.top", \.top)
@@ -43,50 +53,22 @@ struct EffectsInspector: View {
         }
     }
 
-    private var presets: some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.tight) {
-            Text(localized("inspector.effects.presets")).font(.caption).foregroundStyle(.secondary)
-            LazyVGrid(
-                columns: [GridItem(.adaptive(minimum: 70), spacing: Design.Spacing.tight)],
-                alignment: .leading,
-                spacing: Design.Spacing.tight
-            ) {
-                ForEach(ColorPreset.allCases, id: \.self) { preset in
-                    Button(Self.title(of: preset)) {
-                        store.setColor(of: clip.id, to: preset.adjustments)
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    .tint(presetTint(for: preset))
-                }
-            }
-        }
-    }
-
-    private func slider(
+    private func colorSlider(
         _ key: String.LocalizationValue,
         _ path: WritableKeyPath<ColorAdjustments, Double>,
         _ range: ClosedRange<Double>,
-        display: SliderValueDisplay
+        _ unit: ParameterUnit
     ) -> some View {
-        let value = clip.color[keyPath: path]
-        return VStack(alignment: .leading, spacing: Design.Spacing.hairline) {
-            HStack {
-                Text(localized(key))
-                Spacer()
-                Text(display.text(for: value))
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
-            }
-            Slider(value: colorBinding(path, value: value), in: range)
-        }
+        ParameterSlider(
+            title: localized(key), value: colorBinding(path), range: range, unit: unit,
+            defaultValue: Self.neutral[keyPath: path]
+        )
     }
 
-    private func colorBinding(
-        _ path: WritableKeyPath<ColorAdjustments, Double>, value: Double
-    ) -> Binding<Double> {
+    private func colorBinding(_ path: WritableKeyPath<ColorAdjustments, Double>) -> Binding<Double>
+    {
         Binding(
-            get: { value },
+            get: { clip.color[keyPath: path] },
             set: { newValue in
                 var adjustments = clip.color
                 adjustments[keyPath: path] = newValue
@@ -98,26 +80,18 @@ struct EffectsInspector: View {
     private func cropSlider(
         _ key: String.LocalizationValue, _ path: WritableKeyPath<CropInsets, Double>
     ) -> some View {
-        let value = clip.crop[keyPath: path]
-        return VStack(alignment: .leading, spacing: Design.Spacing.hairline) {
-            HStack {
-                Text(localized(key))
-                Spacer()
-                Text("\(Int((value * 100).rounded()))%").monospacedDigit().foregroundStyle(
-                    .secondary)
-            }
-            Slider(
-                value: Binding(
-                    get: { value },
-                    set: { newValue in
-                        var insets = clip.crop
-                        insets[keyPath: path] = newValue
-                        store.setCrop(of: clip.id, to: insets)
-                    }
-                ),
-                in: 0...CropInsets.maximumPerAxis
-            )
-        }
+        ParameterSlider(
+            title: localized(key),
+            value: Binding(
+                get: { clip.crop[keyPath: path] },
+                set: { newValue in
+                    var insets = clip.crop
+                    insets[keyPath: path] = newValue
+                    store.setCrop(of: clip.id, to: insets)
+                }
+            ),
+            range: 0...CropInsets.maximumPerAxis, unit: .percent, defaultValue: 0
+        )
     }
 
     private static func title(of preset: ColorPreset) -> String {

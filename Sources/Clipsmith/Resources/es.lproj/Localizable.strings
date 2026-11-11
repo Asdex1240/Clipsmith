@@ -160,7 +160,6 @@
 "transition.slideRight" = "Deslizar a la derecha";
 "transition.duration" = "Duración";
 "inspector.effects.section" = "Color";
-"inspector.effects.presets" = "Estilos";
 "inspector.effects.brightness" = "Brillo";
 "inspector.effects.contrast" = "Contraste";
 "inspector.effects.saturation" = "Saturación";
@@ -231,3 +230,6 @@
 "track.moveUp" = "Subir pista";
 "track.moveDown" = "Bajar pista";
 "track.remove" = "Quitar pista y sus clips";
+"inspector.reset" = "Restablecer";
+"inspector.section.expanded" = "Expandido";
+"inspector.section.collapsed" = "Contraído";

@@ -5,10 +5,10 @@ struct SpeedInspector: View {
     let clip: Clip
 
     private static let presets: [Double] = [0.25, 0.5, 1, 1.5, 2, 4]
+    private static let selectionTolerance = 0.001
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.cozy) {
-            Text(localized("inspector.speed.section")).font(.subheadline.bold())
+        InspectorSection(.speed) {
             VStack(alignment: .leading, spacing: Design.Spacing.hairline) {
                 HStack {
                     Text(localized("inspector.speed.rate"))
@@ -19,14 +19,12 @@ struct SpeedInspector: View {
                     value: logBinding,
                     in: log2(Clip.speedRange.lowerBound)...log2(Clip.speedRange.upperBound))
             }
-            HStack(spacing: Design.Spacing.tight) {
-                ForEach(Self.presets, id: \.self) { preset in
-                    Button(Self.label(for: preset)) { store.setSpeed(of: clip.id, to: preset) }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
-                        .disabled(abs(clip.speed - preset) < 0.001)
-                }
-            }
+            PresetGrid(
+                items: Self.presets,
+                title: Self.label(for:),
+                isSelected: { abs(clip.speed - $0) < Self.selectionTolerance },
+                action: { store.setSpeed(of: clip.id, to: $0) }
+            )
             Text(
                 String(
                     format: localized("inspector.speed.duration"),
