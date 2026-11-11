@@ -24,13 +24,17 @@ struct ProjectStorage: ProjectStoring {
     func read(from url: URL) throws -> LoadedProject {
         let file = try ProjectFileCoding.decode(Data(contentsOf: url))
         let urls = file.project.referencedSourceURLs.union(file.library.map(\.url))
-        let resolutions = urls.reduce(into: [URL: MediaBookmarks.Resolution]()) { result, original in
-            result[original] = MediaBookmarks.resolve(original: original, bookmark: file.bookmarks[original.path])
+        let resolutions = urls.reduce(into: [URL: MediaBookmarks.Resolution]()) {
+            result, original in
+            result[original] = MediaBookmarks.resolve(
+                original: original, bookmark: file.bookmarks[original.path])
         }
         let replacements = resolutions.mapValues(\.url)
         var project = file.project
         project.remapSources(replacements)
-        let missing = resolutions.values.filter { !$0.exists }.map(\.url).sorted { $0.path < $1.path }
+        let missing = resolutions.values.filter { !$0.exists }.map(\.url).sorted {
+            $0.path < $1.path
+        }
         return LoadedProject(
             project: project,
             library: file.library.map { $0.remapped(replacements) },

@@ -56,7 +56,8 @@ struct AVMediaLoader: MediaLoading {
     private func videoSize(of url: URL) async -> CGSize? {
         let asset = AVURLAsset(url: url)
         guard let track = try? await asset.loadTracks(withMediaType: .video).first,
-              let (natural, transform) = try? await track.load(.naturalSize, .preferredTransform) else { return nil }
+            let (natural, transform) = try? await track.load(.naturalSize, .preferredTransform)
+        else { return nil }
         let oriented = CGRect(origin: .zero, size: natural).applying(transform)
         guard oriented.width > 0, oriented.height > 0 else { return nil }
         return CGSize(width: oriented.width, height: oriented.height)
@@ -64,12 +65,15 @@ struct AVMediaLoader: MediaLoading {
 
     private func imageSize(of url: URL) -> CGSize? {
         guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
-              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
-              let width = properties[kCGImagePropertyPixelWidth] as? Double,
-              let height = properties[kCGImagePropertyPixelHeight] as? Double,
-              width > 0, height > 0 else { return nil }
+            let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+            let width = properties[kCGImagePropertyPixelWidth] as? Double,
+            let height = properties[kCGImagePropertyPixelHeight] as? Double,
+            width > 0, height > 0
+        else { return nil }
         let orientation = properties[kCGImagePropertyOrientation] as? Int ?? 1
-        guard orientation >= Self.firstOrientationThatSwapsAxes else { return CGSize(width: width, height: height) }
+        guard orientation >= Self.firstOrientationThatSwapsAxes else {
+            return CGSize(width: width, height: height)
+        }
         return CGSize(width: height, height: width)
     }
 }

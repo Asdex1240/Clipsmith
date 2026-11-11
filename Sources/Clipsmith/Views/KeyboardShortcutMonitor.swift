@@ -21,18 +21,21 @@ final class KeyboardShortcutMonitor {
 
     private func handle(_ event: NSEvent) -> Bool {
         guard canHandleShortcuts(for: event),
-              let key = ShortcutKey(event: event),
-              let action = EditorShortcuts.action(for: key, modifiers: ShortcutModifiers(event: event)),
-              !event.isARepeat || action.allowsKeyRepeat else { return false }
+            let key = ShortcutKey(event: event),
+            let action = EditorShortcuts.action(
+                for: key, modifiers: ShortcutModifiers(event: event)),
+            !event.isARepeat || action.allowsKeyRepeat
+        else { return false }
         perform(action)
         return true
     }
 
     private func canHandleShortcuts(for event: NSEvent) -> Bool {
         guard event.modifierFlags.intersection(.control).isEmpty,
-              let window = NSApp.keyWindow,
-              window.sheetParent == nil,
-              window.attachedSheet == nil else { return false }
+            let window = NSApp.keyWindow,
+            window.sheetParent == nil,
+            window.attachedSheet == nil
+        else { return false }
         return !(window.firstResponder is NSText)
     }
 }

@@ -54,8 +54,8 @@ struct LaneDropDelegate: DropDelegate {
         return true
     }
 
-    private func startTime(for item: MediaItem, isValid: Bool, proposed: TimeInterval) -> TimeInterval {
-        guard isValid else { return max(0, proposed) }
+    private func startTime(for item: MediaItem, proposed: TimeInterval) -> TimeInterval {
+        guard track.role.accepts(item.kind) else { return max(0, proposed) }
         return store.dropStart(duration: item.durationInSeconds, on: track, near: proposed)
     }
 
@@ -65,7 +65,7 @@ struct LaneDropDelegate: DropDelegate {
         let proposed = info.location.x / pointsPerSecond
         let next = DropPreview(
             trackID: track.id,
-            start: startTime(for: item, isValid: isValid, proposed: proposed),
+            start: startTime(for: item, proposed: proposed),
             duration: item.durationInSeconds,
             kind: item.kind,
             name: item.name,
@@ -83,15 +83,32 @@ struct DropGhostView: View {
         let tint = preview.tint
         RoundedRectangle(cornerRadius: 6)
             .fill(tint.opacity(0.25))
-            .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(tint, style: StrokeStyle(lineWidth: 1.5, dash: [5, 3])))
+            .overlay(
+                RoundedRectangle(cornerRadius: 6).strokeBorder(
+                    tint, style: StrokeStyle(lineWidth: 1.5, dash: [5, 3]))
+            )
             .overlay(alignment: .leading) {
                 Label(preview.name, systemImage: preview.iconName)
                     .font(.caption)
                     .lineLimit(1)
                     .padding(.horizontal, 6)
             }
-            .frame(width: max(preview.duration * pointsPerSecond, 24), height: TimelineMetrics.laneHeight)
+            .frame(
+                width: max(preview.duration * pointsPerSecond, 24),
+                height: TimelineMetrics.laneHeight
+            )
             .offset(x: preview.start * pointsPerSecond)
             .allowsHitTesting(false)
     }
+}
+
+#Preview {
+    DropGhostView(
+        preview: DropPreview(
+            trackID: UUID(), start: 0, duration: 4, kind: .video, name: "sample.mov", isValid: true
+        ),
+        pointsPerSecond: 40
+    )
+    .frame(height: 48)
+    .padding()
 }

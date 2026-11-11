@@ -68,3 +68,8 @@ struct MarkerFlags: View {
         Binding(get: { marker.name }, set: { store.renameMarker(marker.id, to: $0) })
     }
 }
+
+#Preview {
+    MarkerFlags(store: PreviewFixtures.store(), pointsPerSecond: 40)
+        .frame(width: 320)
+}

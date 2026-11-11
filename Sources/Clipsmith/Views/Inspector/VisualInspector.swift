@@ -25,9 +25,15 @@ struct VisualInspector: View {
             Text(localized(fitHintKey))
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            slider("inspector.visual.scale", scaleBinding, Clip.scaleRange, "\(Int((clip.scale * 100).rounded()))%")
-            slider("inspector.visual.rotation", rotationBinding, -180...180, "\(Int(clip.rotationInDegrees.rounded()))°")
-            slider("inspector.visual.opacity", opacityBinding, 0...1, "\(Int((clip.opacity * 100).rounded()))%")
+            slider(
+                "inspector.visual.scale", scaleBinding, Clip.scaleRange,
+                "\(Int((clip.scale * 100).rounded()))%")
+            slider(
+                "inspector.visual.rotation", rotationBinding, -180...180,
+                "\(Int(clip.rotationInDegrees.rounded()))°")
+            slider(
+                "inspector.visual.opacity", opacityBinding, 0...1,
+                "\(Int((clip.opacity * 100).rounded()))%")
             Button(localized("inspector.visual.reset")) { store.resetTransform(of: clip.id) }
                 .disabled(isUntransformed)
             keyframes
@@ -35,11 +41,13 @@ struct VisualInspector: View {
     }
 
     private var isUntransformed: Bool {
-        clip.offsetX == 0 && clip.offsetY == 0 && clip.scale == 1 && clip.rotationInDegrees == 0 && !clip.isAnimated
+        clip.offsetX == 0 && clip.offsetY == 0 && clip.scale == 1 && clip.rotationInDegrees == 0
+            && !clip.isAnimated
     }
 
     private var playheadIsInsideClip: Bool {
-        store.playheadInSeconds >= clip.startInSeconds && store.playheadInSeconds <= clip.endInSeconds
+        store.playheadInSeconds >= clip.startInSeconds
+            && store.playheadInSeconds <= clip.endInSeconds
     }
 
     private var keyframes: some View {
@@ -54,22 +62,34 @@ struct VisualInspector: View {
                     Image(systemName: "diamond.fill").foregroundStyle(.yellow).font(.caption)
                     Text((clip.startInSeconds + frame.timeInSeconds).clockString).monospacedDigit()
                     Spacer()
-                    EasingMenu(easing: frame.easing) { store.setKeyframeEasing($0, for: frame.id, in: clip.id) }
-                    Button { store.movePlayhead(to: clip.startInSeconds + frame.timeInSeconds) } label: {
+                    EasingMenu(easing: frame.easing) {
+                        store.setKeyframeEasing($0, for: frame.id, in: clip.id)
+                    }
+                    Button {
+                        store.movePlayhead(to: clip.startInSeconds + frame.timeInSeconds)
+                    } label: {
                         Image(systemName: "arrow.right.to.line")
                     }
                     .buttonStyle(.borderless)
                     .help(localized("inspector.keyframes.go"))
-                    Button { store.removeKeyframe(frame.id, from: clip.id) } label: { Image(systemName: "trash") }
-                        .buttonStyle(.borderless)
-                        .help(localized("inspector.keyframes.remove"))
+                    Button {
+                        store.removeKeyframe(frame.id, from: clip.id)
+                    } label: {
+                        Image(systemName: "trash")
+                    }
+                    .buttonStyle(.borderless)
+                    .help(localized("inspector.keyframes.remove"))
                 }
             }
             HStack {
-                Button(localized("inspector.keyframes.add")) { store.addKeyframeAtPlayhead(to: clip.id) }
-                    .disabled(!playheadIsInsideClip)
+                Button(localized("inspector.keyframes.add")) {
+                    store.addKeyframeAtPlayhead(to: clip.id)
+                }
+                .disabled(!playheadIsInsideClip)
                 if clip.isAnimated {
-                    Button(localized("inspector.keyframes.clear")) { store.clearKeyframes(of: clip.id) }
+                    Button(localized("inspector.keyframes.clear")) {
+                        store.clearKeyframes(of: clip.id)
+                    }
                 }
             }
         }
@@ -82,7 +102,10 @@ struct VisualInspector: View {
     private var scaleBinding: Binding<Double> {
         Binding(
             get: { clip.scale },
-            set: { store.setTransform(of: clip.id, scale: $0, rotationInDegrees: clip.rotationInDegrees) }
+            set: {
+                store.setTransform(
+                    of: clip.id, scale: $0, rotationInDegrees: clip.rotationInDegrees)
+            }
         )
     }
 
@@ -112,4 +135,9 @@ struct VisualInspector: View {
     private var framingBinding: Binding<FitMode> {
         Binding(get: { clip.fitMode }, set: { store.setFitMode(of: clip.id, to: $0) })
     }
+}
+
+#Preview {
+    VisualInspector(store: PreviewFixtures.store(), clip: PreviewFixtures.videoClip)
+        .padding()
 }

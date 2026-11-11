@@ -39,13 +39,16 @@ enum CompositionPlanner {
                 endInSeconds: end,
                 clipIDsTopFirst: videoClips.filter { covers($0, from: start, to: end) }.map(\.id),
                 transitions: transitions.filter {
-                    $0.windowStart <= start + toleranceInSeconds && $0.windowEnd >= end - toleranceInSeconds
+                    $0.windowStart <= start + toleranceInSeconds
+                        && $0.windowEnd >= end - toleranceInSeconds
                 }
             )
         }
     }
 
-    static func clamp(_ segments: [PlannedSegment], toDuration duration: TimeInterval) -> [PlannedSegment] {
+    static func clamp(
+        _ segments: [PlannedSegment], toDuration duration: TimeInterval
+    ) -> [PlannedSegment] {
         segments
             .filter { $0.startInSeconds < duration - toleranceInSeconds }
             .map {
@@ -62,8 +65,9 @@ enum CompositionPlanner {
         project.videoTracksTopFirst.flatMap { track -> [PlannedTransition] in
             track.clips.compactMap { clip in
                 guard let transition = clip.transition,
-                      let outgoing = project.clipBeforeAndTouching(clip.id),
-                      outgoing.mediaKind == .video || outgoing.mediaKind == .image else { return nil }
+                    let outgoing = project.clipBeforeAndTouching(clip.id),
+                    outgoing.mediaKind == .video || outgoing.mediaKind == .image
+                else { return nil }
                 let duration = min(transition.durationInSeconds, clip.durationInSeconds)
                 guard duration >= minimumTransitionInSeconds else { return nil }
                 return PlannedTransition(
@@ -78,9 +82,12 @@ enum CompositionPlanner {
         }
     }
 
-    private static func boundaries(of clips: [Clip], extra: [TimeInterval], projectDuration: TimeInterval) -> [TimeInterval] {
+    private static func boundaries(
+        of clips: [Clip], extra: [TimeInterval], projectDuration: TimeInterval
+    ) -> [TimeInterval] {
         guard projectDuration > 0 else { return [] }
-        let all = ([0, projectDuration] + extra + clips.flatMap { [$0.startInSeconds, $0.endInSeconds] })
+        let all =
+            ([0, projectDuration] + extra + clips.flatMap { [$0.startInSeconds, $0.endInSeconds] })
             .filter { $0 <= projectDuration + toleranceInSeconds }
             .sorted()
         return all.reduce(into: [TimeInterval]()) { unique, value in
@@ -89,7 +96,9 @@ enum CompositionPlanner {
         }
     }
 
-    private static func covers(_ clip: Clip, from start: TimeInterval, to end: TimeInterval) -> Bool {
-        clip.startInSeconds <= start + toleranceInSeconds && clip.endInSeconds >= end - toleranceInSeconds
+    private static func covers(_ clip: Clip, from start: TimeInterval, to end: TimeInterval) -> Bool
+    {
+        clip.startInSeconds <= start + toleranceInSeconds
+            && clip.endInSeconds >= end - toleranceInSeconds
     }
 }

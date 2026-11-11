@@ -34,7 +34,8 @@ final class ProjectStorageTests: XCTestCase {
 
         try storage.write(project: project, library: library, to: destination)
 
-        let object = try JSONSerialization.jsonObject(with: Data(contentsOf: destination)) as? [String: Any]
+        let object =
+            try JSONSerialization.jsonObject(with: Data(contentsOf: destination)) as? [String: Any]
         XCTAssertEqual(object?["version"] as? Int, ProjectFile.currentVersion)
         XCTAssertNotNil(object?["project"])
     }
@@ -65,7 +66,8 @@ final class ProjectStorageTests: XCTestCase {
         let loaded = try storage.read(from: destination)
 
         XCTAssertTrue(loaded.missingMedia.isEmpty)
-        XCTAssertEqual(loaded.project.referencedSourceURLs.map(\.lastPathComponent), ["renamed.mov"])
+        XCTAssertEqual(
+            loaded.project.referencedSourceURLs.map(\.lastPathComponent), ["renamed.mov"])
         XCTAssertEqual(loaded.library.map(\.url.lastPathComponent), ["renamed.mov"])
     }
 
@@ -80,14 +82,17 @@ final class ProjectStorageTests: XCTestCase {
         try Data("hello".utf8).write(to: url)
 
         XCTAssertThrowsError(try storage.read(from: url)) { error in
-            guard case ProjectFileError.corrupted = error else { return XCTFail("Unexpected \(error)") }
+            guard case ProjectFileError.corrupted = error else {
+                return XCTFail("Unexpected \(error)")
+            }
         }
     }
 
     func testRecoveryStoreSavesLoadsAndClears() throws {
         let media = try makeFile("clip.mov")
         let (project, library) = makeProject(using: media)
-        let recovery = RecoveryStore(fileURL: directory.appendingPathComponent("rec/Recovery.clipsmith"))
+        let recovery = RecoveryStore(
+            fileURL: directory.appendingPathComponent("rec/Recovery.clipsmith"))
         XCTAssertFalse(recovery.hasRecovery)
 
         try recovery.save(project: project, library: library)
@@ -107,7 +112,8 @@ final class ProjectStorageTests: XCTestCase {
     private func makeProject(using media: URL) -> (Project, [MediaItem]) {
         var project = Project(name: "Saved")
         let item = MediaItem(url: media, kind: .video, durationInSeconds: 10)
-        project.addClip(Clip(item: item, startInSeconds: 0), toTrack: project.track(withRole: .main)!.id)
+        project.addClip(
+            Clip(item: item, startInSeconds: 0), toTrack: project.track(withRole: .main)!.id)
         project.addTextClip(TextLayer(content: "Hello"), at: 1, duration: 2)
         return (project, [item])
     }

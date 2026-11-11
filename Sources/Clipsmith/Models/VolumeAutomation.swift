@@ -12,12 +12,13 @@ enum VolumeAutomation {
         let volume = Float(clip.volume)
         var steps = [fadeInStep(for: clip, volume: volume)]
         if clip.fadeOutDurationInSeconds > 0 {
-            steps.append(VolumeStep(
-                startInSeconds: clip.endInSeconds - clip.fadeOutDurationInSeconds,
-                durationInSeconds: clip.fadeOutDurationInSeconds,
-                startVolume: volume,
-                endVolume: 0
-            ))
+            steps.append(
+                VolumeStep(
+                    startInSeconds: clip.endInSeconds - clip.fadeOutDurationInSeconds,
+                    durationInSeconds: clip.fadeOutDurationInSeconds,
+                    startVolume: volume,
+                    endVolume: 0
+                ))
         }
         return steps
     }

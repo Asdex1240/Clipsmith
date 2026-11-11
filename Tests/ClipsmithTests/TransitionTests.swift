@@ -43,8 +43,12 @@ final class TransitionTests: XCTestCase {
     }
 
     func testDurationIsClamped() {
-        XCTAssertEqual(ClipTransition(kind: .dissolve).settingDuration(99).durationInSeconds, ClipTransition.durationRange.upperBound)
-        XCTAssertEqual(ClipTransition(kind: .dissolve).settingDuration(0).durationInSeconds, ClipTransition.durationRange.lowerBound)
+        XCTAssertEqual(
+            ClipTransition(kind: .dissolve).settingDuration(99).durationInSeconds,
+            ClipTransition.durationRange.upperBound)
+        XCTAssertEqual(
+            ClipTransition(kind: .dissolve).settingDuration(0).durationInSeconds,
+            ClipTransition.durationRange.lowerBound)
     }
 
     func testTransitionSurvivesSavingAndSplittingKeepsItOnTheFirstHalfOnly() throws {
@@ -94,7 +98,8 @@ final class TransitionTests: XCTestCase {
         var alone = TestClips.video(start: 0, sourceEnd: 5)
         alone.transition = ClipTransition(kind: .dissolve)
         project.addClip(alone, toTrack: mainTrackID)
-        XCTAssertTrue(CompositionPlanner.segments(for: project).allSatisfy { $0.transitions.isEmpty })
+        XCTAssertTrue(
+            CompositionPlanner.segments(for: project).allSatisfy { $0.transitions.isEmpty })
 
         var second = TestClips.video(start: 5, sourceEnd: 0.5)
         second.transition = ClipTransition(kind: .dissolve, durationInSeconds: 3)
@@ -107,10 +112,13 @@ final class TransitionTests: XCTestCase {
     // MARK: Rendering
 
     private func solidPNG(_ color: NSColor, named name: String) throws -> URL {
-        let bitmap = try XCTUnwrap(NSBitmapImageRep(
-            bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 36, bitsPerSample: 8, samplesPerPixel: 4,
-            hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
-        ))
+        let bitmap = try XCTUnwrap(
+            NSBitmapImageRep(
+                bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 36, bitsPerSample: 8,
+                samplesPerPixel: 4,
+                hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0,
+                bitsPerPixel: 0
+            ))
         let context = try XCTUnwrap(NSGraphicsContext(bitmapImageRep: bitmap))
         NSGraphicsContext.saveGraphicsState()
         NSGraphicsContext.current = context
@@ -122,18 +130,23 @@ final class TransitionTests: XCTestCase {
         return url
     }
 
-    /// A white still for 3 s followed by a black one, joined by `kind` for 1 s. Returns the brightness at each time.
-    private func brightness(with kind: TransitionKind, at times: [TimeInterval]) async throws -> [Double] {
+    private func brightness(
+        with kind: TransitionKind, at times: [TimeInterval]
+    ) async throws -> [Double] {
         let white = try solidPNG(.white, named: "white.png")
         let black = try solidPNG(.black, named: "black.png")
         func still(_ url: URL, start: TimeInterval) -> Clip {
-            Clip(sourceURL: url, mediaKind: .image, startInSeconds: start, sourceStartInSeconds: 0, sourceEndInSeconds: 3)
+            Clip(
+                sourceURL: url, mediaKind: .image, startInSeconds: start, sourceStartInSeconds: 0,
+                sourceEndInSeconds: 3)
         }
         var second = still(black, start: 3)
         second.transition = ClipTransition(kind: kind, durationInSeconds: 1)
         project.addClip(still(white, start: 0), toTrack: mainTrackID)
         project.addClip(second, toTrack: mainTrackID)
-        let builder = CompositionBuilder(stillImages: StillImageVideoWriter(directory: directory.appendingPathComponent("stills")))
+        let builder = CompositionBuilder(
+            stillImages: StillImageVideoWriter(
+                directory: directory.appendingPathComponent("stills")))
 
         let built = try await builder.build(from: project)
 
@@ -145,7 +158,8 @@ final class TransitionTests: XCTestCase {
         generator.requestedTimeToleranceAfter = .zero
         var values: [Double] = []
         for time in times {
-            values.append(try KeyframeTests.brightness(of: try await generator.image(at: time.cmTime).image))
+            values.append(
+                try KeyframeTests.brightness(of: try await generator.image(at: time.cmTime).image))
         }
         return values
     }

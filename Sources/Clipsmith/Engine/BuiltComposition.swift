@@ -26,7 +26,8 @@ struct BuiltComposition {
             let sprites = TextOverlayLayers.makeSprites(for: textOverlay)
             videoComposition.instructions = videoComposition.instructions.map { instruction in
                 guard let effects = instruction as? EffectsInstruction else { return instruction }
-                return EffectsInstruction(timeRange: effects.timeRange, layers: effects.layers, texts: sprites)
+                return EffectsInstruction(
+                    timeRange: effects.timeRange, layers: effects.layers, texts: sprites)
             }
             return
         }

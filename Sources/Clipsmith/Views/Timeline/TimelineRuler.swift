@@ -27,7 +27,10 @@ struct TimelineRuler: View {
         )
     }
 
-    private func drawTick(at time: TimeInterval, interval: TimeInterval, in context: inout GraphicsContext, height: CGFloat) {
+    private func drawTick(
+        at time: TimeInterval, interval: TimeInterval, in context: inout GraphicsContext,
+        height: CGFloat
+    ) {
         let x = time * pointsPerSecond
         var path = Path()
         path.move(to: CGPoint(x: x, y: height - Self.majorTickHeight))
@@ -36,4 +39,8 @@ struct TimelineRuler: View {
         let label = Text(time.clockString).font(.caption2).foregroundColor(.secondary)
         context.draw(label, at: CGPoint(x: x + Self.labelOffset, y: 1), anchor: .topLeading)
     }
+}
+
+#Preview {
+    TimelineRuler(pointsPerSecond: 40, width: 480, onScrub: { _ in })
 }

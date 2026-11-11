@@ -15,7 +15,9 @@ struct SpeedInspector: View {
                     Spacer()
                     Text(Self.label(for: clip.speed)).monospacedDigit().foregroundStyle(.secondary)
                 }
-                Slider(value: logBinding, in: log2(Clip.speedRange.lowerBound)...log2(Clip.speedRange.upperBound))
+                Slider(
+                    value: logBinding,
+                    in: log2(Clip.speedRange.lowerBound)...log2(Clip.speedRange.upperBound))
             }
             HStack(spacing: 4) {
                 ForEach(Self.presets, id: \.self) { preset in
@@ -25,9 +27,13 @@ struct SpeedInspector: View {
                         .disabled(abs(clip.speed - preset) < 0.001)
                 }
             }
-            Text(String(format: localized("inspector.speed.duration"), clip.durationInSeconds.clockString))
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            Text(
+                String(
+                    format: localized("inspector.speed.duration"),
+                    clip.durationInSeconds.clockString)
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
     }
 
@@ -46,4 +52,9 @@ struct SpeedInspector: View {
         guard speed == speed.rounded() else { return String(format: "%g", speed) + "×" }
         return String(Int(speed)) + "×"
     }
+}
+
+#Preview {
+    SpeedInspector(store: PreviewFixtures.store(), clip: PreviewFixtures.videoClip)
+        .padding()
 }

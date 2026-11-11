@@ -27,7 +27,9 @@ struct InspectorView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     if hasVisualControls(for: clip) {
-                        VisualInspector(store: store, clip: clip.presented(atTimelineTime: store.playheadInSeconds))
+                        VisualInspector(
+                            store: store,
+                            clip: clip.presented(atTimelineTime: store.playheadInSeconds))
                         EffectsInspector(store: store, clip: clip)
                     }
                     if clip.textLayer != nil {
@@ -63,7 +65,8 @@ struct InspectorView: View {
 
     private var multipleSelection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(String(format: localized("inspector.multiple.title"), store.selectedClipIDs.count)).font(.subheadline.bold())
+            Text(String(format: localized("inspector.multiple.title"), store.selectedClipIDs.count))
+                .font(.subheadline.bold())
             Text(localized(multipleSelectionHintKey))
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -75,7 +78,9 @@ struct InspectorView: View {
             }
             HStack {
                 Button(localized("shortcut.duplicate"), action: store.duplicateSelectedClip)
-                Button(localized("timeline.delete"), role: .destructive, action: store.deleteSelectedClip)
+                Button(
+                    localized("timeline.delete"), role: .destructive,
+                    action: store.deleteSelectedClip)
             }
             Spacer()
         }
@@ -91,11 +96,20 @@ struct InspectorView: View {
 
     private func hasSpeedControls(for clip: Clip) -> Bool {
         guard clip.supportsSpeed else { return false }
-        return store.project.trackRole(ofClip: clip.id).map { [.main, .broll, .audio].contains($0) } ?? false
+        return store.project.trackRole(ofClip: clip.id).map {
+            [.main, .broll, .audio].contains($0)
+        } ?? false
     }
 
     private func hasAudioControls(for clip: Clip) -> Bool {
-        guard clip.mediaKind == .video || clip.mediaKind == .audio, !clip.isAudioDetached else { return false }
+        guard clip.mediaKind == .video || clip.mediaKind == .audio, !clip.isAudioDetached else {
+            return false
+        }
         return store.project.trackRole(ofClip: clip.id)?.playsAudio ?? false
     }
+}
+
+#Preview {
+    let store = PreviewFixtures.store()
+    InspectorView(store: store, subtitles: SubtitleController(store: store))
 }

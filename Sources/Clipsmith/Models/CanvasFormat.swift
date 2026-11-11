@@ -37,7 +37,8 @@ struct CanvasFormat: Codable, Hashable, Identifiable {
     var shortSide: Int { min(width, height) }
 
     var aspectLabel: String? {
-        Self.knownAspects.first { abs($0.ratio - aspectRatio) < Self.aspectTolerance * $0.ratio }?.label
+        Self.knownAspects.first { abs($0.ratio - aspectRatio) < Self.aspectTolerance * $0.ratio }?
+            .label
     }
 
     var summary: String {
@@ -54,10 +55,13 @@ struct CanvasFormat: Codable, Hashable, Identifiable {
     static func fitting(_ size: CGSize) -> CanvasFormat? {
         guard size.width > 0, size.height > 0 else { return nil }
         let aspect = size.width / size.height
-        if let preset = presets.first(where: { abs($0.aspectRatio - aspect) < aspectTolerance * aspect }) {
+        if let preset = presets.first(where: {
+            abs($0.aspectRatio - aspect) < aspectTolerance * aspect
+        }) {
             return preset
         }
-        let wanted = CanvasFormat(width: Int(size.width.rounded()), height: Int(size.height.rounded()))
+        let wanted = CanvasFormat(
+            width: Int(size.width.rounded()), height: Int(size.height.rounded()))
         return wanted.scaled(toShortSide: defaultShortSide)
     }
 
@@ -79,6 +83,8 @@ struct CanvasFormat: Codable, Hashable, Identifiable {
             return
         }
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.init(width: try container.decode(Int.self, forKey: .width), height: try container.decode(Int.self, forKey: .height))
+        self.init(
+            width: try container.decode(Int.self, forKey: .width),
+            height: try container.decode(Int.self, forKey: .height))
     }
 }

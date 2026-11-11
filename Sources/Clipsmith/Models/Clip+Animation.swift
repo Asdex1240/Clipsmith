@@ -5,7 +5,9 @@ extension Clip {
     static let opacityRange = 0.0...1.0
 
     var staticVisualState: VisualState {
-        VisualState(offsetX: offsetX, offsetY: offsetY, scale: scale, rotationInDegrees: rotationInDegrees, opacity: opacity)
+        VisualState(
+            offsetX: offsetX, offsetY: offsetY, scale: scale, rotationInDegrees: rotationInDegrees,
+            opacity: opacity)
     }
 
     var hasLookEffects: Bool { !color.isIdentity || !crop.isNone }
@@ -41,7 +43,9 @@ extension Clip {
         return clip
     }
 
-    func updatingVisual(at timelineTime: TimeInterval?, _ change: (inout VisualState) -> Void) -> Clip {
+    func updatingVisual(
+        at timelineTime: TimeInterval?, _ change: (inout VisualState) -> Void
+    ) -> Clip {
         if isAnimated, let timelineTime {
             return updatingKeyframe(atClipTime: timelineTime - startInSeconds, change)
         }
@@ -68,13 +72,17 @@ extension Clip {
         return clip
     }
 
-    private func updatingKeyframe(atClipTime proposed: TimeInterval, _ change: (inout VisualState) -> Void) -> Clip {
+    private func updatingKeyframe(
+        atClipTime proposed: TimeInterval, _ change: (inout VisualState) -> Void
+    ) -> Clip {
         let time = min(max(proposed, 0), durationInSeconds)
         var state = visualState(atClipTime: time)
         change(&state)
         state = state.clamped()
         var clip = self
-        if let index = keyframes.firstIndex(where: { abs($0.timeInSeconds - time) <= Self.keyframeToleranceInSeconds }) {
+        if let index = keyframes.firstIndex(where: {
+            abs($0.timeInSeconds - time) <= Self.keyframeToleranceInSeconds
+        }) {
             clip.keyframes[index].state = state
         } else {
             clip.keyframes.append(Keyframe(timeInSeconds: time, state: state))
@@ -104,7 +112,8 @@ extension VisualState {
     func clamped() -> VisualState {
         var state = self
         state.scale = min(max(scale, Clip.scaleRange.lowerBound), Clip.scaleRange.upperBound)
-        state.opacity = min(max(opacity, Clip.opacityRange.lowerBound), Clip.opacityRange.upperBound)
+        state.opacity = min(
+            max(opacity, Clip.opacityRange.lowerBound), Clip.opacityRange.upperBound)
         return state
     }
 }

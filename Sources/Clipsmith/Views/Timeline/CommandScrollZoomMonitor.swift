@@ -29,7 +29,8 @@ struct CommandScrollZoomMonitor: NSViewRepresentable {
             super.viewDidMoveToWindow()
             stop()
             guard window != nil else { return }
-            monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
+            monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) {
+                [weak self] event in
                 nonisolated(unsafe) let scrollEvent = event
                 let handled = MainActor.assumeIsolated { self?.handle(scrollEvent) ?? false }
                 if handled { return nil }
@@ -49,8 +50,9 @@ struct CommandScrollZoomMonitor: NSViewRepresentable {
 
         private func handle(_ event: NSEvent) -> Bool {
             guard event.modifierFlags.contains(.command),
-                  event.window === window,
-                  bounds.contains(convert(event.locationInWindow, from: nil)) else { return false }
+                event.window === window,
+                bounds.contains(convert(event.locationInWindow, from: nil))
+            else { return false }
             let delta = dominantDelta(of: event)
             guard delta != 0 else { return true }
             onZoom(Double(delta))

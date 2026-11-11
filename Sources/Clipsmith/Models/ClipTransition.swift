@@ -23,7 +23,8 @@ struct ClipTransition: Codable, Equatable {
 
     func settingDuration(_ seconds: TimeInterval) -> ClipTransition {
         var copy = self
-        copy.durationInSeconds = min(max(seconds, Self.durationRange.lowerBound), Self.durationRange.upperBound)
+        copy.durationInSeconds = min(
+            max(seconds, Self.durationRange.lowerBound), Self.durationRange.upperBound)
         return copy
     }
 }
@@ -65,7 +66,9 @@ extension ClipTransition {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         kind = try container.decode(TransitionKind.self, forKey: .kind)
-        durationInSeconds = try container.decodeIfPresent(TimeInterval.self, forKey: .durationInSeconds) ?? Self.defaultDuration
+        durationInSeconds =
+            try container.decodeIfPresent(TimeInterval.self, forKey: .durationInSeconds)
+            ?? Self.defaultDuration
         easing = try container.decodeIfPresent(Easing.self, forKey: .easing) ?? .linear
     }
 

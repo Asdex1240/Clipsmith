@@ -54,7 +54,8 @@ extension Project {
         case .broll:
             tracks.insert(track, at: tracks.firstIndex { $0.role.family == .video } ?? 0)
         case .audio:
-            tracks.insert(track, at: (tracks.lastIndex { $0.role == .audio } ?? tracks.count - 1) + 1)
+            tracks.insert(
+                track, at: (tracks.lastIndex { $0.role == .audio } ?? tracks.count - 1) + 1)
         case .text:
             tracks.insert(track, at: tracks.firstIndex { $0.role == .text } ?? 0)
         case .main:
@@ -70,7 +71,8 @@ extension Project {
 
     mutating func moveTrack(_ id: Track.ID, direction: TrackMoveDirection) {
         guard let index = tracks.firstIndex(where: { $0.id == id }),
-              let other = neighbour(of: id, direction: direction) else { return }
+            let other = neighbour(of: id, direction: direction)
+        else { return }
         tracks.swapAt(index, other)
     }
 

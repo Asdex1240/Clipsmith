@@ -28,7 +28,8 @@ enum Snapping {
         within threshold: TimeInterval
     ) -> TimeInterval? {
         guard let nearest = candidates.min(by: { abs($0 - value) < abs($1 - value) }),
-              abs(nearest - value) <= threshold else { return nil }
+            abs(nearest - value) <= threshold
+        else { return nil }
         return nearest - value
     }
 }

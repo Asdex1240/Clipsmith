@@ -23,7 +23,9 @@ final class KeyframeTests: XCTestCase {
         var animated = clip()
         animated.keyframes = [
             Keyframe(timeInSeconds: 0, state: VisualState(offsetX: 0, scale: 1, opacity: 0)),
-            Keyframe(timeInSeconds: 4, state: VisualState(offsetX: 0.4, scale: 3, rotationInDegrees: 90, opacity: 1)),
+            Keyframe(
+                timeInSeconds: 4,
+                state: VisualState(offsetX: 0.4, scale: 3, rotationInDegrees: 90, opacity: 1)),
         ]
 
         let middle = animated.visualState(atClipTime: 2)
@@ -124,7 +126,9 @@ final class KeyframeTests: XCTestCase {
     func testKeyframesAndOpacitySurviveSaving() throws {
         var animated = clip()
         animated.opacity = 0.5
-        animated.keyframes = [Keyframe(timeInSeconds: 1, state: VisualState(offsetX: 0.1, opacity: 0.2))]
+        animated.keyframes = [
+            Keyframe(timeInSeconds: 1, state: VisualState(offsetX: 0.1, opacity: 0.2))
+        ]
 
         let decoded = try JSONDecoder().decode(Clip.self, from: JSONEncoder().encode(animated))
 
@@ -160,19 +164,24 @@ final class KeyframeTests: XCTestCase {
     }
 
     func testOpacityKeyframesFadeTheRenderedFrame() async throws {
-        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         let url = directory.appendingPathComponent("white.png")
         try Self.solidWhitePNG().write(to: url)
         var project = Project(name: "T")
-        var still = Clip(sourceURL: url, mediaKind: .image, startInSeconds: 0, sourceStartInSeconds: 0, sourceEndInSeconds: 4)
+        var still = Clip(
+            sourceURL: url, mediaKind: .image, startInSeconds: 0, sourceStartInSeconds: 0,
+            sourceEndInSeconds: 4)
         still.keyframes = [
             Keyframe(timeInSeconds: 0, state: VisualState(opacity: 0)),
             Keyframe(timeInSeconds: 4, state: VisualState(opacity: 1)),
         ]
         project.addClip(still, toTrack: project.track(withRole: .main)!.id)
-        let builder = CompositionBuilder(stillImages: StillImageVideoWriter(directory: directory.appendingPathComponent("stills")))
+        let builder = CompositionBuilder(
+            stillImages: StillImageVideoWriter(
+                directory: directory.appendingPathComponent("stills")))
 
         let built = try await builder.build(from: project)
         let generator = AVAssetImageGenerator(asset: built.composition)
@@ -185,10 +194,13 @@ final class KeyframeTests: XCTestCase {
     }
 
     private static func solidWhitePNG() throws -> Data {
-        let bitmap = try XCTUnwrap(NSBitmapImageRep(
-            bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 36, bitsPerSample: 8, samplesPerPixel: 4,
-            hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
-        ))
+        let bitmap = try XCTUnwrap(
+            NSBitmapImageRep(
+                bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 36, bitsPerSample: 8,
+                samplesPerPixel: 4,
+                hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0,
+                bitsPerPixel: 0
+            ))
         let context = try XCTUnwrap(NSGraphicsContext(bitmapImageRep: bitmap))
         NSGraphicsContext.saveGraphicsState()
         NSGraphicsContext.current = context
@@ -198,14 +210,19 @@ final class KeyframeTests: XCTestCase {
         return try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
     }
 
-    /// Average brightness (0 to 1) of the pixel at the middle of the frame.
     static func brightness(of image: CGImage) throws -> Double {
         var pixel = [UInt8](repeating: 0, count: 4)
-        let context = try XCTUnwrap(CGContext(
-            data: &pixel, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
-            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-        ))
-        context.draw(image, in: CGRect(x: -image.width / 2, y: -image.height / 2, width: image.width, height: image.height))
+        let context = try XCTUnwrap(
+            CGContext(
+                data: &pixel, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            ))
+        context.draw(
+            image,
+            in: CGRect(
+                x: -image.width / 2, y: -image.height / 2, width: image.width, height: image.height)
+        )
         return (Double(pixel[0]) + Double(pixel[1]) + Double(pixel[2])) / (3 * 255)
     }
 }

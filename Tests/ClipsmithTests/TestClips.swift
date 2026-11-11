@@ -30,6 +30,7 @@ enum TestClips {
     }
 
     static func mediaItem(kind: MediaKind = .video, duration: TimeInterval = 10) -> MediaItem {
-        MediaItem(url: URL(fileURLWithPath: "/tmp/item.mp4"), kind: kind, durationInSeconds: duration)
+        MediaItem(
+            url: URL(fileURLWithPath: "/tmp/item.mp4"), kind: kind, durationInSeconds: duration)
     }
 }

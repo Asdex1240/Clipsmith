@@ -10,7 +10,9 @@ final class PerformanceBenchmarkTests: XCTestCase {
     private var directory: URL!
 
     override func setUpWithError() throws {
-        try XCTSkipUnless(ProcessInfo.processInfo.environment["CLIPSMITH_BENCHMARK"] == "1", "Set CLIPSMITH_BENCHMARK=1 to run")
+        try XCTSkipUnless(
+            ProcessInfo.processInfo.environment["CLIPSMITH_BENCHMARK"] == "1",
+            "Set CLIPSMITH_BENCHMARK=1 to run")
         directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     }
@@ -35,28 +37,36 @@ final class PerformanceBenchmarkTests: XCTestCase {
 
         let exportStart = Date()
         try await ProjectExporter(builder: builder).export(
-            project, with: ExportPreset.youtube1080.settings, to: directory.appendingPathComponent("out.mp4")
+            project, with: ExportPreset.youtube1080.settings,
+            to: directory.appendingPathComponent("out.mp4")
         ) { _ in }
         let exportTime = seconds(since: exportStart)
 
         print("BENCH timeline duration \(duration) s, composition build \(buildTime) s")
-        print("BENCH export 1080p H.264: \(exportTime) s -> ratio \(exportTime / duration)x (goal < 2x)")
+        print(
+            "BENCH export 1080p H.264: \(exportTime) s -> "
+                + "ratio \(exportTime / duration)x (goal < 2x)"
+        )
         XCTAssertLessThan(exportTime, duration * 2)
     }
 
     func testHevc4KSourceExportsAt4KWithinAReasonableTime() async throws {
         let source = try await makeHEVC4KVideo()
         let project = makeVlogProject(source: source, music: try makeSilentWav(seconds: 30))
-        let builder = CompositionBuilder(stillImages: StillImageVideoWriter(directory: directory.appendingPathComponent("stills")))
+        let builder = CompositionBuilder(
+            stillImages: StillImageVideoWriter(
+                directory: directory.appendingPathComponent("stills")))
         let duration = try await builder.build(from: project).durationInSeconds
 
         let start = Date()
         try await ProjectExporter(builder: builder).export(
-            project, with: ExportPreset.youtube4K.settings, to: directory.appendingPathComponent("out4k.mp4")
+            project, with: ExportPreset.youtube4K.settings,
+            to: directory.appendingPathComponent("out4k.mp4")
         ) { _ in }
         let exportTime = seconds(since: start)
 
-        print("BENCH export 4K HEVC: \(exportTime) s for \(duration) s -> \(exportTime / duration)x")
+        print(
+            "BENCH export 4K HEVC: \(exportTime) s for \(duration) s -> \(exportTime / duration)x")
     }
 
     private func makeVlogProject(source: URL, music: URL) -> Project {
@@ -71,7 +81,8 @@ final class PerformanceBenchmarkTests: XCTestCase {
             project.addClip(clip, toTrack: main)
             cursor += range.end - range.start
         }
-        project.addClip(makeClip(source: source, timelineStart: 5, sourceRange: (2, 6)), toTrack: broll)
+        project.addClip(
+            makeClip(source: source, timelineStart: 5, sourceRange: (2, 6)), toTrack: broll)
         project.addTextClip(TextLayer(content: "Benchmark vlog"), at: 1, duration: 4)
         let musicClip = Clip(
             sourceURL: music, mediaKind: .audio, startInSeconds: 0, sourceStartInSeconds: 0,
@@ -81,7 +92,9 @@ final class PerformanceBenchmarkTests: XCTestCase {
         return project
     }
 
-    private func makeClip(source: URL, timelineStart: Double, sourceRange: (start: Double, end: Double)) -> Clip {
+    private func makeClip(
+        source: URL, timelineStart: Double, sourceRange: (start: Double, end: Double)
+    ) -> Clip {
         Clip(
             sourceURL: source, mediaKind: .video, startInSeconds: timelineStart,
             sourceStartInSeconds: sourceRange.start, sourceEndInSeconds: sourceRange.end,
@@ -98,29 +111,38 @@ final class PerformanceBenchmarkTests: XCTestCase {
         let width = Int(Self.sourceSize.width)
         let height = Int(Self.sourceSize.height)
         let writer = try AVAssetWriter(outputURL: url, fileType: .mov)
-        let input = AVAssetWriterInput(mediaType: .video, outputSettings: [
-            AVVideoCodecKey: AVVideoCodecType.hevc,
-            AVVideoWidthKey: width,
-            AVVideoHeightKey: height,
-            AVVideoCompressionPropertiesKey: [AVVideoAverageBitRateKey: 40_000_000],
-        ])
-        let adaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: input, sourcePixelBufferAttributes: [
-            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
-            kCVPixelBufferWidthKey as String: width,
-            kCVPixelBufferHeightKey as String: height,
-        ])
+        let input = AVAssetWriterInput(
+            mediaType: .video,
+            outputSettings: [
+                AVVideoCodecKey: AVVideoCodecType.hevc,
+                AVVideoWidthKey: width,
+                AVVideoHeightKey: height,
+                AVVideoCompressionPropertiesKey: [AVVideoAverageBitRateKey: 40_000_000],
+            ])
+        let adaptor = AVAssetWriterInputPixelBufferAdaptor(
+            assetWriterInput: input,
+            sourcePixelBufferAttributes: [
+                kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
+                kCVPixelBufferWidthKey as String: width,
+                kCVPixelBufferHeightKey as String: height,
+            ])
         writer.add(input)
         writer.startWriting()
         writer.startSession(atSourceTime: .zero)
         let frameCount = Int(Self.sourceSeconds) * Self.framesPerSecond
         for frame in 0..<frameCount {
             while !input.isReadyForMoreMediaData { try await Task.sleep(for: .milliseconds(2)) }
-            guard let pool = adaptor.pixelBufferPool else { throw StillImageError.writingFailed(url) }
+            guard let pool = adaptor.pixelBufferPool else {
+                throw StillImageError.writingFailed(url)
+            }
             var buffer: CVPixelBuffer?
             CVPixelBufferPoolCreatePixelBuffer(nil, pool, &buffer)
             guard let buffer else { throw StillImageError.writingFailed(url) }
             draw(frame: frame, into: buffer, width: width, height: height)
-            adaptor.append(buffer, withPresentationTime: CMTime(value: CMTimeValue(frame), timescale: CMTimeScale(Self.framesPerSecond)))
+            adaptor.append(
+                buffer,
+                withPresentationTime: CMTime(
+                    value: CMTimeValue(frame), timescale: CMTimeScale(Self.framesPerSecond)))
         }
         input.markAsFinished()
         await writer.finishWriting()
@@ -131,16 +153,23 @@ final class PerformanceBenchmarkTests: XCTestCase {
     private func draw(frame: Int, into buffer: CVPixelBuffer, width: Int, height: Int) {
         CVPixelBufferLockBaseAddress(buffer, [])
         defer { CVPixelBufferUnlockBaseAddress(buffer, []) }
-        guard let context = CGContext(
-            data: CVPixelBufferGetBaseAddress(buffer), width: width, height: height, bitsPerComponent: 8,
-            bytesPerRow: CVPixelBufferGetBytesPerRow(buffer), space: CGColorSpaceCreateDeviceRGB(),
-            bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
-        ) else { return }
+        guard
+            let context = CGContext(
+                data: CVPixelBufferGetBaseAddress(buffer), width: width, height: height,
+                bitsPerComponent: 8,
+                bytesPerRow: CVPixelBufferGetBytesPerRow(buffer),
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue
+                    | CGBitmapInfo.byteOrder32Little.rawValue
+            )
+        else { return }
         let phase = Double(frame) / Double(Self.sourceSeconds * Double(Self.framesPerSecond))
         context.setFillColor(CGColor(red: phase, green: 0.3, blue: 1 - phase, alpha: 1))
         context.fill(CGRect(x: 0, y: 0, width: width, height: height))
         context.setFillColor(CGColor(gray: 1, alpha: 1))
-        context.fill(CGRect(x: Int(phase * Double(width - 400)), y: height / 3, width: 400, height: height / 3))
+        context.fill(
+            CGRect(
+                x: Int(phase * Double(width - 400)), y: height / 3, width: 400, height: height / 3))
     }
 
     private func makeSilentWav(seconds: Double) throws -> URL {

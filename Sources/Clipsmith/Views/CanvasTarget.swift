@@ -13,6 +13,7 @@ struct CanvasTarget: Identifiable {
         let cosine = abs(cos(radians)), sine = abs(sin(radians))
         let width = size.width * cosine + size.height * sine
         let height = size.width * sine + size.height * cosine
-        return CGRect(x: center.x - width / 2, y: center.y - height / 2, width: width, height: height)
+        return CGRect(
+            x: center.x - width / 2, y: center.y - height / 2, width: width, height: height)
     }
 }

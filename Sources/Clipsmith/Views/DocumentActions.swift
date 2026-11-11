@@ -34,7 +34,8 @@ struct DocumentActions {
     func saveAs() -> Bool {
         let panel = NSSavePanel()
         panel.allowedContentTypes = [Self.projectType]
-        panel.nameFieldStringValue = document.windowTitleName + "." + DocumentController.fileExtension
+        panel.nameFieldStringValue =
+            document.windowTitleName + "." + DocumentController.fileExtension
         panel.canCreateDirectories = true
         guard panel.runModal() == .OK, let url = panel.url else { return false }
         return document.save(to: url)
@@ -55,7 +56,8 @@ struct DocumentActions {
             return true
         }
         let alert = NSAlert()
-        alert.messageText = String(format: localized("document.unsaved.title"), document.windowTitleName)
+        alert.messageText = String(
+            format: localized("document.unsaved.title"), document.windowTitleName)
         alert.informativeText = localized("document.unsaved.message")
         alert.addButton(withTitle: localized("document.unsaved.save"))
         alert.addButton(withTitle: localized("document.unsaved.discard"))

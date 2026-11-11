@@ -33,21 +33,27 @@ struct ContentView: View {
                     selection: $selection,
                     onAddToTimeline: store.appendToTimeline
                 )
-                    .frame(minWidth: Layout.libraryMinWidth, idealWidth: Layout.libraryIdealWidth)
+                .frame(minWidth: Layout.libraryMinWidth, idealWidth: Layout.libraryIdealWidth)
                 PreviewView(controller: player, store: store, onSelectTimeline: showTimeline)
                     .frame(minWidth: Layout.previewMinWidth)
                 InspectorView(store: store, subtitles: subtitles)
-                    .frame(minWidth: Layout.inspectorMinWidth, idealWidth: Layout.inspectorIdealWidth)
+                    .frame(
+                        minWidth: Layout.inspectorMinWidth, idealWidth: Layout.inspectorIdealWidth)
             }
             Divider()
-            TimelineView(store: store, library: library, waveforms: waveforms, missingMedia: Set(document.missingMedia))
-                .frame(height: Layout.timelineHeight)
+            TimelineView(
+                store: store, library: library, waveforms: waveforms,
+                missingMedia: Set(document.missingMedia)
+            )
+            .frame(height: Layout.timelineHeight)
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button(localized("export.open"), systemImage: "square.and.arrow.up") { isExportPresented = true }
-                    .keyboardShortcut("e", modifiers: .command)
-                    .disabled(store.project.durationInSeconds == 0)
+                Button(localized("export.open"), systemImage: "square.and.arrow.up") {
+                    isExportPresented = true
+                }
+                .keyboardShortcut("e", modifiers: .command)
+                .disabled(store.project.durationInSeconds == 0)
             }
         }
         .sheet(isPresented: $isExportPresented) { ExportView(controller: exporter) }
@@ -60,7 +66,8 @@ struct ContentView: View {
         .onChange(of: document.missingMedia) { relinkDismissed = false }
         .alert(localized("recovery.title"), isPresented: recoveryIsPresented) {
             Button(localized("recovery.restore"), action: document.restoreRecovery)
-            Button(localized("recovery.discard"), role: .destructive, action: document.discardRecovery)
+            Button(
+                localized("recovery.discard"), role: .destructive, action: document.discardRecovery)
         } message: {
             Text(localized("recovery.message"))
         }

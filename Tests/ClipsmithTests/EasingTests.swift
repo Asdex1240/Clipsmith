@@ -44,7 +44,9 @@ final class EasingTests: XCTestCase {
             Keyframe(timeInSeconds: 8, state: VisualState(scale: 5)),
         ]
 
-        XCTAssertEqual(clip.visualState(atClipTime: 1).scale, 1 + 2 * Easing.easeIn.apply(0.25), accuracy: 1e-9)
+        XCTAssertEqual(
+            clip.visualState(atClipTime: 1).scale, 1 + 2 * Easing.easeIn.apply(0.25), accuracy: 1e-9
+        )
         XCTAssertEqual(clip.visualState(atClipTime: 6).scale, 4, accuracy: 1e-9)
         XCTAssertTrue(clip.eased(from: 1))
         XCTAssertFalse(clip.eased(from: 5))
@@ -72,19 +74,24 @@ final class EasingTests: XCTestCase {
         let decoded = try JSONDecoder().decode(Keyframe.self, from: JSONEncoder().encode(frame))
         XCTAssertEqual(decoded, frame)
 
-        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(frame)) as? [String: Any])
+        var json = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: JSONEncoder().encode(frame)) as? [String: Any])
         json.removeValue(forKey: "easing")
-        let legacy = try JSONDecoder().decode(Keyframe.self, from: JSONSerialization.data(withJSONObject: json))
+        let legacy = try JSONDecoder().decode(
+            Keyframe.self, from: JSONSerialization.data(withJSONObject: json))
         XCTAssertEqual(legacy.easing, .linear)
 
         let transition = ClipTransition(kind: .slideLeft, durationInSeconds: 2, easing: .easeIn)
-        XCTAssertEqual(try JSONDecoder().decode(ClipTransition.self, from: JSONEncoder().encode(transition)), transition)
+        XCTAssertEqual(
+            try JSONDecoder().decode(ClipTransition.self, from: JSONEncoder().encode(transition)),
+            transition)
         XCTAssertEqual(ClipTransition(kind: .dissolve).easing, .easeInOut)
     }
 
     func testPlannedTransitionProgressFollowsItsEasing() {
         let linear = PlannedTransition(
-            outgoingClipID: UUID(), incomingClipID: UUID(), kind: .dissolve, windowStart: 0, windowEnd: 2
+            outgoingClipID: UUID(), incomingClipID: UUID(), kind: .dissolve, windowStart: 0,
+            windowEnd: 2
         )
         var eased = linear
         eased.easing = .easeIn
@@ -94,14 +101,18 @@ final class EasingTests: XCTestCase {
     }
 
     func testEasedTransitionBlendsLessAtFirst() async throws {
-        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         func png(_ color: NSColor, _ name: String) throws -> URL {
-            let bitmap = try XCTUnwrap(NSBitmapImageRep(
-                bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 36, bitsPerSample: 8, samplesPerPixel: 4,
-                hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
-            ))
+            let bitmap = try XCTUnwrap(
+                NSBitmapImageRep(
+                    bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 36, bitsPerSample: 8,
+                    samplesPerPixel: 4,
+                    hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0,
+                    bitsPerPixel: 0
+                ))
             let context = try XCTUnwrap(NSGraphicsContext(bitmapImageRep: bitmap))
             NSGraphicsContext.saveGraphicsState()
             NSGraphicsContext.current = context
@@ -114,20 +125,26 @@ final class EasingTests: XCTestCase {
         }
         var project = Project(name: "T")
         let main = project.track(withRole: .main)!.id
-        project.addClip(Clip(sourceURL: try png(.white, "w.png"), mediaKind: .image, startInSeconds: 0, sourceStartInSeconds: 0, sourceEndInSeconds: 3), toTrack: main)
-        var second = Clip(sourceURL: try png(.black, "b.png"), mediaKind: .image, startInSeconds: 3, sourceStartInSeconds: 0, sourceEndInSeconds: 3)
+        project.addClip(
+            Clip(
+                sourceURL: try png(.white, "w.png"), mediaKind: .image, startInSeconds: 0,
+                sourceStartInSeconds: 0, sourceEndInSeconds: 3), toTrack: main)
+        var second = Clip(
+            sourceURL: try png(.black, "b.png"), mediaKind: .image, startInSeconds: 3,
+            sourceStartInSeconds: 0, sourceEndInSeconds: 3)
         second.transition = ClipTransition(kind: .dissolve, durationInSeconds: 1, easing: .easeIn)
         project.addClip(second, toTrack: main)
-        let builder = CompositionBuilder(stillImages: StillImageVideoWriter(directory: directory.appendingPathComponent("s")))
+        let builder = CompositionBuilder(
+            stillImages: StillImageVideoWriter(directory: directory.appendingPathComponent("s")))
 
         let built = try await builder.build(from: project)
         let generator = AVAssetImageGenerator(asset: built.composition)
         generator.videoComposition = built.videoComposition
         generator.requestedTimeToleranceBefore = .zero
         generator.requestedTimeToleranceAfter = .zero
-        let quarter = try KeyframeTests.brightness(of: try await generator.image(at: 3.25.cmTime).image)
+        let quarter = try KeyframeTests.brightness(
+            of: try await generator.image(at: 3.25.cmTime).image)
 
-        // Linear would show 0.75 here; ease-in has only covered 1/64 of the way, so the white clip is almost untouched.
         XCTAssertGreaterThan(quarter, 0.9)
     }
 }

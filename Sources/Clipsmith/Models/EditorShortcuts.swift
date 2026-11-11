@@ -31,7 +31,8 @@ enum EditorAction: CaseIterable {
 
     var allowsKeyRepeat: Bool {
         switch self {
-        case .zoomIn, .zoomOut, .stepBackward, .stepForward, .jumpBackward, .jumpForward, .previousEdit, .nextEdit:
+        case .zoomIn, .zoomOut, .stepBackward, .stepForward, .jumpBackward, .jumpForward,
+            .previousEdit, .nextEdit:
             return true
         default:
             return false
@@ -63,8 +64,12 @@ enum EditorShortcuts {
         switch key {
         case .space: return whenUnmodified(.togglePlayback, modifiers)
         case .delete: return deleteAction(modifiers)
-        case .leftArrow: return arrowAction(modifiers, plain: .stepBackward, shift: .jumpBackward, option: .previousEdit)
-        case .rightArrow: return arrowAction(modifiers, plain: .stepForward, shift: .jumpForward, option: .nextEdit)
+        case .leftArrow:
+            return arrowAction(
+                modifiers, plain: .stepBackward, shift: .jumpBackward, option: .previousEdit)
+        case .rightArrow:
+            return arrowAction(
+                modifiers, plain: .stepForward, shift: .jumpForward, option: .nextEdit)
         case .home: return whenUnmodified(.goToStart, modifiers)
         case .end: return whenUnmodified(.goToEnd, modifiers)
         case .escape: return whenUnmodified(.deselect, modifiers)
@@ -104,7 +109,9 @@ enum EditorShortcuts {
         }
     }
 
-    private static func whenUnmodified(_ action: EditorAction, _ modifiers: ShortcutModifiers) -> EditorAction? {
+    private static func whenUnmodified(
+        _ action: EditorAction, _ modifiers: ShortcutModifiers
+    ) -> EditorAction? {
         guard modifiers.isEmpty else { return nil }
         return action
     }
@@ -127,23 +134,33 @@ enum EditorShortcuts {
         return option
     }
 
-    private static func characterAction(_ character: Character, _ modifiers: ShortcutModifiers) -> EditorAction? {
-        if modifiers == .command {
-            switch character.lowercased() {
-            case "c": return .copy
-            case "x": return .cut
-            case "v": return .paste
-            case "d": return .duplicate
-            case "a": return .selectAll
-            case "g": return .group
-            default: return nil
-            }
-        }
+    private static func characterAction(
+        _ character: Character, _ modifiers: ShortcutModifiers
+    ) -> EditorAction? {
+        if modifiers == .command { return commandAction(character) }
         if modifiers == [.command, .shift] {
             guard character.lowercased() == "g" else { return nil }
             return .ungroup
         }
         guard modifiers.isEmpty || modifiers == .shift else { return nil }
+        return plainAction(character, modifiers)
+    }
+
+    private static func commandAction(_ character: Character) -> EditorAction? {
+        switch character.lowercased() {
+        case "c": return .copy
+        case "x": return .cut
+        case "v": return .paste
+        case "d": return .duplicate
+        case "a": return .selectAll
+        case "g": return .group
+        default: return nil
+        }
+    }
+
+    private static func plainAction(
+        _ character: Character, _ modifiers: ShortcutModifiers
+    ) -> EditorAction? {
         switch character.lowercased() {
         case "q": return whenUnmodified(.trimStartToPlayhead, modifiers)
         case "w": return whenUnmodified(.trimEndToPlayhead, modifiers)

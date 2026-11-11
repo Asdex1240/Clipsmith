@@ -51,14 +51,18 @@ final class DocumentController {
     }
 
     func newProject() {
-        apply(Project(name: localized("project.untitled")), library: [], missingMedia: [], fileURL: nil)
+        apply(
+            Project(name: localized("project.untitled")), library: [], missingMedia: [],
+            fileURL: nil)
         recovery.clear()
     }
 
     func open(_ url: URL) {
         do {
             let loaded = try storage.read(from: url)
-            apply(loaded.project, library: loaded.library, missingMedia: loaded.missingMedia, fileURL: url)
+            apply(
+                loaded.project, library: loaded.library, missingMedia: loaded.missingMedia,
+                fileURL: url)
             recovery.clear()
         } catch {
             errorMessage = error.localizedDescription
@@ -107,7 +111,9 @@ final class DocumentController {
         recoveryIsAvailable = false
         do {
             let loaded = try recovery.load()
-            apply(loaded.project, library: loaded.library, missingMedia: loaded.missingMedia, fileURL: nil)
+            apply(
+                loaded.project, library: loaded.library, missingMedia: loaded.missingMedia,
+                fileURL: nil)
             savedSnapshot = Snapshot(project: Project(name: loaded.project.name), library: [])
         } catch {
             errorMessage = error.localizedDescription
@@ -144,7 +150,9 @@ final class DocumentController {
         Snapshot(project: store.project, library: library.items)
     }
 
-    private func apply(_ project: Project, library items: [MediaItem], missingMedia: [URL], fileURL: URL?) {
+    private func apply(
+        _ project: Project, library items: [MediaItem], missingMedia: [URL], fileURL: URL?
+    ) {
         store.load(project)
         library.replaceItems(items)
         self.missingMedia = missingMedia

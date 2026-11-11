@@ -21,8 +21,9 @@ final class LocalizationTests: XCTestCase {
 
     private func localizedKeys(for language: String) throws -> Set<String> {
         let url = try XCTUnwrap(
-            Bundle.module.url(forResource: "Localizable", withExtension: "strings",
-                              subdirectory: nil, localization: language)
+            Bundle.module.url(
+                forResource: "Localizable", withExtension: "strings",
+                subdirectory: nil, localization: language)
         )
         let table = try XCTUnwrap(NSDictionary(contentsOf: url) as? [String: String])
         return Set(table.keys)

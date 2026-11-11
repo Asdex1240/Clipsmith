@@ -21,7 +21,9 @@ extension Project {
         updateClip(id) { $0.settingFitMode(mode) }
     }
 
-    mutating func setTransform(of id: Clip.ID, scale: Double, rotationInDegrees: Double, at time: TimeInterval? = nil) {
+    mutating func setTransform(
+        of id: Clip.ID, scale: Double, rotationInDegrees: Double, at time: TimeInterval? = nil
+    ) {
         updateClip(id) { clip in
             clip.updatingVisual(at: time) {
                 $0.scale = scale
@@ -39,11 +41,17 @@ extension Project {
     }
 
     func clipBeforeAndTouching(_ id: Clip.ID) -> Clip? {
-        guard let position = location(of: id), [.main, .broll].contains(tracks[position.track].role) else { return nil }
+        guard let position = location(of: id),
+            [.main, .broll].contains(tracks[position.track].role)
+        else { return nil }
         let track = tracks[position.track]
         let clip = track.clips[position.clip]
         return track.clips
-            .filter { $0.id != id && abs($0.endInSeconds - clip.startInSeconds) <= Self.transitionAdjacencyToleranceInSeconds }
+            .filter {
+                $0.id != id
+                    && abs($0.endInSeconds - clip.startInSeconds)
+                        <= Self.transitionAdjacencyToleranceInSeconds
+            }
             .first
     }
 
@@ -89,7 +97,8 @@ extension Project {
         guard let position = location(of: id) else { return }
         let track = tracks[position.track]
         let clip = track.clips[position.clip]
-        tracks[position.track].clips[position.clip] = clip.settingSpeed(value, notEndingAfter: track.nextStart(after: clip))
+        tracks[position.track].clips[position.clip] = clip.settingSpeed(
+            value, notEndingAfter: track.nextStart(after: clip))
     }
 
     mutating func setOffset(of id: Clip.ID, x: Double, y: Double, at time: TimeInterval? = nil) {
@@ -102,7 +111,9 @@ extension Project {
     }
 
     func canDetachAudio(ofClip id: Clip.ID) -> Bool {
-        guard let position = location(of: id), tracks[position.track].role == .main else { return false }
+        guard let position = location(of: id), tracks[position.track].role == .main else {
+            return false
+        }
         let clip = tracks[position.track].clips[position.clip]
         guard clip.mediaKind == .video, !clip.isAudioDetached else { return false }
         return audioTrackWithRoom(for: clip) != nil
@@ -111,8 +122,9 @@ extension Project {
     @discardableResult
     mutating func detachAudio(ofClip id: Clip.ID) -> Clip.ID? {
         guard canDetachAudio(ofClip: id), let position = location(of: id),
-              let target = audioTrackWithRoom(for: tracks[position.track].clips[position.clip]),
-              let audioIndex = tracks.firstIndex(where: { $0.id == target.id }) else { return nil }
+            let target = audioTrackWithRoom(for: tracks[position.track].clips[position.clip]),
+            let audioIndex = tracks.firstIndex(where: { $0.id == target.id })
+        else { return nil }
         var audio = tracks[position.track].clips[position.clip]
         audio.id = UUID()
         audio.mediaKind = .audio
@@ -144,8 +156,12 @@ extension Project {
     }
 
     @discardableResult
-    mutating func addTextClip(_ layer: TextLayer, at start: TimeInterval, duration: TimeInterval) -> Clip.ID? {
-        guard let track = trackWithRoom(role: .text, start: start, duration: duration) else { return nil }
+    mutating func addTextClip(
+        _ layer: TextLayer, at start: TimeInterval, duration: TimeInterval
+    ) -> Clip.ID? {
+        guard let track = trackWithRoom(role: .text, start: start, duration: duration) else {
+            return nil
+        }
         let clip = Clip(text: layer, startInSeconds: start, durationInSeconds: duration)
         guard addClip(clip, toTrack: track.id) else { return nil }
         return clip.id
@@ -153,17 +169,21 @@ extension Project {
 
     @discardableResult
     mutating func addSubtitles(
-        _ lines: [SubtitleLine], style: TextStylePreset = .classic, animation: TextAnimation = TextAnimation()
+        _ lines: [SubtitleLine], style: TextStylePreset = .classic,
+        animation: TextAnimation = TextAnimation()
     ) -> Int {
         lines.reduce(0) { added, line in
             let layer = TextLayer.subtitle(line.text, style: style, animation: animation)
-            guard addTextClip(layer, at: line.startInSeconds, duration: line.durationInSeconds) != nil else { return added }
+            guard
+                addTextClip(layer, at: line.startInSeconds, duration: line.durationInSeconds) != nil
+            else { return added }
             return added + 1
         }
     }
 
     private mutating func updateClip(_ id: Clip.ID, _ transform: (Clip) -> Clip) {
         guard let position = location(of: id) else { return }
-        tracks[position.track].clips[position.clip] = transform(tracks[position.track].clips[position.clip])
+        tracks[position.track].clips[position.clip] = transform(
+            tracks[position.track].clips[position.clip])
     }
 }

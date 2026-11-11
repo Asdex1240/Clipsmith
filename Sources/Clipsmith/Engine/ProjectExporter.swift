@@ -52,7 +52,19 @@ struct ProjectExporter: Exporting {
         to destination: URL,
         progress: @escaping @Sendable (Double) -> Void
     ) async throws {
-        guard let session = AVAssetExportSession(asset: built.composition, presetName: codec.exportPresetName) else {
+        let session = try makeSession(for: built, codec: codec, destination: destination)
+        try await export(session, progress: progress)
+        try finish(session, destination: destination)
+        progress(1)
+    }
+
+    private func makeSession(
+        for built: BuiltComposition, codec: VideoCodec, destination: URL
+    ) throws -> AVAssetExportSession {
+        guard
+            let session = AVAssetExportSession(
+                asset: built.composition, presetName: codec.exportPresetName)
+        else {
             throw ExportError.cannotCreateSession
         }
         try? FileManager.default.removeItem(at: destination)
@@ -63,7 +75,12 @@ struct ProjectExporter: Exporting {
         session.audioMix = built.audioMix
         session.audioTimePitchAlgorithm = .spectral
         session.shouldOptimizeForNetworkUse = true
+        return session
+    }
 
+    private func export(
+        _ session: AVAssetExportSession, progress: @escaping @Sendable (Double) -> Void
+    ) async throws {
         nonisolated(unsafe) let sharedSession = session
         let poller = Task {
             while !Task.isCancelled {
@@ -79,8 +96,6 @@ struct ProjectExporter: Exporting {
             sharedSession.cancelExport()
         }
         poller.cancel()
-        try finish(session, destination: destination)
-        progress(1)
     }
 
     private func finish(_ session: AVAssetExportSession, destination: URL) throws {

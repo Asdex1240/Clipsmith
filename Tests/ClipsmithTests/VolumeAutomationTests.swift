@@ -8,7 +8,9 @@ final class VolumeAutomationTests: XCTestCase {
 
         let steps = VolumeAutomation.steps(for: clip)
 
-        XCTAssertEqual(steps, [VolumeStep(startInSeconds: 4, durationInSeconds: 0, startVolume: 0.5, endVolume: 0.5)])
+        XCTAssertEqual(
+            steps,
+            [VolumeStep(startInSeconds: 4, durationInSeconds: 0, startVolume: 0.5, endVolume: 0.5)])
     }
 
     func testFadeInRampsFromSilenceToTheClipVolume() {
@@ -16,7 +18,9 @@ final class VolumeAutomationTests: XCTestCase {
 
         let steps = VolumeAutomation.steps(for: clip)
 
-        XCTAssertEqual(steps, [VolumeStep(startInSeconds: 0, durationInSeconds: 2, startVolume: 0, endVolume: 0.8)])
+        XCTAssertEqual(
+            steps,
+            [VolumeStep(startInSeconds: 0, durationInSeconds: 2, startVolume: 0, endVolume: 0.8)])
     }
 
     func testFadeOutRampsDownToSilenceEndingWithTheClip() {
@@ -25,7 +29,9 @@ final class VolumeAutomationTests: XCTestCase {
         let steps = VolumeAutomation.steps(for: clip)
 
         XCTAssertEqual(steps.count, 2)
-        XCTAssertEqual(steps[1], VolumeStep(startInSeconds: 12, durationInSeconds: 3, startVolume: 1, endVolume: 0))
+        XCTAssertEqual(
+            steps[1],
+            VolumeStep(startInSeconds: 12, durationInSeconds: 3, startVolume: 1, endVolume: 0))
     }
 
     func testFadeInAndOutDoNotOverlap() {
@@ -35,6 +41,7 @@ final class VolumeAutomationTests: XCTestCase {
 
         let fadeIn = steps[0]
         let fadeOut = steps[1]
-        XCTAssertLessThanOrEqual(fadeIn.startInSeconds + fadeIn.durationInSeconds, fadeOut.startInSeconds)
+        XCTAssertLessThanOrEqual(
+            fadeIn.startInSeconds + fadeIn.durationInSeconds, fadeOut.startInSeconds)
     }
 }

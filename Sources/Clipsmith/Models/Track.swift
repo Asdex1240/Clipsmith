@@ -45,14 +45,20 @@ struct Track: Codable, Identifiable, Equatable {
 
     func previousEnd(before clip: Clip) -> TimeInterval {
         clips
-            .filter { $0.id != clip.id && $0.endInSeconds <= clip.startInSeconds + Self.overlapToleranceInSeconds }
+            .filter {
+                $0.id != clip.id
+                    && $0.endInSeconds <= clip.startInSeconds + Self.overlapToleranceInSeconds
+            }
             .map(\.endInSeconds)
             .max() ?? 0
     }
 
     func nextStart(after clip: Clip) -> TimeInterval {
         clips
-            .filter { $0.id != clip.id && $0.startInSeconds >= clip.endInSeconds - Self.overlapToleranceInSeconds }
+            .filter {
+                $0.id != clip.id
+                    && $0.startInSeconds >= clip.endInSeconds - Self.overlapToleranceInSeconds
+            }
             .map(\.startInSeconds)
             .min() ?? .infinity
     }
@@ -65,12 +71,16 @@ struct Track: Codable, Identifiable, Equatable {
         let others = clips.filter { $0.id != excludedID }
         let wanted = max(0, proposed)
         guard isOccupied(start: wanted, duration: duration, by: others) else { return wanted }
-        let candidates = [0] + others.map(\.endInSeconds) + others.map { $0.startInSeconds - duration }
-        let free = candidates.filter { $0 >= 0 && !isOccupied(start: $0, duration: duration, by: others) }
+        let candidates =
+            [0] + others.map(\.endInSeconds) + others.map { $0.startInSeconds - duration }
+        let free = candidates.filter {
+            $0 >= 0 && !isOccupied(start: $0, duration: duration, by: others)
+        }
         return free.min { abs($0 - wanted) < abs($1 - wanted) } ?? wanted
     }
 
-    private func isOccupied(start: TimeInterval, duration: TimeInterval, by others: [Clip]) -> Bool {
+    private func isOccupied(start: TimeInterval, duration: TimeInterval, by others: [Clip]) -> Bool
+    {
         others.contains { other in
             start < other.endInSeconds - Self.overlapToleranceInSeconds
                 && start + duration > other.startInSeconds + Self.overlapToleranceInSeconds

@@ -7,6 +7,12 @@ struct ExportView: View {
 
     private static let width: CGFloat = 420
 
+    private var outputSizeText: String {
+        let width = Int(controller.outputSize.width)
+        let height = Int(controller.outputSize.height)
+        return "\(localized("export.output")): \(width)×\(height)"
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text(localized("export.title")).font(.title2.bold())
@@ -41,10 +47,12 @@ struct ExportView: View {
                     ForEach(VideoCodec.allCases) { Text($0.title).tag($0) }
                 }
                 Picker(localized("export.fps"), selection: frameRateBinding) {
-                    ForEach(ExportSettings.supportedFrameRates, id: \.self) { Text("\($0) fps").tag($0) }
+                    ForEach(ExportSettings.supportedFrameRates, id: \.self) {
+                        Text("\($0) fps").tag($0)
+                    }
                 }
             }
-            Text("\(localized("export.output")): \(Int(controller.outputSize.width))×\(Int(controller.outputSize.height))")
+            Text(outputSizeText)
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
             HStack {
@@ -73,7 +81,8 @@ struct ExportView: View {
 
     private func finishedView(_ url: URL) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label(localized("export.done"), systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+            Label(localized("export.done"), systemImage: "checkmark.circle.fill").foregroundStyle(
+                .green)
             HStack {
                 Spacer()
                 Button(localized("export.showInFinder")) {
@@ -105,7 +114,8 @@ struct ExportView: View {
     }
 
     private var resolutionBinding: Binding<ExportResolution> {
-        Binding(get: { controller.settings.resolution }, set: { controller.settings.resolution = $0 })
+        Binding(
+            get: { controller.settings.resolution }, set: { controller.settings.resolution = $0 })
     }
 
     private var codecBinding: Binding<VideoCodec> {
@@ -113,11 +123,15 @@ struct ExportView: View {
     }
 
     private var frameRateBinding: Binding<Int> {
-        Binding(get: { controller.settings.framesPerSecond }, set: { controller.settings.framesPerSecond = $0 })
+        Binding(
+            get: { controller.settings.framesPerSecond },
+            set: { controller.settings.framesPerSecond = $0 })
     }
 
     private func chooseDestinationAndStart() {
-        guard let destination = ExportDestinationPanel.choose(defaultName: controller.defaultFileName) else { return }
+        guard
+            let destination = ExportDestinationPanel.choose(defaultName: controller.defaultFileName)
+        else { return }
         controller.start(to: destination)
     }
 
@@ -160,4 +174,8 @@ private extension VideoCodec {
         case .hevc: return localized("export.codec.hevc")
         }
     }
+}
+
+#Preview {
+    ExportView(controller: ExportController(store: PreviewFixtures.store()))
 }

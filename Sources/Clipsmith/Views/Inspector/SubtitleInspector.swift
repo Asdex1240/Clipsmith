@@ -14,14 +14,21 @@ struct SubtitleInspector: View {
             Text(localized("inspector.subtitles.section")).font(.subheadline.bold())
             Picker(localized("inspector.subtitles.language"), selection: selectedIdentifier) {
                 ForEach(locales, id: \.identifier) { locale in
-                    Text(locale.localizedString(forIdentifier: locale.identifier) ?? locale.identifier).tag(locale.identifier)
+                    Text(
+                        locale.localizedString(forIdentifier: locale.identifier)
+                            ?? locale.identifier
+                    ).tag(locale.identifier)
                 }
             }
             Picker(localized("inspector.subtitles.style"), selection: $styleName) {
-                ForEach(TextStylePreset.allCases, id: \.rawValue) { Text(TextInspector.title(of: $0)).tag($0.rawValue) }
+                ForEach(TextStylePreset.allCases, id: \.rawValue) {
+                    Text(TextInspector.title(of: $0)).tag($0.rawValue)
+                }
             }
             Picker(localized("inspector.subtitles.animation"), selection: $animationName) {
-                ForEach(TextAnimationKind.allCases, id: \.rawValue) { Text(TextInspector.title(of: $0)).tag($0.rawValue) }
+                ForEach(TextAnimationKind.allCases, id: \.rawValue) {
+                    Text(TextInspector.title(of: $0)).tag($0.rawValue)
+                }
             }
             HStack {
                 Button(localized("inspector.subtitles.generate")) {
@@ -50,9 +57,12 @@ struct SubtitleInspector: View {
         case .idle, .working:
             EmptyView()
         case .finished(let count):
-            Label(String(format: localized("inspector.subtitles.done"), count), systemImage: "checkmark.circle")
-                .font(.caption)
-                .foregroundStyle(.green)
+            Label(
+                String(format: localized("inspector.subtitles.done"), count),
+                systemImage: "checkmark.circle"
+            )
+            .font(.caption)
+            .foregroundStyle(.green)
         case .failed(let message):
             Label(message, systemImage: "exclamationmark.triangle")
                 .font(.caption)
@@ -63,7 +73,9 @@ struct SubtitleInspector: View {
     private var selectedIdentifier: Binding<String> {
         Binding(
             get: {
-                if locales.contains(where: { $0.identifier == languageIdentifier }) { return languageIdentifier }
+                if locales.contains(where: { $0.identifier == languageIdentifier }) {
+                    return languageIdentifier
+                }
                 return Self.defaultIdentifier(in: locales)
             },
             set: { languageIdentifier = $0 }
@@ -74,9 +86,18 @@ struct SubtitleInspector: View {
         let identifiers = locales.map(\.identifier)
         if identifiers.contains(system.identifier) { return system.identifier }
         if let code = system.language.languageCode?.identifier,
-           let match = identifiers.first(where: { $0.hasPrefix(code + "_") || $0.hasPrefix(code + "-") }) {
+            let match = identifiers.first(where: {
+                $0.hasPrefix(code + "_") || $0.hasPrefix(code + "-")
+            })
+        {
             return match
         }
         return identifiers.first(where: { $0 == "en_US" }) ?? identifiers.first ?? "en_US"
     }
+}
+
+#Preview {
+    let store = PreviewFixtures.store()
+    SubtitleInspector(subtitles: SubtitleController(store: store), clip: PreviewFixtures.videoClip)
+        .padding()
 }

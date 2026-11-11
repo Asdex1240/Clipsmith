@@ -33,8 +33,8 @@ struct CanvasDragOverlay: View {
 
     private static let selectedOutlineOpacity = 0.9
 
-    private func outlineOpacity(isSelected: Bool) -> Double {
-        if isSelected { return Self.selectedOutlineOpacity }
+    private func outlineOpacity(of target: CanvasTarget) -> Double {
+        if store.selectedClipID == target.id { return Self.selectedOutlineOpacity }
         return 0
     }
 
@@ -54,7 +54,8 @@ struct CanvasDragOverlay: View {
                         hitArea(of: target, renderSize: renderSize, fitted: fitted, scale: scale)
                     }
                     if let selected = all.first(where: { $0.id == store.selectedClipID }) {
-                        controls(for: selected, renderSize: renderSize, fitted: fitted, scale: scale)
+                        controls(
+                            for: selected, renderSize: renderSize, fitted: fitted, scale: scale)
                     }
                     guides(in: fitted)
                 }
@@ -66,11 +67,20 @@ struct CanvasDragOverlay: View {
     // MARK: CanvasTargets
 
     private func targets(renderSize: CGSize) -> [CanvasTarget] {
+        visualTargets(renderSize: renderSize) + textTargets(renderSize: renderSize)
+    }
+
+    private func activeClips(in tracks: [Track]) -> [Clip] {
         let time = store.playheadInSeconds
-        func active(_ tracks: [Track]) -> [Clip] {
-            tracks.flatMap(\.clips).filter { $0.startInSeconds <= time && time < $0.endInSeconds }
+        return tracks.flatMap(\.clips).filter {
+            $0.startInSeconds <= time && time < $0.endInSeconds
         }
-        let visuals = active(store.project.videoTracksTopFirst.reversed()).map { $0.presented(atTimelineTime: time) }.compactMap { clip -> CanvasTarget? in
+    }
+
+    private func visualTargets(renderSize: CGSize) -> [CanvasTarget] {
+        let time = store.playheadInSeconds
+        let clips = activeClips(in: store.project.videoTracksTopFirst.reversed())
+        return clips.map { $0.presented(atTimelineTime: time) }.compactMap { clip in
             guard let base = visualFrames[clip.id] else { return nil }
             return CanvasTarget(
                 id: clip.id, isText: false,
@@ -82,16 +92,19 @@ struct CanvasDragOverlay: View {
                 rotationInDegrees: clip.rotationInDegrees
             )
         }
-        let texts = active(store.project.tracks(withRole: .text)).compactMap { clip -> CanvasTarget? in
+    }
+
+    private func textTargets(renderSize: CGSize) -> [CanvasTarget] {
+        activeClips(in: store.project.tracks(withRole: .text)).compactMap { clip in
             guard let layer = clip.textLayer else { return nil }
             return CanvasTarget(
                 id: clip.id, isText: true,
-                center: CGPoint(x: layer.positionX * renderSize.width, y: layer.positionY * renderSize.height),
+                center: CGPoint(
+                    x: layer.positionX * renderSize.width, y: layer.positionY * renderSize.height),
                 size: TextOverlayLayers.textSize(of: layer, renderSize: renderSize),
                 rotationInDegrees: layer.rotationInDegrees
             )
         }
-        return visuals + texts
     }
 
     // MARK: Views
@@ -100,14 +113,15 @@ struct CanvasDragOverlay: View {
         CGPoint(x: fitted.minX + target.center.x * scale, y: fitted.minY + target.center.y * scale)
     }
 
-    private func hitArea(of target: CanvasTarget, renderSize: CGSize, fitted: CGRect, scale: Double) -> some View {
+    private func hitArea(
+        of target: CanvasTarget, renderSize: CGSize, fitted: CGRect, scale: Double
+    ) -> some View {
         let center = screenCenter(of: target, fitted: fitted, scale: scale)
-        let isSelected = store.selectedClipID == target.id
         return Rectangle()
             .fill(Color.white.opacity(0.001))
             .overlay {
                 Rectangle().strokeBorder(
-                    Color.accentColor.opacity(outlineOpacity(isSelected: isSelected)),
+                    Color.accentColor.opacity(outlineOpacity(of: target)),
                     style: StrokeStyle(lineWidth: 1, dash: [4, 3])
                 )
             }
@@ -121,16 +135,14 @@ struct CanvasDragOverlay: View {
             .gesture(move(target, renderSize: renderSize, scale: scale))
     }
 
-    private func controls(for target: CanvasTarget, renderSize: CGSize, fitted: CGRect, scale: Double) -> some View {
+    private func controls(
+        for target: CanvasTarget, renderSize: CGSize, fitted: CGRect, scale: Double
+    ) -> some View {
         let center = screenCenter(of: target, fitted: fitted, scale: scale)
         let halfWidth = max(target.size.width * scale, Self.minimumHandleSide) / 2
         let halfHeight = max(target.size.height * scale, Self.minimumHandleSide) / 2
-        let radians = target.rotationInDegrees * .pi / 180
         func rotated(_ x: Double, _ y: Double) -> CGPoint {
-            CGPoint(
-                x: center.x + x * cos(radians) - y * sin(radians),
-                y: center.y + x * sin(radians) + y * cos(radians)
-            )
+            CanvasGeometry.rotated(x, y, around: center, degrees: target.rotationInDegrees)
         }
         let corners = [(-1.0, -1.0), (1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)]
         let knob = rotated(0, -halfHeight - Self.rotationStem)
@@ -142,33 +154,53 @@ struct CanvasDragOverlay: View {
             .stroke(Color.accentColor, lineWidth: 1)
             ForEach(corners.indices, id: \.self) { index in
                 let corner = corners[index]
-                Rectangle()
-                    .fill(.white)
-                    .overlay(Rectangle().stroke(Color.accentColor, lineWidth: 1.5))
-                    .frame(width: Self.cornerSize, height: Self.cornerSize)
-                    .position(rotated(corner.0 * halfWidth, corner.1 * halfHeight))
+                cornerHandle(at: rotated(corner.0 * halfWidth, corner.1 * halfHeight))
                     .gesture(resize(target, center: center))
             }
-            Circle()
-                .fill(.white)
-                .overlay(Circle().stroke(Color.accentColor, lineWidth: 1.5))
-                .frame(width: Self.rotationKnob, height: Self.rotationKnob)
-                .position(knob)
+            rotationHandle(at: knob)
                 .gesture(rotate(target, center: center))
         }
     }
 
+    private func cornerHandle(at point: CGPoint) -> some View {
+        Rectangle()
+            .fill(.white)
+            .overlay(Rectangle().stroke(Color.accentColor, lineWidth: 1.5))
+            .frame(width: Self.cornerSize, height: Self.cornerSize)
+            .position(point)
+    }
+
+    private func rotationHandle(at point: CGPoint) -> some View {
+        Circle()
+            .fill(.white)
+            .overlay(Circle().stroke(Color.accentColor, lineWidth: 1.5))
+            .frame(width: Self.rotationKnob, height: Self.rotationKnob)
+            .position(point)
+    }
+
     private func guides(in fitted: CGRect) -> some View {
         ZStack {
-            if reachedEdges.contains(.left) { line(from: fitted.minX, fitted.minY, to: fitted.minX, fitted.maxY) }
-            if reachedEdges.contains(.right) { line(from: fitted.maxX, fitted.minY, to: fitted.maxX, fitted.maxY) }
-            if reachedEdges.contains(.top) { line(from: fitted.minX, fitted.minY, to: fitted.maxX, fitted.minY) }
-            if reachedEdges.contains(.bottom) { line(from: fitted.minX, fitted.maxY, to: fitted.maxX, fitted.maxY) }
+            if reachedEdges.contains(.left) {
+                line(from: fitted.minX, fitted.minY, to: fitted.minX, fitted.maxY)
+            }
+            if reachedEdges.contains(.right) {
+                line(from: fitted.maxX, fitted.minY, to: fitted.maxX, fitted.maxY)
+            }
+            if reachedEdges.contains(.top) {
+                line(from: fitted.minX, fitted.minY, to: fitted.maxX, fitted.minY)
+            }
+            if reachedEdges.contains(.bottom) {
+                line(from: fitted.minX, fitted.maxY, to: fitted.maxX, fitted.maxY)
+            }
             if centeredAxes.contains(.horizontal) {
-                line(from: fitted.midX, fitted.minY, to: fitted.midX, fitted.maxY, color: Self.centerGuideColor)
+                line(
+                    from: fitted.midX, fitted.minY, to: fitted.midX, fitted.maxY,
+                    color: Self.centerGuideColor)
             }
             if centeredAxes.contains(.vertical) {
-                line(from: fitted.minX, fitted.midY, to: fitted.maxX, fitted.midY, color: Self.centerGuideColor)
+                line(
+                    from: fitted.minX, fitted.midY, to: fitted.maxX, fitted.midY,
+                    color: Self.centerGuideColor)
             }
         }
         .allowsHitTesting(false)
@@ -188,7 +220,10 @@ struct CanvasDragOverlay: View {
 
     private func beginSession(for target: CanvasTarget) -> Session? {
         if let session { return session }
-        guard let clip = store.project.clip(withID: target.id)?.presented(atTimelineTime: store.playheadInSeconds) else { return nil }
+        guard
+            let clip = store.project.clip(withID: target.id)?.presented(
+                atTimelineTime: store.playheadInSeconds)
+        else { return nil }
         store.selectClip(target.id)
         let origin = dragStart(of: target, clip: clip)
         let started = Session(
@@ -217,21 +252,9 @@ struct CanvasDragOverlay: View {
                     width: (value.location.x - value.startLocation.x) / scale,
                     height: (value.location.y - value.startLocation.y) / scale
                 )
-                let delta = CanvasGeometry.magnetized(raw, from: start.bounds, canvas: renderSize, reach: Self.magnetDistance / scale)
-                let x = start.offsetX + delta.width / renderSize.width
-                let y = start.offsetY + delta.height / renderSize.height
-                if target.isText {
-                    store.updateTextLayer(of: target.id, field: "canvas-drag") {
-                        $0.positionX = min(max(x, Self.textRange.lowerBound), Self.textRange.upperBound)
-                        $0.positionY = min(max(y, Self.textRange.lowerBound), Self.textRange.upperBound)
-                    }
-                } else {
-                    store.setOffset(
-                        of: target.id,
-                        x: min(max(x, Self.offsetRange.lowerBound), Self.offsetRange.upperBound),
-                        y: min(max(y, Self.offsetRange.lowerBound), Self.offsetRange.upperBound)
-                    )
-                }
+                let delta = CanvasGeometry.magnetized(
+                    raw, from: start.bounds, canvas: renderSize, reach: Self.magnetDistance / scale)
+                applyDrag(to: target, from: start, delta: delta, renderSize: renderSize)
                 let placed = start.bounds.offsetBy(dx: delta.width, dy: delta.height)
                 reachedEdges = CanvasGeometry.edges(of: placed, moving: raw, in: renderSize)
                 centeredAxes = CanvasGeometry.centeredAxes(of: placed, in: renderSize)
@@ -239,20 +262,45 @@ struct CanvasDragOverlay: View {
             .onEnded { _ in endSession() }
     }
 
+    private func applyDrag(
+        to target: CanvasTarget, from start: Session, delta: CGSize, renderSize: CGSize
+    ) {
+        let x = start.offsetX + delta.width / renderSize.width
+        let y = start.offsetY + delta.height / renderSize.height
+        if target.isText {
+            store.updateTextLayer(of: target.id, field: "canvas-drag") {
+                $0.positionX = min(max(x, Self.textRange.lowerBound), Self.textRange.upperBound)
+                $0.positionY = min(max(y, Self.textRange.lowerBound), Self.textRange.upperBound)
+            }
+        } else {
+            store.setOffset(
+                of: target.id,
+                x: min(max(x, Self.offsetRange.lowerBound), Self.offsetRange.upperBound),
+                y: min(max(y, Self.offsetRange.lowerBound), Self.offsetRange.upperBound)
+            )
+        }
+    }
+
     private func resize(_ target: CanvasTarget, center: CGPoint) -> some Gesture {
         DragGesture(minimumDistance: 0, coordinateSpace: .named(Self.space))
             .onChanged { value in
                 guard let start = beginSession(for: target) else { return }
-                let startDistance = hypot(value.startLocation.x - center.x, value.startLocation.y - center.y)
+                let startDistance = hypot(
+                    value.startLocation.x - center.x, value.startLocation.y - center.y)
                 let distance = hypot(value.location.x - center.x, value.location.y - center.y)
                 guard startDistance > 0 else { return }
                 let ratio = distance / startDistance
                 if target.isText {
-                    let size = min(max(start.fontSize * ratio, Self.fontSizeRange.lowerBound), Self.fontSizeRange.upperBound)
-                    store.updateTextLayer(of: target.id, field: "canvas-scale") { $0.fontSize = size }
+                    let size = min(
+                        max(start.fontSize * ratio, Self.fontSizeRange.lowerBound),
+                        Self.fontSizeRange.upperBound)
+                    store.updateTextLayer(of: target.id, field: "canvas-scale") {
+                        $0.fontSize = size
+                    }
                 } else {
                     store.setTransform(
-                        of: target.id, scale: start.scale * ratio, rotationInDegrees: start.rotationInDegrees
+                        of: target.id, scale: start.scale * ratio,
+                        rotationInDegrees: start.rotationInDegrees
                     )
                 }
             }
@@ -263,13 +311,18 @@ struct CanvasDragOverlay: View {
         DragGesture(minimumDistance: 0, coordinateSpace: .named(Self.space))
             .onChanged { value in
                 guard let start = beginSession(for: target) else { return }
-                let startAngle = atan2(value.startLocation.y - center.y, value.startLocation.x - center.x)
+                let startAngle = atan2(
+                    value.startLocation.y - center.y, value.startLocation.x - center.x)
                 let angle = atan2(value.location.y - center.y, value.location.x - center.x)
-                let degrees = CanvasGeometry.snappedAngle(start.rotationInDegrees + (angle - startAngle) * 180 / .pi)
+                let degrees = CanvasGeometry.snappedAngle(
+                    start.rotationInDegrees + (angle - startAngle) * 180 / .pi)
                 if target.isText {
-                    store.updateTextLayer(of: target.id, field: "canvas-rotate") { $0.rotationInDegrees = degrees }
+                    store.updateTextLayer(of: target.id, field: "canvas-rotate") {
+                        $0.rotationInDegrees = degrees
+                    }
                 } else {
-                    store.setTransform(of: target.id, scale: start.scale, rotationInDegrees: degrees)
+                    store.setTransform(
+                        of: target.id, scale: start.scale, rotationInDegrees: degrees)
                 }
             }
             .onEnded { _ in endSession() }
@@ -277,4 +330,12 @@ struct CanvasDragOverlay: View {
 
     // MARK: Magnet and guides
 
+}
+
+#Preview {
+    CanvasDragOverlay(
+        store: PreviewFixtures.store(), renderSize: CGSize(width: 1920, height: 1080),
+        visualFrames: [PreviewFixtures.videoClip.id: CGRect(x: 0, y: 0, width: 1920, height: 1080)]
+    )
+    .frame(width: 480, height: 270)
 }

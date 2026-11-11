@@ -2,6 +2,10 @@ import AVFoundation
 import Combine
 import Observation
 
+private enum PlaybackAfterInstall {
+    case stayPaused, resume
+}
+
 @MainActor
 @Observable
 final class PlayerController {
@@ -26,7 +30,8 @@ final class PlayerController {
         statusObservation = player.publisher(for: \.timeControlStatus)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] status in self?.isPlaying = status != .paused }
-        player.addPeriodicTimeObserver(forInterval: Self.updateInterval, queue: .main) { [weak self] time in
+        player.addPeriodicTimeObserver(forInterval: Self.updateInterval, queue: .main) {
+            [weak self] time in
             MainActor.assumeIsolated { self?.playerTimeDidChange(time) }
         }
     }
@@ -50,7 +55,7 @@ final class PlayerController {
         guard mode != .timeline else { return }
         mode = .timeline
         player.pause()
-        installTimeline(resumingPlayback: false, at: time)
+        installTimeline(playback: .stayPaused, at: time)
     }
 
     func setTimeline(_ built: BuiltComposition?, at time: TimeInterval) {
@@ -60,7 +65,7 @@ final class PlayerController {
         visualFrames = built?.visualFrames ?? [:]
         timelineRevision += 1
         guard mode == .timeline else { return }
-        installTimeline(resumingPlayback: isPlaying, at: time)
+        installTimeline(playback: currentPlayback, at: time)
     }
 
     func updateTransforms(_ built: BuiltComposition) {
@@ -89,7 +94,12 @@ final class PlayerController {
         }
     }
 
-    private func installTimeline(resumingPlayback: Bool, at time: TimeInterval) {
+    private var currentPlayback: PlaybackAfterInstall {
+        if isPlaying { return .resume }
+        return .stayPaused
+    }
+
+    private func installTimeline(playback: PlaybackAfterInstall, at time: TimeInterval) {
         guard let timeline else {
             player.replaceCurrentItem(with: nil)
             return
@@ -97,13 +107,14 @@ final class PlayerController {
         player.replaceCurrentItem(with: timeline.makePlayerItem())
         Task { @MainActor in
             await player.seek(to: time.cmTime, toleranceBefore: .zero, toleranceAfter: .zero)
-            if resumingPlayback { player.play() }
+            if playback == .resume { player.play() }
         }
     }
 
     private func restartIfFinished() {
         guard let item = player.currentItem, item.duration.isNumeric,
-              item.currentTime() >= item.duration else { return }
+            item.currentTime() >= item.duration
+        else { return }
         player.seek(to: .zero)
     }
 

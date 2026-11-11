@@ -117,7 +117,8 @@ final class ProjectEditingTests: XCTestCase {
 
         project.trimClip(clip.id, edge: .leading, to: 50)
 
-        XCTAssertEqual(mainClips[0].durationInSeconds, Clip.minimumDurationInSeconds, accuracy: 1e-9)
+        XCTAssertEqual(
+            mainClips[0].durationInSeconds, Clip.minimumDurationInSeconds, accuracy: 1e-9)
     }
 
     func testTrimTrailingShortensTheClip() {

@@ -24,17 +24,26 @@ struct TextInspector: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(localized("inspector.text.section")).font(.subheadline.bold())
-            TextField(localized("inspector.text.content"), text: binding(\.content), axis: .vertical)
-                .lineLimit(1...4)
-                .textFieldStyle(.roundedBorder)
+            TextField(
+                localized("inspector.text.content"), text: binding(\.content), axis: .vertical
+            )
+            .lineLimit(1...4)
+            .textFieldStyle(.roundedBorder)
             Picker(localized("inspector.text.font"), selection: binding(\.fontName)) {
                 ForEach(fontOptions, id: \.postScript) { Text($0.name).tag($0.postScript) }
             }
-            slider("inspector.text.size", binding(\.fontSize), Self.sizeRange, "\(Int(layer.fontSize)) pt")
-            ColorPicker(localized("inspector.text.color"), selection: colorBinding, supportsOpacity: false)
-            slider("inspector.text.positionX", binding(\.positionX), 0...1, percent(layer.positionX))
-            slider("inspector.text.positionY", binding(\.positionY), 0...1, percent(layer.positionY))
-            slider("inspector.text.rotation", binding(\.rotationInDegrees), -180...180, "\(Int(layer.rotationInDegrees.rounded()))°")
+            slider(
+                "inspector.text.size", binding(\.fontSize), Self.sizeRange,
+                "\(Int(layer.fontSize)) pt")
+            ColorPicker(
+                localized("inspector.text.color"), selection: colorBinding, supportsOpacity: false)
+            slider(
+                "inspector.text.positionX", binding(\.positionX), 0...1, percent(layer.positionX))
+            slider(
+                "inspector.text.positionY", binding(\.positionY), 0...1, percent(layer.positionY))
+            slider(
+                "inspector.text.rotation", binding(\.rotationInDegrees), -180...180,
+                "\(Int(layer.rotationInDegrees.rounded()))°")
             styleControls
             animationControls
         }
@@ -46,7 +55,10 @@ struct TextInspector: View {
         VStack(alignment: .leading, spacing: 8) {
             Divider()
             Text(localized("inspector.textStyle.section")).font(.subheadline.bold())
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 78), spacing: 4)], alignment: .leading, spacing: 4) {
+            LazyVGrid(
+                columns: [GridItem(.adaptive(minimum: 78), spacing: 4)], alignment: .leading,
+                spacing: 4
+            ) {
                 ForEach(TextStylePreset.allCases, id: \.self) { preset in
                     Button(Self.title(of: preset)) {
                         store.updateTextLayer(of: clip.id, field: "style") { preset.apply(to: &$0) }
@@ -55,15 +67,22 @@ struct TextInspector: View {
                     .controlSize(.small)
                 }
             }
-            slider("inspector.textStyle.outline", binding(\.strokeWidth), 0...TextLayer.maximumStrokeWidth, percent(layer.strokeWidth / TextLayer.maximumStrokeWidth))
+            slider(
+                "inspector.textStyle.outline", binding(\.strokeWidth),
+                0...TextLayer.maximumStrokeWidth,
+                percent(layer.strokeWidth / TextLayer.maximumStrokeWidth))
             if layer.strokeWidth > 0 {
-                ColorPicker(localized("inspector.textStyle.outlineColor"), selection: colorBinding(\.strokeColor, field: "strokeColor"), supportsOpacity: false)
+                ColorPicker(
+                    localized("inspector.textStyle.outlineColor"),
+                    selection: colorBinding(\.strokeColor, field: "strokeColor"),
+                    supportsOpacity: false)
             }
             Toggle(localized("inspector.textStyle.background"), isOn: backgroundToggle)
             if let background = layer.backgroundColor {
                 ColorPicker(
                     localized("inspector.textStyle.backgroundColor"),
-                    selection: colorBinding(\.backgroundColor, field: "background", fallback: background),
+                    selection: colorBinding(
+                        \.backgroundColor, field: "background", fallback: background),
                     supportsOpacity: true
                 )
             }
@@ -77,15 +96,19 @@ struct TextInspector: View {
         VStack(alignment: .leading, spacing: 8) {
             Divider()
             Text(localized("inspector.textAnimation.section")).font(.subheadline.bold())
-            Picker(localized("inspector.textAnimation.in"), selection: binding(\.animation.inKind)) {
+            Picker(localized("inspector.textAnimation.in"), selection: binding(\.animation.inKind))
+            {
                 ForEach(TextAnimationKind.allCases, id: \.self) { Text(Self.title(of: $0)).tag($0) }
             }
-            Picker(localized("inspector.textAnimation.out"), selection: binding(\.animation.outKind)) {
+            Picker(
+                localized("inspector.textAnimation.out"), selection: binding(\.animation.outKind)
+            ) {
                 ForEach(TextAnimationKind.allCases, id: \.self) { Text(Self.title(of: $0)).tag($0) }
             }
             if !layer.animation.isNone {
                 slider(
-                    "inspector.textAnimation.duration", binding(\.animation.durationInSeconds), TextAnimation.durationRange,
+                    "inspector.textAnimation.duration", binding(\.animation.durationInSeconds),
+                    TextAnimation.durationRange,
                     String(format: "%.1f s", layer.animation.durationInSeconds)
                 )
             }
@@ -136,7 +159,9 @@ struct TextInspector: View {
         Binding(
             get: { layer[keyPath: keyPath] },
             set: { newValue in
-                store.updateTextLayer(of: clip.id, field: String(describing: keyPath)) { $0[keyPath: keyPath] = newValue }
+                store.updateTextLayer(of: clip.id, field: String(describing: keyPath)) {
+                    $0[keyPath: keyPath] = newValue
+                }
             }
         )
     }
@@ -145,11 +170,15 @@ struct TextInspector: View {
         colorBinding(\.color, field: "color")
     }
 
-    private func colorBinding(_ keyPath: WritableKeyPath<TextLayer, RGBAColor>, field: String) -> Binding<Color> {
+    private func colorBinding(
+        _ keyPath: WritableKeyPath<TextLayer, RGBAColor>, field: String
+    ) -> Binding<Color> {
         Binding(
             get: { Self.swiftUIColor(layer[keyPath: keyPath]) },
             set: { newColor in
-                store.updateTextLayer(of: clip.id, field: field) { $0[keyPath: keyPath] = Self.rgba(newColor) }
+                store.updateTextLayer(of: clip.id, field: field) {
+                    $0[keyPath: keyPath] = Self.rgba(newColor)
+                }
             }
         )
     }
@@ -160,7 +189,9 @@ struct TextInspector: View {
         Binding(
             get: { Self.swiftUIColor(layer[keyPath: keyPath] ?? fallback) },
             set: { newColor in
-                store.updateTextLayer(of: clip.id, field: field) { $0[keyPath: keyPath] = Self.rgba(newColor) }
+                store.updateTextLayer(of: clip.id, field: field) {
+                    $0[keyPath: keyPath] = Self.rgba(newColor)
+                }
             }
         )
     }
@@ -196,4 +227,9 @@ struct TextInspector: View {
             Slider(value: value, in: range)
         }
     }
+}
+
+#Preview {
+    TextInspector(store: PreviewFixtures.store(), clip: PreviewFixtures.textClip)
+        .padding()
 }
