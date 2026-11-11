@@ -15,7 +15,7 @@ What it does:
 - **Preview** — real-time playback and scrubbing.
 - **Text** — text layers with font, size, color and position.
 - **Audio** — per-clip volume, fade in/out, visible waveforms, one-click volume normalization and automatic lowering of music (or any audio clip) under the speech of the main track.
-- **Speed** — play a clip from 0.25× to 4×; its length on the timeline follows.
+- **Speed** — play a clip from 0.25× to 4×; its length on the timeline follows. A one-click *slow-motion moment* slows a stretch down smoothly and speeds back up.
 - **Animation** — keyframes for position, size, rotation and opacity, edited at the playhead.
 - **Transitions** — dissolve, fade through black or slide between touching clips.
 - **Color and crop** — brightness, contrast, saturation, temperature, one-click looks and a per-side crop.

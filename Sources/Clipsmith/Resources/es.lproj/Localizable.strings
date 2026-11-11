@@ -156,6 +156,14 @@
 "timeline.snapping.off" = "Imán desactivado: colocación libre (clic para activar)";
 "inspector.speed.section" = "Velocidad";
 "inspector.speed.rate" = "Velocidad de reproducción";
+"inspector.slowMoment.title" = "Momento en cámara lenta";
+"inspector.slowMoment.speed" = "Velocidad más lenta";
+"inspector.slowMoment.length" = "Duración del momento";
+"inspector.slowMoment.mute" = "Silenciar el audio del momento";
+"inspector.slowMoment.apply" = "Ralentizar en el cursor";
+"inspector.slowMoment.done" = "Momento en cámara lenta añadido.";
+"inspector.slowMoment.noRoom" = "Coloca el cursor dentro del clip con espacio suficiente después.";
+"inspector.slowMoment.hint" = "Parte el clip en el cursor y ralentiza ese tramo de forma suave, luego vuelve a acelerar. Lo que viene después se desplaza.";
 "inspector.speed.duration" = "Duración en el timeline: %@";
 "inspector.visual.opacity" = "Opacidad";
 "inspector.keyframes.section" = "Animación";

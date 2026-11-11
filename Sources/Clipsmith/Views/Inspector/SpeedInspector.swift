@@ -4,6 +4,11 @@ struct SpeedInspector: View {
     let store: ProjectStore
     let clip: Clip
 
+    @State private var momentFactor = SlowMoment.defaultFactor
+    @State private var momentDuration = SlowMoment.defaultSourceDurationInSeconds
+    @State private var mutesAudio = true
+    @State private var momentMessage: String?
+
     private static let presets: [Double] = [0.25, 0.5, 1, 1.5, 2, 4]
     private static let selectionTolerance = 0.001
 
@@ -32,7 +37,33 @@ struct SpeedInspector: View {
             )
             .font(.caption)
             .foregroundStyle(.secondary)
+            slowMoment
         }
+    }
+
+    @ViewBuilder
+    private var slowMoment: some View {
+        Divider()
+        Text(localized("inspector.slowMoment.title")).font(.subheadline.bold())
+        ParameterSlider(
+            title: localized("inspector.slowMoment.speed"), value: $momentFactor,
+            range: SlowMoment.factorRange, unit: .multiplier, defaultValue: SlowMoment.defaultFactor)
+        ParameterSlider(
+            title: localized("inspector.slowMoment.length"), value: $momentDuration,
+            range: SlowMoment.sourceDurationRange, unit: .seconds,
+            defaultValue: SlowMoment.defaultSourceDurationInSeconds)
+        Toggle(localized("inspector.slowMoment.mute"), isOn: $mutesAudio)
+        Button(localized("inspector.slowMoment.apply")) {
+            let added = store.addSlowMoment(
+                to: clip.id, at: store.playheadInSeconds, sourceDuration: momentDuration,
+                factor: momentFactor, mutesAudio: mutesAudio)
+            momentMessage = localized(
+                added ? "inspector.slowMoment.done" : "inspector.slowMoment.noRoom")
+        }
+        if let momentMessage {
+            Text(momentMessage).font(.caption).foregroundStyle(.secondary)
+        }
+        Text(localized("inspector.slowMoment.hint")).font(.caption).foregroundStyle(.secondary)
     }
 
     private var logBinding: Binding<Double> {
