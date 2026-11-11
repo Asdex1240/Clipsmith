@@ -1,5 +1,13 @@
 import SwiftUI
 
+struct PreviewProjectStorage: ProjectStoring {
+    func write(project: Project, library: [MediaItem], to url: URL) throws {}
+
+    func read(from url: URL) throws -> LoadedProject {
+        throw CocoaError(.fileReadUnknown)
+    }
+}
+
 @MainActor
 enum PreviewFixtures {
     private static let sampleVideoURL = URL(fileURLWithPath: "/tmp/sample.mov")
@@ -39,5 +47,16 @@ enum PreviewFixtures {
 
     private static func textTrackID(of project: Project) -> Track.ID {
         project.track(withRole: .text)?.id ?? UUID()
+    }
+
+    static func document(store: ProjectStore, library: MediaLibrary) -> DocumentController {
+        let recoveryURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("PreviewRecovery.clipsmith")
+        return DocumentController(
+            store: store,
+            library: library,
+            storage: PreviewProjectStorage(),
+            recovery: RecoveryStore(fileURL: recoveryURL, storage: PreviewProjectStorage())
+        )
     }
 }
