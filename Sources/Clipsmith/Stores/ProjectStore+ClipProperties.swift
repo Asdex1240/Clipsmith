@@ -112,6 +112,36 @@ extension ProjectStore {
         mutate(coalescingKey: "volume-\(id)") { $0.setVolume(of: id, to: value) }
     }
 
+    @discardableResult
+    func normalizeVolume(of id: Clip.ID, peaks: [Float]) -> Double? {
+        guard let clip = project.clip(withID: id),
+            let volume = LoudnessNormalizer.volume(
+                peaks: peaks, from: clip.sourceStartInSeconds, to: clip.sourceEndInSeconds)
+        else { return nil }
+        mutate { $0.setVolume(of: id, to: volume) }
+        return volume
+    }
+
+    @discardableResult
+    func applyDucking(
+        to id: Clip.ID, under timelineRanges: [Range<TimeInterval>],
+        level: Double = ClipDucking.defaultLevel
+    ) -> Int {
+        guard let clip = project.clip(withID: id) else { return 0 }
+        let ranges = clip.sourceRanges(from: timelineRanges)
+        guard !ranges.isEmpty else { return 0 }
+        mutate { $0.setDucking(of: id, to: ClipDucking(level: level, ranges: ranges)) }
+        return ranges.count
+    }
+
+    func clearDucking(of id: Clip.ID) {
+        mutate { $0.setDucking(of: id, to: nil) }
+    }
+
+    func setDuckLevel(of id: Clip.ID, to level: Double) {
+        mutate(coalescingKey: "duckLevel-\(id)") { $0.setDuckLevel(of: id, to: level) }
+    }
+
     func setFadeIn(of id: Clip.ID, to seconds: TimeInterval) {
         mutate(coalescingKey: "fadeIn-\(id)") { $0.setFadeIn(of: id, to: seconds) }
     }

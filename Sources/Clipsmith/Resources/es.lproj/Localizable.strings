@@ -70,6 +70,17 @@
 "inspector.text.positionY" = "Posición vertical";
 "inspector.audio.section" = "Audio";
 "inspector.audio.volume" = "Volumen";
+"inspector.audio.normalize" = "Normalizar volumen";
+"inspector.audio.normalize.help" = "Ajusta el volumen del clip para que su voz o música llegue a un nivel estándar.";
+"inspector.audio.normalize.done" = "Volumen ajustado al %d%%.";
+"inspector.audio.normalize.none" = "Este clip no tiene audio suficiente para medir.";
+"inspector.ducking.title" = "Bajar bajo la voz";
+"inspector.ducking.level" = "Volumen mientras se habla";
+"inspector.ducking.apply" = "Bajar bajo la voz";
+"inspector.ducking.clear" = "Quitar";
+"inspector.ducking.done" = "Volumen bajado en %d tramos de voz.";
+"inspector.ducking.noSpeech" = "No se encontró voz en la pista principal.";
+"inspector.ducking.hint" = "Baja este clip donde haya voz en la pista principal. Vuelve a aplicarlo si mueves la voz.";
 "inspector.audio.fadeIn" = "Fundido de entrada";
 "inspector.audio.extract" = "Extraer audio";
 "inspector.audio.extract.help" = "Mueve el sonido a la pista de audio. La pista de audio debe estar libre bajo este clip.";

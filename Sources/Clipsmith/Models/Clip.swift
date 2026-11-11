@@ -30,6 +30,7 @@ struct Clip: Codable, Identifiable, Equatable {
     var color = ColorAdjustments()
     var crop = CropInsets()
     var groupID: UUID?
+    var ducking: ClipDucking?
 
     var displayName: String {
         textLayer?.content ?? sourceURL?.lastPathComponent ?? ""
@@ -196,7 +197,7 @@ extension Clip {
         case id, sourceURL, mediaKind, startInSeconds, sourceStartInSeconds, sourceEndInSeconds
         case sourceDurationInSeconds, volume, fadeInDurationInSeconds, fadeOutDurationInSeconds
         case textLayer, fitMode, offsetX, offsetY, isAudioDetached, scale, rotationInDegrees, speed,
-            opacity, keyframes, transition, color, crop, groupID
+            opacity, keyframes, transition, color, crop, groupID, ducking
     }
 
     init(from decoder: Decoder) throws {
@@ -233,6 +234,7 @@ extension Clip {
             ?? ColorAdjustments()
         crop = try container.decodeIfPresent(CropInsets.self, forKey: .crop) ?? CropInsets()
         groupID = try container.decodeIfPresent(UUID.self, forKey: .groupID)
+        ducking = try container.decodeIfPresent(ClipDucking.self, forKey: .ducking)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -263,5 +265,6 @@ extension Clip {
         if !color.isIdentity { try container.encode(color, forKey: .color) }
         if !crop.isNone { try container.encode(crop, forKey: .crop) }
         try container.encodeIfPresent(groupID, forKey: .groupID)
+        try container.encodeIfPresent(ducking, forKey: .ducking)
     }
 }

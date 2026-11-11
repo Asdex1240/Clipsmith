@@ -70,6 +70,17 @@
 "inspector.text.positionY" = "Vertical position";
 "inspector.audio.section" = "Audio";
 "inspector.audio.volume" = "Volume";
+"inspector.audio.normalize" = "Normalize volume";
+"inspector.audio.normalize.help" = "Sets the clip volume so its speech or music reaches a standard level.";
+"inspector.audio.normalize.done" = "Volume set to %d%%.";
+"inspector.audio.normalize.none" = "There is not enough audio to measure in this clip.";
+"inspector.ducking.title" = "Lower under speech";
+"inspector.ducking.level" = "Volume while speaking";
+"inspector.ducking.apply" = "Lower under speech";
+"inspector.ducking.clear" = "Remove";
+"inspector.ducking.done" = "Volume lowered in %d stretches of speech.";
+"inspector.ducking.noSpeech" = "No speech found in the main track.";
+"inspector.ducking.hint" = "Lowers this clip wherever there is speech in the main track. Apply it again after moving the speech.";
 "inspector.audio.fadeIn" = "Fade in";
 "inspector.audio.extract" = "Extract audio";
 "inspector.audio.extract.help" = "Moves the sound to the audio track. The audio track must be free under this clip.";
