@@ -104,6 +104,20 @@ extension ProjectStore {
         mutate(coalescingKey: "text-\(id)-\(field)") { $0.updateTextLayer(of: id, change) }
     }
 
+    @discardableResult
+    func addSlowMoment(
+        to id: Clip.ID, at time: TimeInterval, sourceDuration: TimeInterval, factor: Double,
+        mutesAudio: Bool
+    ) -> Bool {
+        var added = false
+        mutate {
+            added = $0.addSlowMoment(
+                to: id, at: time, sourceDuration: sourceDuration, factor: factor,
+                mutesAudio: mutesAudio)
+        }
+        return added
+    }
+
     func setSpeed(of id: Clip.ID, to value: Double) {
         mutate(coalescingKey: "speed-\(id)") { $0.setSpeed(of: id, to: value) }
     }

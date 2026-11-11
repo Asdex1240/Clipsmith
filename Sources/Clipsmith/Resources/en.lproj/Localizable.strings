@@ -156,6 +156,14 @@
 "timeline.snapping.off" = "Snapping off: free placement (click to lock)";
 "inspector.speed.section" = "Speed";
 "inspector.speed.rate" = "Playback speed";
+"inspector.slowMoment.title" = "Slow-motion moment";
+"inspector.slowMoment.speed" = "Slowest speed";
+"inspector.slowMoment.length" = "Length of the moment";
+"inspector.slowMoment.mute" = "Mute the audio of the moment";
+"inspector.slowMoment.apply" = "Slow down at playhead";
+"inspector.slowMoment.done" = "Slow-motion moment added.";
+"inspector.slowMoment.noRoom" = "Place the playhead inside the clip with enough room after it.";
+"inspector.slowMoment.hint" = "Splits the clip at the playhead and slows that stretch down smoothly, then speeds back up. What comes after moves later.";
 "inspector.speed.duration" = "Duration on the timeline: %@";
 "inspector.visual.opacity" = "Opacity";
 "inspector.keyframes.section" = "Animation";
