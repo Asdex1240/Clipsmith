@@ -242,6 +242,10 @@
 "shortcut.addHighlight" = "Guardar highlight";
 "sidebar.media" = "Medios";
 "sidebar.highlights" = "Highlights";
+"highlight.suggest" = "Sugerir highlights";
+"highlight.suggest.hint" = "Busca los tramos con más actividad de audio del clip seleccionado y los guarda como highlights.";
+"highlight.suggest.done" = "%d highlights sugeridos.";
+"highlight.suggest.none" = "No se encontraron highlights nuevos en este clip.";
 "highlight.empty" = "Marca un inicio (I) y un fin (O) en el timeline y guárdalo (H) para crear un clip vertical.";
 "highlight.markStart" = "Marcar inicio";
 "highlight.markEnd" = "Marcar fin";

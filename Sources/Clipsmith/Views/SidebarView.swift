@@ -5,6 +5,7 @@ struct SidebarView: View {
     let highlightExporter: HighlightExportController
     let library: MediaLibrary
     let thumbnails: ThumbnailGenerating
+    let waveforms: WaveformStore
     @Binding var selection: MediaItem.ID?
     let onAddToTimeline: (MediaItem) -> Void
     @State private var tab = SidebarTab.media
@@ -36,7 +37,7 @@ struct SidebarView: View {
                 library: library, thumbnails: thumbnails, selection: $selection,
                 onAddToTimeline: onAddToTimeline)
         case .highlights:
-            HighlightsView(store: store, exporter: highlightExporter)
+            HighlightsView(store: store, exporter: highlightExporter, waveforms: waveforms)
         }
     }
 }
@@ -47,7 +48,7 @@ struct SidebarView: View {
     SidebarView(
         store: store, highlightExporter: HighlightExportController(store: store),
         library: MediaLibrary(),
-        thumbnails: CachedThumbnailGenerator(), selection: $selection, onAddToTimeline: { _ in }
+        thumbnails: CachedThumbnailGenerator(), waveforms: WaveformStore(), selection: $selection, onAddToTimeline: { _ in }
     )
     .frame(width: 280, height: 420)
 }
