@@ -45,10 +45,14 @@ extension ProjectStore {
     }
 
     @discardableResult
-    func removeSilences(_ ranges: [Range<TimeInterval>], from clipID: Clip.ID) -> Int {
+    func removeSilences(
+        _ ranges: [Range<TimeInterval>], from clipID: Clip.ID, syncingAllTracks: Bool = true
+    ) -> Int {
         guard !ranges.isEmpty else { return 0 }
         var removed = 0
-        mutate { removed = $0.removeRanges(ranges, from: clipID) }
+        mutate {
+            removed = $0.removeRanges(ranges, from: clipID, syncingAllTracks: syncingAllTracks)
+        }
         return removed
     }
 

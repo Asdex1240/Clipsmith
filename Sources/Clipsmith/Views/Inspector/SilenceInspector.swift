@@ -9,6 +9,7 @@ struct SilenceInspector: View {
     @State private var minimumDuration = SilenceDetector.defaultMinimumDurationInSeconds
     @State private var proposals: [Range<TimeInterval>]?
     @State private var isSearching = false
+    @State private var syncsAllTracks = true
 
     private static let thresholdRange = 0.005...0.1
     private static let durationRange = 0.2...2.0
@@ -59,6 +60,7 @@ struct SilenceInspector: View {
                     }
                     .buttonStyle(.link)
                 }
+                Toggle(localized("inspector.silences.sync"), isOn: $syncsAllTracks)
                 Button(localized("inspector.silences.remove"), action: remove)
             }
         }
@@ -84,7 +86,7 @@ struct SilenceInspector: View {
 
     private func remove() {
         guard let proposals else { return }
-        store.removeSilences(proposals, from: clip.id)
+        store.removeSilences(proposals, from: clip.id, syncingAllTracks: syncsAllTracks)
         self.proposals = nil
     }
 }
