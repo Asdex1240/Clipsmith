@@ -178,6 +178,9 @@ struct TimelineView: View {
                 onScrub: store.setPlayhead(near:)
             )
             .overlay(alignment: .topLeading) {
+                HighlightBands(store: store, pointsPerSecond: pointsPerSecond)
+            }
+            .overlay(alignment: .topLeading) {
                 MarkerFlags(store: store, pointsPerSecond: pointsPerSecond)
             }
             ForEach(Array(store.project.tracks.enumerated()), id: \.element.id) { index, track in

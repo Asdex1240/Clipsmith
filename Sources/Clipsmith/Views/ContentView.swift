@@ -6,6 +6,7 @@ struct ContentView: View {
     let player: PlayerController
     let previewer: TimelinePreviewer
     let exporter: ExportController
+    let highlightExporter: HighlightExportController
     let subtitles: SubtitleController
     let document: DocumentController
     let documentActions: DocumentActions
@@ -27,7 +28,9 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 0) {
             HSplitView {
-                LibraryView(
+                SidebarView(
+                    store: store,
+                    highlightExporter: highlightExporter,
                     library: library,
                     thumbnails: thumbnails,
                     selection: $selection,
@@ -136,7 +139,9 @@ struct ContentView: View {
     ContentView(
         store: store, library: library, player: player,
         previewer: TimelinePreviewer(store: store, player: player),
-        exporter: ExportController(store: store), subtitles: SubtitleController(store: store),
+        exporter: ExportController(store: store),
+        highlightExporter: HighlightExportController(store: store),
+        subtitles: SubtitleController(store: store),
         document: document, documentActions: DocumentActions(document: document),
         thumbnails: CachedThumbnailGenerator(), waveforms: WaveformStore()
     )

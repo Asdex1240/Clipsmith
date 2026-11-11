@@ -53,6 +53,7 @@ open Package.swift # open the project in Xcode
 | Copy / cut / paste / duplicate clip | `⌘C` / `⌘X` / `⌘V` / `⌘D` |
 | Select all / group / ungroup | `⌘A` / `⌘G` / `⇧⌘G` |
 | Toggle snapping | `N` |
+| Mark highlight start / end / save | `I` / `O` / `H` |
 | Delete / ripple delete | `⌫` / `⇧⌫` |
 | Previous / next frame | `←` / `→` |
 | Back / forward 1 second | `⇧←` / `⇧→` |

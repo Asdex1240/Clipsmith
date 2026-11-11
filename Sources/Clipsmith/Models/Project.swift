@@ -9,11 +9,12 @@ struct Project: Codable, Identifiable, Equatable {
         Track(role: .text), Track(role: .broll), Track(role: .main), Track(role: .audio),
     ]
     var markers: [Marker] = []
+    var highlights: [Highlight] = []
 }
 
 extension Project {
     private enum CodingKeys: String, CodingKey {
-        case id, name, canvas, autoFitCanvas, tracks, markers
+        case id, name, canvas, autoFitCanvas, tracks, markers, highlights
     }
 
     init(from decoder: Decoder) throws {
@@ -24,6 +25,7 @@ extension Project {
         autoFitCanvas = try container.decodeIfPresent(Bool.self, forKey: .autoFitCanvas) ?? true
         tracks = try container.decode([Track].self, forKey: .tracks)
         markers = try container.decodeIfPresent([Marker].self, forKey: .markers) ?? []
+        highlights = try container.decodeIfPresent([Highlight].self, forKey: .highlights) ?? []
     }
 
     func encode(to encoder: Encoder) throws {
@@ -34,5 +36,6 @@ extension Project {
         try container.encode(autoFitCanvas, forKey: .autoFitCanvas)
         try container.encode(tracks, forKey: .tracks)
         if !markers.isEmpty { try container.encode(markers, forKey: .markers) }
+        if !highlights.isEmpty { try container.encode(highlights, forKey: .highlights) }
     }
 }

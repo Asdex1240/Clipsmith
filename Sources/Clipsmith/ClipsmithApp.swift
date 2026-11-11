@@ -8,6 +8,7 @@ struct ClipsmithApp: App {
     @State private var player: PlayerController
     @State private var previewer: TimelinePreviewer
     @State private var exporter: ExportController
+    @State private var highlightExporter: HighlightExportController
     @State private var subtitles: SubtitleController
     @State private var document: DocumentController
     private let documentActions: DocumentActions
@@ -30,6 +31,7 @@ struct ClipsmithApp: App {
         _player = State(initialValue: player)
         _previewer = State(initialValue: TimelinePreviewer(store: store, player: player))
         _exporter = State(initialValue: ExportController(store: store))
+        _highlightExporter = State(initialValue: HighlightExportController(store: store))
         _subtitles = State(initialValue: SubtitleController(store: store))
     }
 
@@ -37,7 +39,8 @@ struct ClipsmithApp: App {
         WindowGroup("Clipsmith") {
             ContentView(
                 store: store, library: library, player: player, previewer: previewer,
-                exporter: exporter, subtitles: subtitles, document: document,
+                exporter: exporter, highlightExporter: highlightExporter, subtitles: subtitles,
+                document: document,
                 documentActions: documentActions, thumbnails: thumbnails, waveforms: waveforms
             )
             .frame(minWidth: 1100, minHeight: 700)

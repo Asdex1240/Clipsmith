@@ -6,6 +6,7 @@ enum Palette {
         light: NSColor(srgbRed: 0.85, green: 0.6, blue: 0, alpha: 1), dark: .systemYellow)
     static let keyframe = selection
     static let marker = Color.orange
+    static let highlight = Color.teal
     static let warning = Color.orange
     static let success = Color.green
     static let invalid = Color.red
