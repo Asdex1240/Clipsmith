@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SidebarView: View {
     let store: ProjectStore
+    let highlightExporter: HighlightExportController
     let library: MediaLibrary
     let thumbnails: ThumbnailGenerating
     @Binding var selection: MediaItem.ID?
@@ -35,15 +36,17 @@ struct SidebarView: View {
                 library: library, thumbnails: thumbnails, selection: $selection,
                 onAddToTimeline: onAddToTimeline)
         case .highlights:
-            HighlightsView(store: store)
+            HighlightsView(store: store, exporter: highlightExporter)
         }
     }
 }
 
 #Preview {
     @Previewable @State var selection: MediaItem.ID?
+    let store = PreviewFixtures.store()
     SidebarView(
-        store: PreviewFixtures.store(), library: MediaLibrary(),
+        store: store, highlightExporter: HighlightExportController(store: store),
+        library: MediaLibrary(),
         thumbnails: CachedThumbnailGenerator(), selection: $selection, onAddToTimeline: { _ in }
     )
     .frame(width: 280, height: 420)

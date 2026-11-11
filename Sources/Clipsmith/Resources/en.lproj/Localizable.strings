@@ -250,3 +250,10 @@
 "highlight.goTo" = "Go to start";
 "highlight.delete" = "Delete highlight";
 "highlight.clearMarks" = "Clear marks";
+"highlight.export" = "Export selected (%d)";
+"highlight.export.progress" = "Exporting “%@” (%d of %d)";
+"highlight.export.done" = "%d clips exported";
+"highlight.export.failed" = "%@: %@";
+"highlight.export.choose" = "Export here";
+"highlight.select" = "Include in export";
+"highlight.selectAll" = "Select all";

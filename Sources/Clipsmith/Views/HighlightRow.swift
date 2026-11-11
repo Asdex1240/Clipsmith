@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HighlightRow: View {
     let store: ProjectStore
+    let exporter: HighlightExportController
     let highlight: Highlight
 
     private static let defaultFraming = 0.0
@@ -9,6 +10,8 @@ struct HighlightRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Design.Spacing.cozy) {
             HStack(spacing: Design.Spacing.regular) {
+                Toggle(localized("highlight.select"), isOn: selectionBinding)
+                    .labelsHidden()
                 TextField(localized("highlight.name"), text: nameBinding)
                     .textFieldStyle(.plain)
                     .font(.subheadline.bold())
@@ -57,6 +60,13 @@ struct HighlightRow: View {
         return "\(start) – \(end) · \(highlight.durationInSeconds.clockString)"
     }
 
+    private var selectionBinding: Binding<Bool> {
+        Binding(
+            get: { exporter.isSelected(highlight.id) },
+            set: { exporter.setSelected(highlight.id, to: $0) }
+        )
+    }
+
     private var nameBinding: Binding<String> {
         Binding(
             get: { highlight.name },
@@ -76,8 +86,10 @@ struct HighlightRow: View {
     let store = PreviewFixtures.store()
     let id = store.addHighlight(from: 1, to: 6)
     if let id, let highlight = store.project.highlight(withID: id) {
-        HighlightRow(store: store, highlight: highlight)
-            .padding()
-            .frame(width: 280)
+        HighlightRow(
+            store: store, exporter: HighlightExportController(store: store), highlight: highlight
+        )
+        .padding()
+        .frame(width: 280)
     }
 }
