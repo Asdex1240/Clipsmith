@@ -7,6 +7,7 @@ DerivedData/
 
 *.md
 !README.md
+!CODE_RULES.md
 
 plans/
 
