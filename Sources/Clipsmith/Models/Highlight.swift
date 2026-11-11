@@ -9,10 +9,11 @@ struct Highlight: Codable, Identifiable, Equatable {
     var startInSeconds: TimeInterval
     var endInSeconds: TimeInterval
     var framingOffsetX = 0.0
+    var fitMode = FitMode.fill
 
     init(
         id: UUID = UUID(), name: String, startInSeconds: TimeInterval, endInSeconds: TimeInterval,
-        framingOffsetX: Double = 0
+        framingOffsetX: Double = 0, fitMode: FitMode = .fill
     ) {
         let start = max(0, startInSeconds)
         self.id = id
@@ -20,6 +21,7 @@ struct Highlight: Codable, Identifiable, Equatable {
         self.startInSeconds = start
         self.endInSeconds = max(endInSeconds, start + Self.minimumDurationInSeconds)
         self.framingOffsetX = Self.clampedFraming(framingOffsetX)
+        self.fitMode = fitMode
     }
 
     var durationInSeconds: TimeInterval { endInSeconds - startInSeconds }
@@ -31,7 +33,7 @@ struct Highlight: Codable, Identifiable, Equatable {
 
 extension Highlight {
     private enum CodingKeys: String, CodingKey {
-        case id, name, startInSeconds, endInSeconds, framingOffsetX
+        case id, name, startInSeconds, endInSeconds, framingOffsetX, fitMode
     }
 
     init(from decoder: Decoder) throws {
@@ -41,7 +43,8 @@ extension Highlight {
             name: try container.decode(String.self, forKey: .name),
             startInSeconds: try container.decode(TimeInterval.self, forKey: .startInSeconds),
             endInSeconds: try container.decode(TimeInterval.self, forKey: .endInSeconds),
-            framingOffsetX: try container.decodeIfPresent(Double.self, forKey: .framingOffsetX) ?? 0
+            framingOffsetX: try container.decodeIfPresent(Double.self, forKey: .framingOffsetX) ?? 0,
+            fitMode: try container.decodeIfPresent(FitMode.self, forKey: .fitMode) ?? .fill
         )
     }
 
@@ -52,5 +55,6 @@ extension Highlight {
         try container.encode(startInSeconds, forKey: .startInSeconds)
         try container.encode(endInSeconds, forKey: .endInSeconds)
         if framingOffsetX != 0 { try container.encode(framingOffsetX, forKey: .framingOffsetX) }
+        if fitMode != .fill { try container.encode(fitMode, forKey: .fitMode) }
     }
 }

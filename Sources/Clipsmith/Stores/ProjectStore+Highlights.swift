@@ -85,6 +85,10 @@ extension ProjectStore {
         }
     }
 
+    func setHighlightFitMode(_ id: Highlight.ID, to mode: FitMode) {
+        mutate { $0.setHighlightFitMode(id, to: mode) }
+    }
+
     func setHighlightFraming(_ id: Highlight.ID, offsetX: Double) {
         mutate(coalescingKey: "highlight-framing-\(id)") {
             $0.setHighlightFraming(id, offsetX: offsetX)

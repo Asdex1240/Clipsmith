@@ -25,7 +25,7 @@ extension Project {
                 id: highlight.id, name: highlight.name,
                 startInSeconds: Self.timeAfterRemoving(range, from: highlight.startInSeconds),
                 endInSeconds: Self.timeAfterRemoving(range, from: highlight.endInSeconds),
-                framingOffsetX: highlight.framingOffsetX)
+                framingOffsetX: highlight.framingOffsetX, fitMode: highlight.fitMode)
         }
     }
 
