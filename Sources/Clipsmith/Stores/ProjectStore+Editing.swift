@@ -66,7 +66,7 @@ extension ProjectStore {
     func rippleDeleteSelectedClip() {
         let ids = selectedClipIDs
         guard !ids.isEmpty else { return }
-        mutate { $0.rippleDeleteClips(ids) }
+        mutate { $0.rippleDeleteClips(ids, syncingAllTracks: true) }
         selectClip(nil)
     }
 
