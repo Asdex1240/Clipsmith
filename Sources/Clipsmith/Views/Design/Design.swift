@@ -34,6 +34,8 @@ enum Design {
         static let waveform = 0.55
         static let selectedOutline = 0.9
         static let missingFill = 0.45
+        static let chipFill = 0.08
+        static let selectedChipFill = 0.25
     }
 
     enum Motion {
@@ -43,5 +45,8 @@ enum Design {
 
     enum Size {
         static let minimumHitTarget: CGFloat = 24
+        static let sectionIcon: CGFloat = 18
+        static let valueField: CGFloat = 56
+        static let presetColumn: CGFloat = 72
     }
 }

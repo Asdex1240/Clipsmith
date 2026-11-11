@@ -160,7 +160,6 @@
 "transition.slideRight" = "Slide right";
 "transition.duration" = "Duration";
 "inspector.effects.section" = "Color";
-"inspector.effects.presets" = "Looks";
 "inspector.effects.brightness" = "Brightness";
 "inspector.effects.contrast" = "Contrast";
 "inspector.effects.saturation" = "Saturation";
@@ -231,3 +230,6 @@
 "track.moveUp" = "Move track up";
 "track.moveDown" = "Move track down";
 "track.remove" = "Remove track and its clips";
+"inspector.reset" = "Reset";
+"inspector.section.expanded" = "Expanded";
+"inspector.section.collapsed" = "Collapsed";

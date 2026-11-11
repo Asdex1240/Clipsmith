@@ -10,8 +10,7 @@ struct SubtitleInspector: View {
     private let locales = SpeechTranscriber.supportedLocales
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.cozy) {
-            Text(localized("inspector.subtitles.section")).font(.subheadline.bold())
+        InspectorSection(.subtitles) {
             Picker(localized("inspector.subtitles.language"), selection: selectedIdentifier) {
                 ForEach(locales, id: \.identifier) { locale in
                     Text(
