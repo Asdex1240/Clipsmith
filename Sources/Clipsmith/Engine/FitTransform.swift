@@ -31,7 +31,7 @@ enum FitTransform {
         let heightScale = renderSize.height / oriented.height
         let scale: Double
         switch mode {
-        case .fit: scale = min(widthScale, heightScale)
+        case .fit, .blur: scale = min(widthScale, heightScale)
         case .fill: scale = max(widthScale, heightScale)
         }
         let offsetX = (renderSize.width - oriented.width * scale) / 2 - oriented.minX * scale

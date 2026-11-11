@@ -11,7 +11,7 @@ What it does:
 - **Projects** — create, save and open projects (`.clipsmith` files, JSON), with undo/redo, autosave recovery and relinking of moved or missing media.
 - **Media library** — import video, audio and images with thumbnails and durations.
 - **Timeline** — move, trim, split and delete clips (select several with `⇧`/`⌘`-click and group them), with as many video, audio and text tracks as you need (the higher a video track, the more on top), zoom, a draggable playhead and snapping.
-- **Canvas** — the project's work area: presets (16:9, 9:16, 1:1, 4:5, 3:4, 4:3, 21:9), any custom width × height, a resolution shortcut (720p–4K) and automatic matching to the first clip you add. Each clip can be framed as *Fit* (bars) or *Fill* (crop).
+- **Canvas** — the project's work area: presets (16:9, 9:16, 1:1, 4:5, 3:4, 4:3, 21:9), any custom width × height, a resolution shortcut (720p–4K) and automatic matching to the first clip you add. Each clip can be framed as *Fit* (bars), *Fill* (crop) or *Blur* (the whole clip over a blurred copy of itself).
 - **Preview** — real-time playback and scrubbing.
 - **Text** — text layers with font, size, color and position.
 - **Audio** — per-clip volume, fade in/out and visible waveforms.
@@ -19,9 +19,8 @@ What it does:
 - **Animation** — keyframes for position, size, rotation and opacity, edited at the playhead.
 - **Transitions** — dissolve, fade through black or slide between touching clips.
 - **Color and crop** — brightness, contrast, saturation, temperature, one-click looks and a per-side crop.
-- **Subtitles** — generate text clips from the speech in a clip, on device where the language allows (needs the packaged app, see below).
-- **Silence removal** — find the silent stretches of a clip from its waveform (adjustable volume threshold and minimum length), review the proposed cuts, then split and ripple delete them in one undoable step.
-- **Highlights** — mark ranges of a vlog as clips (in/out points), reframe each one to vertical 9:16 and export several at once as separate MP4 files, ready for TikTok, Reels and Shorts.
+- **Subtitles** — generate text clips from the speech in a clip, on device where the language allows (needs the packaged app, see below). Optionally highlight each word as it is spoken.
+- **Highlights** — mark ranges of a vlog as clips (in/out points), reframe each one to vertical 9:16 (by hand or following the face) and export several at once as separate MP4 files, ready for TikTok, Reels and Shorts. Clipsmith can also suggest highlights from the most active stretches of a clip's audio.
 - **Export** — MP4 (H.264 / HEVC) at 720p, 1080p, 1440p, 4K or exactly the canvas size, with configurable frame rate and 16:9 / 9:16 presets.
 
 Everything runs locally; there is no backend and no account.

@@ -3,11 +3,14 @@ import SwiftUI
 struct HighlightsView: View {
     let store: ProjectStore
     let exporter: HighlightExportController
+    let waveforms: WaveformStore
+    @State private var suggestionState = SuggestionState.idle
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Design.Spacing.comfortable) {
                 marksCard
+                suggestCard
                 exportCard
                 if store.project.highlights.isEmpty {
                     Text(localized("highlight.empty"))
@@ -45,6 +48,58 @@ struct HighlightsView: View {
         .padding(Design.Spacing.comfortable)
         .frame(maxWidth: .infinity, alignment: .leading)
         .cardSurface()
+    }
+
+    private var suggestCard: some View {
+        VStack(alignment: .leading, spacing: Design.Spacing.cozy) {
+            Button(localized("highlight.suggest"), action: suggest)
+                .disabled(suggestionState == .working || sourceClip == nil)
+            switch suggestionState {
+            case .idle:
+                Text(localized("highlight.suggest.hint")).font(.caption).foregroundStyle(
+                    .secondary)
+            case .working:
+                ProgressView().controlSize(.small)
+            case .done(let count):
+                Text(
+                    count == 0
+                        ? localized("highlight.suggest.none")
+                        : String(format: localized("highlight.suggest.done"), count)
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+        }
+        .padding(Design.Spacing.comfortable)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .cardSurface()
+    }
+
+    private var sourceClip: Clip? {
+        if let clip = store.selectedClip, clip.mediaKind == .video || clip.mediaKind == .audio,
+            clip.sourceURL != nil
+        {
+            return clip
+        }
+        return store.project.tracks.flatMap(\.clips)
+            .filter { ($0.mediaKind == .video || $0.mediaKind == .audio) && $0.sourceURL != nil }
+            .max { $0.durationInSeconds < $1.durationInSeconds }
+    }
+
+    private func suggest() {
+        guard let clip = sourceClip, let url = clip.sourceURL else { return }
+        suggestionState = .working
+        Task {
+            await waveforms.load(url)
+            let peaks = waveforms.peaksByURL[url] ?? []
+            suggestionState = .done(store.suggestHighlights(for: clip, peaks: peaks))
+        }
+    }
+
+    private enum SuggestionState: Equatable {
+        case idle
+        case working
+        case done(Int)
     }
 
     @ViewBuilder
@@ -158,6 +213,7 @@ struct HighlightsView: View {
 
 #Preview {
     let store = PreviewFixtures.store()
-    HighlightsView(store: store, exporter: HighlightExportController(store: store))
+    HighlightsView(
+        store: store, exporter: HighlightExportController(store: store), waveforms: WaveformStore())
         .frame(width: 280, height: 420)
 }

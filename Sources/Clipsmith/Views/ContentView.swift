@@ -33,6 +33,7 @@ struct ContentView: View {
                     highlightExporter: highlightExporter,
                     library: library,
                     thumbnails: thumbnails,
+                    waveforms: waveforms,
                     selection: $selection,
                     onAddToTimeline: store.appendToTimeline
                 )

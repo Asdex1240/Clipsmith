@@ -130,6 +130,8 @@
 "inspector.visual.framing" = "Framing";
 "inspector.visual.fit" = "Fit";
 "inspector.visual.fill" = "Fill";
+"inspector.visual.blur" = "Blur";
+"inspector.visual.blur.hint" = "The whole clip is visible; empty areas are filled with a blurred copy of it.";
 "inspector.visual.fit.hint" = "The whole clip is visible; empty areas stay black.";
 "inspector.visual.fill.hint" = "The clip covers the canvas; what sticks out is cropped.";
 "shortcut.trimStart" = "Trim start to playhead";
@@ -215,6 +217,7 @@
 "textAnimation.slideDown" = "Slide down";
 "textAnimation.pop" = "Pop";
 "inspector.subtitles.style" = "Style";
+"inspector.subtitles.highlight" = "Highlight the spoken word";
 "inspector.subtitles.animation" = "Animation";
 "timeline.group" = "Group selected clips";
 "timeline.ungroup" = "Ungroup";
@@ -239,6 +242,10 @@
 "shortcut.addHighlight" = "Save highlight";
 "sidebar.media" = "Media";
 "sidebar.highlights" = "Highlights";
+"highlight.suggest" = "Suggest highlights";
+"highlight.suggest.hint" = "Finds the most active stretches of the selected clip's audio and saves them as highlights.";
+"highlight.suggest.done" = "%d highlights suggested.";
+"highlight.suggest.none" = "No new highlights found in this clip.";
 "highlight.empty" = "Mark a start (I) and an end (O) on the timeline, then save it (H) to make a vertical clip.";
 "highlight.markStart" = "Mark start";
 "highlight.markEnd" = "Mark end";
@@ -246,6 +253,7 @@
 "highlight.marks" = "Selection";
 "highlight.notSet" = "–";
 "highlight.name" = "Name";
+"highlight.autoFrame" = "Follow the face";
 "highlight.framing" = "Framing";
 "highlight.goTo" = "Go to start";
 "highlight.delete" = "Delete highlight";

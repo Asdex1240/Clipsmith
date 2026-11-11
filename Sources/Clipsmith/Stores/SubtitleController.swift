@@ -25,7 +25,7 @@ final class SubtitleController {
 
     func generate(
         for clipID: Clip.ID, locale: Locale, style: TextStylePreset = .classic,
-        animation: TextAnimation = TextAnimation()
+        animation: TextAnimation = TextAnimation(), highlightsSpokenWord: Bool = false
     ) {
         guard !isWorking, let clip = store.project.clip(withID: clipID), let url = clip.sourceURL,
             clip.mediaKind == .video || clip.mediaKind == .audio
@@ -34,7 +34,9 @@ final class SubtitleController {
         task = Task {
             do {
                 let lines = try await subtitleLines(for: clip, from: url, locale: locale)
-                let added = store.addSubtitles(lines, style: style, animation: animation)
+                let added = store.addSubtitles(
+                    lines, style: style, animation: animation,
+                    highlightColor: highlightsSpokenWord ? Self.highlightColor(for: style) : nil)
                 state = .finished(lineCount: added)
             } catch is CancellationError {
                 state = .idle
@@ -65,17 +67,28 @@ final class SubtitleController {
         if !isWorking { state = .idle }
     }
 
+    static func highlightColor(for style: TextStylePreset) -> RGBAColor {
+        style == .highlight ? .white : WordHighlight.defaultColor
+    }
+
     static func timelineLines(from lines: [SubtitleLine], for clip: Clip) -> [SubtitleLine] {
-        lines.compactMap { line in
-            let start =
-                clip.startInSeconds + (line.startInSeconds - clip.sourceStartInSeconds) / clip.speed
-            let end =
-                clip.startInSeconds + (line.endInSeconds - clip.sourceStartInSeconds) / clip.speed
+        func timelineTime(_ source: TimeInterval) -> TimeInterval {
+            clip.startInSeconds + (source - clip.sourceStartInSeconds) / clip.speed
+        }
+        return lines.compactMap { line in
+            let start = timelineTime(line.startInSeconds)
+            let end = timelineTime(line.endInSeconds)
             let clampedStart = max(start, clip.startInSeconds)
             let clampedEnd = min(end, clip.endInSeconds)
             guard clampedEnd - clampedStart >= Clip.minimumDurationInSeconds else { return nil }
+            let words = line.words.map {
+                TranscribedWord(
+                    text: $0.text, startInSeconds: timelineTime($0.startInSeconds),
+                    durationInSeconds: $0.durationInSeconds / clip.speed)
+            }
             return SubtitleLine(
-                text: line.text, startInSeconds: clampedStart, endInSeconds: clampedEnd)
+                text: line.text, startInSeconds: clampedStart, endInSeconds: clampedEnd,
+                words: words)
         }
     }
 }

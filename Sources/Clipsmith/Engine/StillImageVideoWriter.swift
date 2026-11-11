@@ -100,8 +100,22 @@ final class StillImageVideoWriter: StillImageVideoMaking {
         context.setFillColor(CGColor(gray: 0, alpha: 1))
         context.fill(bounds)
         let imageSize = CGSize(width: image.width, height: image.height)
+        if mode == .blur, let background = blurredBackground(of: image, in: bounds) {
+            context.draw(background, in: bounds)
+        }
         context.draw(image, in: drawingRect(for: imageSize, in: bounds, mode: mode))
         return buffer
+    }
+
+    private func blurredBackground(of image: CGImage, in bounds: CGRect) -> CGImage? {
+        let imageSize = CGSize(width: image.width, height: image.height)
+        let filled = drawingRect(for: imageSize, in: bounds, mode: .fill)
+        let scale = filled.width / imageSize.width
+        let transform = CGAffineTransform(scaleX: scale, y: scale)
+            .concatenating(CGAffineTransform(translationX: filled.minX, y: filled.minY))
+        let background = BlurredBackground.make(
+            from: CIImage(cgImage: image), fillTransform: transform, canvas: bounds)
+        return CIContext().createCGImage(background, from: bounds)
     }
 
     private func makeContext(over buffer: CVPixelBuffer, size: CGSize) -> CGContext? {

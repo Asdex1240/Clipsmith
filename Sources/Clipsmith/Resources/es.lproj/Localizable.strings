@@ -130,6 +130,8 @@
 "inspector.visual.framing" = "Encuadre";
 "inspector.visual.fit" = "Ajustar";
 "inspector.visual.fill" = "Rellenar";
+"inspector.visual.blur" = "Desenfoque";
+"inspector.visual.blur.hint" = "Se ve todo el clip; las zonas vacías se rellenan con una copia desenfocada.";
 "inspector.visual.fit.hint" = "Se ve todo el clip; las zonas vacías quedan en negro.";
 "inspector.visual.fill.hint" = "El clip cubre el lienzo; lo que sobresale se recorta.";
 "shortcut.trimStart" = "Recortar inicio hasta el cursor";
@@ -215,6 +217,7 @@
 "textAnimation.slideDown" = "Bajar";
 "textAnimation.pop" = "Aparecer con rebote";
 "inspector.subtitles.style" = "Estilo";
+"inspector.subtitles.highlight" = "Resaltar la palabra que se dice";
 "inspector.subtitles.animation" = "Animación";
 "timeline.group" = "Agrupar clips seleccionados";
 "timeline.ungroup" = "Desagrupar";
@@ -239,6 +242,10 @@
 "shortcut.addHighlight" = "Guardar highlight";
 "sidebar.media" = "Medios";
 "sidebar.highlights" = "Highlights";
+"highlight.suggest" = "Sugerir highlights";
+"highlight.suggest.hint" = "Busca los tramos con más actividad de audio del clip seleccionado y los guarda como highlights.";
+"highlight.suggest.done" = "%d highlights sugeridos.";
+"highlight.suggest.none" = "No se encontraron highlights nuevos en este clip.";
 "highlight.empty" = "Marca un inicio (I) y un fin (O) en el timeline y guárdalo (H) para crear un clip vertical.";
 "highlight.markStart" = "Marcar inicio";
 "highlight.markEnd" = "Marcar fin";
@@ -246,6 +253,7 @@
 "highlight.marks" = "Selección";
 "highlight.notSet" = "–";
 "highlight.name" = "Nombre";
+"highlight.autoFrame" = "Seguir la cara";
 "highlight.framing" = "Encuadre";
 "highlight.goTo" = "Ir al inicio";
 "highlight.delete" = "Borrar highlight";

@@ -5,8 +5,11 @@ struct VisualInspector: View {
     let clip: Clip
 
     private var fitHintKey: String.LocalizationValue {
-        if clip.fitMode == .fit { return "inspector.visual.fit.hint" }
-        return "inspector.visual.fill.hint"
+        switch clip.fitMode {
+        case .fit: return "inspector.visual.fit.hint"
+        case .fill: return "inspector.visual.fill.hint"
+        case .blur: return "inspector.visual.blur.hint"
+        }
     }
 
     private var keyframesHintKey: String.LocalizationValue {
@@ -30,6 +33,7 @@ struct VisualInspector: View {
             Picker(localized("inspector.visual.framing"), selection: framingBinding) {
                 Text(localized("inspector.visual.fit")).tag(FitMode.fit)
                 Text(localized("inspector.visual.fill")).tag(FitMode.fill)
+                Text(localized("inspector.visual.blur")).tag(FitMode.blur)
             }
             .pickerStyle(.segmented)
             Text(localized(fitHintKey))

@@ -123,8 +123,16 @@ enum TextOverlayLayers {
         let fontSize = text.fontSize * scale
         let font =
             NSFont(name: text.fontName, size: fontSize) ?? NSFont.boldSystemFont(ofSize: fontSize)
-        let attributed = NSAttributedString(
+        let attributed = NSMutableAttributedString(
             string: text.content, attributes: attributes(for: text, font: font, scale: scale))
+        if let highlight = text.wordHighlight, let range = highlight.range(in: text.content) {
+            attributed.addAttribute(
+                .foregroundColor,
+                value: NSColor(
+                    srgbRed: highlight.color.red, green: highlight.color.green,
+                    blue: highlight.color.blue, alpha: highlight.color.alpha),
+                range: range)
+        }
         let measured = attributed.boundingRect(
             with: CGSize(width: maximumWidth, height: .greatestFiniteMagnitude),
             options: [.usesLineFragmentOrigin, .usesFontLeading]
