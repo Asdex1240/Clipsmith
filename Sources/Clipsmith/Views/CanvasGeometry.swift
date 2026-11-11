@@ -1,9 +1,6 @@
 import CoreGraphics
 import Foundation
 
-enum CanvasEdge: Hashable { case left, right, top, bottom }
-enum CanvasAxis: Hashable { case horizontal, vertical }
-
 enum CanvasGeometry {
     static let edgeTolerance = 1.0
     static let angleSnapStep = 45.0

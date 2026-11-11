@@ -1,16 +1,5 @@
 import Foundation
 
-struct LoadedProject {
-    var project: Project
-    var library: [MediaItem]
-    var missingMedia: [URL]
-}
-
-protocol ProjectStoring {
-    func write(project: Project, library: [MediaItem], to url: URL) throws
-    func read(from url: URL) throws -> LoadedProject
-}
-
 struct ProjectStorage: ProjectStoring {
     func write(project: Project, library: [MediaItem], to url: URL) throws {
         let urls = project.referencedSourceURLs.union(library.map(\.url))

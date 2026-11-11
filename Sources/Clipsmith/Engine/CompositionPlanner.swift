@@ -1,26 +1,5 @@
 import Foundation
 
-struct PlannedTransition: Equatable {
-    let outgoingClipID: Clip.ID
-    let incomingClipID: Clip.ID
-    let kind: TransitionKind
-    let windowStart: TimeInterval
-    let windowEnd: TimeInterval
-    var easing = Easing.linear
-
-    func progress(at time: TimeInterval) -> Double {
-        guard windowEnd > windowStart else { return 1 }
-        return easing.apply((time - windowStart) / (windowEnd - windowStart))
-    }
-}
-
-struct PlannedSegment: Equatable {
-    let startInSeconds: TimeInterval
-    let endInSeconds: TimeInterval
-    let clipIDsTopFirst: [Clip.ID]
-    var transitions: [PlannedTransition] = []
-}
-
 enum CompositionPlanner {
     private static let toleranceInSeconds: TimeInterval = 1e-6
     private static let minimumTransitionInSeconds: TimeInterval = 0.05
