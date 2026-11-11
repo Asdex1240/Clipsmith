@@ -253,6 +253,7 @@
 "highlight.marks" = "Selection";
 "highlight.notSet" = "–";
 "highlight.name" = "Name";
+"highlight.autoFrame" = "Follow the face";
 "highlight.framing" = "Framing";
 "highlight.goTo" = "Go to start";
 "highlight.delete" = "Delete highlight";

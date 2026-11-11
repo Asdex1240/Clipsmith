@@ -253,6 +253,7 @@
 "highlight.marks" = "Selección";
 "highlight.notSet" = "–";
 "highlight.name" = "Nombre";
+"highlight.autoFrame" = "Seguir la cara";
 "highlight.framing" = "Encuadre";
 "highlight.goTo" = "Ir al inicio";
 "highlight.delete" = "Borrar highlight";

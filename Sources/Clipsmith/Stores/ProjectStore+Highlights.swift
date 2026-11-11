@@ -40,6 +40,37 @@ extension ProjectStore {
         return fresh.count
     }
 
+    static let faceSampleCount = 8
+
+    @discardableResult
+    func autoFrameHighlight(_ id: Highlight.ID, using locator: FaceLocating) async -> Bool {
+        guard let highlight = project.highlight(withID: id),
+            let clip = videoClip(at: (highlight.startInSeconds + highlight.endInSeconds) / 2),
+            let url = clip.sourceURL
+        else { return false }
+        let count = Self.faceSampleCount
+        let times = (0..<count).map { index -> TimeInterval in
+            let fraction = (Double(index) + 0.5) / Double(count)
+            let timeline = highlight.startInSeconds + fraction * highlight.durationInSeconds
+            let source = clip.sourceStartInSeconds + (timeline - clip.startInSeconds) * clip.speed
+            return min(max(source, clip.sourceStartInSeconds), clip.sourceEndInSeconds)
+        }
+        guard let sample = await locator.faceSample(in: url, at: times),
+            let offset = FaceFraming.offsetX(
+                faceCenters: sample.centers, sourceAspect: sample.sourceAspect,
+                canvasAspect: Project.highlightCanvas.aspectRatio)
+        else { return false }
+        setHighlightFraming(id, offsetX: offset)
+        return true
+    }
+
+    private func videoClip(at time: TimeInterval) -> Clip? {
+        project.tracks
+            .filter { $0.role == .main || $0.role == .broll }
+            .flatMap(\.clips)
+            .first { $0.mediaKind == .video && $0.startInSeconds <= time && time < $0.endInSeconds }
+    }
+
     func renameHighlight(_ id: Highlight.ID, to name: String) {
         mutate(coalescingKey: "highlight-name-\(id)") { $0.renameHighlight(id, to: name) }
     }

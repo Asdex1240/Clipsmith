@@ -6,6 +6,8 @@ struct HighlightRow: View {
     let highlight: Highlight
 
     private static let defaultFraming = 0.0
+    private let faceLocator: FaceLocating = VisionFaceLocator()
+    @State private var isFraming = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: Design.Spacing.cozy) {
@@ -26,10 +28,22 @@ struct HighlightRow: View {
                 title: localized("highlight.framing"), value: framingBinding,
                 range: Highlight.framingRange, unit: .percent,
                 defaultValue: Self.defaultFraming)
+            Button(action: autoFrame) {
+                Label(localized("highlight.autoFrame"), systemImage: "face.dashed")
+            }
+            .disabled(isFraming)
         }
         .padding(Design.Spacing.comfortable)
         .frame(maxWidth: .infinity, alignment: .leading)
         .cardSurface()
+    }
+
+    private func autoFrame() {
+        isFraming = true
+        Task {
+            await store.autoFrameHighlight(highlight.id, using: faceLocator)
+            isFraming = false
+        }
     }
 
     private var goToButton: some View {
