@@ -66,6 +66,8 @@ open Package.swift # open the project in Xcode
 | Undo / redo | `⌘Z` / `⇧⌘Z` |
 | Export | `⌘E` |
 
+Ripple delete (`⇧⌫`) on a clip of the main track closes the gap on every track, so music, text and subtitles stay in sync (clips inside the removed stretch are cut out); on any other track it only moves that track.
+
 Single-key shortcuts are ignored while you type in a text field. **Help → Keyboard Shortcuts** lists them all.
 
 ## Building the app

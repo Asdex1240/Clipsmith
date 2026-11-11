@@ -73,11 +73,19 @@ extension Project {
         }
     }
 
-    mutating func rippleDeleteClips(_ ids: Set<Clip.ID>) {
+    mutating func rippleDeleteClips(_ ids: Set<Clip.ID>, syncingAllTracks: Bool = false) {
         let ordered = tracks.flatMap(\.clips).filter { ids.contains($0.id) }.sorted {
             $0.startInSeconds > $1.startInSeconds
         }
-        ordered.forEach { rippleDeleteClip($0.id) }
+        for clip in ordered {
+            guard let position = location(of: clip.id) else { continue }
+            let current = tracks[position.track].clips[position.clip]
+            if syncingAllTracks, tracks[position.track].role == .main {
+                removeTimeRange(current.startInSeconds..<current.endInSeconds)
+            } else {
+                rippleDeleteClip(clip.id)
+            }
+        }
     }
 
     mutating func splitClips(_ ids: [Clip.ID], at time: TimeInterval) {
