@@ -14,6 +14,7 @@ struct ContentView: View {
     let thumbnails: ThumbnailGenerating
     let waveforms: WaveformStore
     let filmstrips: FilmstripStore
+    let previewSettings: PreviewSettings
     @State private var selection: MediaItem.ID?
     @State private var isExportPresented = false
     @State private var relinkDismissed = false
@@ -35,7 +36,8 @@ struct ContentView: View {
                 if isSidebarVisible { sidebar }
                 PreviewView(
                     controller: player, store: store, proxies: previewer.proxies,
-                    highlightPreview: highlightPreview, onSelectTimeline: showTimeline
+                    highlightPreview: highlightPreview, settings: previewSettings,
+                    onSelectTimeline: showTimeline
                 )
                 .frame(minWidth: Layout.previewMinWidth)
                 if isInspectorVisible { inspector }
@@ -74,6 +76,10 @@ struct ContentView: View {
             Text(document.errorMessage ?? "")
         }
         .onChange(of: selection, selectionDidChange)
+        .onChange(of: previewSettings.quality) {
+            previewer.qualityDidChange()
+            highlightPreview.projectDidChange()
+        }
         .onChange(of: store.projectRevision) {
             previewer.projectDidChange()
             highlightPreview.projectDidChange()
@@ -163,7 +169,7 @@ struct ContentView: View {
         subtitles: SubtitleController(store: store),
         document: document, documentActions: DocumentActions(document: document),
         thumbnails: CachedThumbnailGenerator(), waveforms: WaveformStore(),
-        filmstrips: FilmstripStore()
+        filmstrips: FilmstripStore(), previewSettings: PreviewSettings()
     )
     .frame(width: 1280, height: 800)
 }

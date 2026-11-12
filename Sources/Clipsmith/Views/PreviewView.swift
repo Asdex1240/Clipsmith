@@ -5,6 +5,7 @@ struct PreviewView: View {
     let store: ProjectStore
     var proxies: ProxyStore?
     var highlightPreview: HighlightPreviewController?
+    let settings: PreviewSettings
     let onSelectTimeline: () -> Void
     @AppStorage("preview.guides") private var showsGuides = false
     @State private var pointerIsIdle = false
@@ -23,7 +24,7 @@ struct PreviewView: View {
                 .task(id: pointerActivity) { await waitForPointerToRest() }
             Divider()
             PreviewOptionsBar(
-                controller: controller, store: store, proxies: proxies,
+                controller: controller, store: store, proxies: proxies, settings: settings,
                 showsGuides: $showsGuides, onSelectTimeline: onSelectTimeline)
         }
     }
@@ -182,7 +183,8 @@ struct PreviewView: View {
 
 #Preview {
     PreviewView(
-        controller: PlayerController(), store: PreviewFixtures.store(), onSelectTimeline: {}
+        controller: PlayerController(), store: PreviewFixtures.store(), settings: PreviewSettings(),
+        onSelectTimeline: {}
     )
     .frame(width: 640, height: 400)
 }

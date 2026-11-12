@@ -4,6 +4,7 @@ struct PreviewOptionsBar: View {
     let controller: PlayerController
     let store: ProjectStore
     var proxies: ProxyStore?
+    let settings: PreviewSettings
     @Binding var showsGuides: Bool
     let onSelectTimeline: () -> Void
 
@@ -12,10 +13,29 @@ struct PreviewOptionsBar: View {
             if controller.mode != .highlight { modePicker }
             Spacer()
             if controller.mode != .highlight, let proxies { fastPreview(proxies) }
+            qualityMenu
             guidesToggle
             if controller.mode != .highlight { CanvasPicker(store: store) }
         }
         .padding(Design.Spacing.regular)
+    }
+
+    private var qualityMenu: some View {
+        Menu {
+            Picker(
+                localized("preview.quality"),
+                selection: Binding(get: { settings.quality }, set: { settings.quality = $0 })
+            ) {
+                ForEach(PreviewQuality.allCases) { quality in
+                    Text(localized(String.LocalizationValue(quality.titleKey))).tag(quality)
+                }
+            }
+        } label: {
+            Label(localized("preview.quality"), systemImage: "dial.low")
+        }
+        .menuStyle(.borderlessButton)
+        .fixedSize()
+        .help(localized("preview.quality.help"))
     }
 
     private var guidesToggle: some View {
@@ -69,7 +89,8 @@ struct PreviewOptionsBar: View {
 #Preview {
     @Previewable @State var showsGuides = false
     PreviewOptionsBar(
-        controller: PlayerController(), store: PreviewFixtures.store(), showsGuides: $showsGuides,
+        controller: PlayerController(), store: PreviewFixtures.store(),
+        settings: PreviewSettings(), showsGuides: $showsGuides,
         onSelectTimeline: {}
     )
     .frame(width: 640)
