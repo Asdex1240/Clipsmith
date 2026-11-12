@@ -47,6 +47,17 @@ final class HighlightExportIntegrationTests: XCTestCase {
             ["Ending.mp4", "Opening.mp4"])
     }
 
+    func testThePreviewCompositionOfAHighlightIsVerticalAndHasItsLength() async throws {
+        let stills = StillImageVideoWriter(directory: directory.appendingPathComponent("stills"))
+        let highlight = Highlight(name: "Opening", startInSeconds: 1, endInSeconds: 4)
+
+        let built = try await CompositionBuilder(stillImages: stills).build(
+            from: project.extracting(highlight))
+
+        XCTAssertEqual(built.videoComposition?.renderSize, CGSize(width: 1080, height: 1920))
+        XCTAssertEqual(built.durationInSeconds, 3, accuracy: 0.1)
+    }
+
     private func addImageAndMusic(duration: TimeInterval) throws {
         let image = try makeImage()
         let music = try makeSilentWav(seconds: duration)

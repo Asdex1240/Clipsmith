@@ -9,6 +9,7 @@ struct ClipsmithApp: App {
     @State private var previewer: TimelinePreviewer
     @State private var exporter: ExportController
     @State private var highlightExporter: HighlightExportController
+    @State private var highlightPreview: HighlightPreviewController
     @State private var subtitles: SubtitleController
     @State private var caches: CacheController
     @State private var document: DocumentController
@@ -40,6 +41,10 @@ struct ClipsmithApp: App {
         Task.detached(priority: .utility) { CacheCleaner.standard.clean() }
         _exporter = State(initialValue: ExportController(store: store))
         _highlightExporter = State(initialValue: HighlightExportController(store: store))
+        _highlightPreview = State(
+            initialValue: HighlightPreviewController(
+                store: store, player: player, proxies: previewer.proxies,
+                denoise: previewer.denoise))
         _subtitles = State(initialValue: SubtitleController(store: store))
     }
 
@@ -47,7 +52,8 @@ struct ClipsmithApp: App {
         WindowGroup("Clipsmith") {
             ContentView(
                 store: store, library: library, player: player, previewer: previewer,
-                exporter: exporter, highlightExporter: highlightExporter, subtitles: subtitles,
+                exporter: exporter, highlightExporter: highlightExporter,
+                highlightPreview: highlightPreview, subtitles: subtitles,
                 document: document,
                 documentActions: documentActions, thumbnails: thumbnails, waveforms: waveforms,
                 filmstrips: filmstrips

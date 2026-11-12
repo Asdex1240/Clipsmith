@@ -3,6 +3,7 @@ import SwiftUI
 struct HighlightRow: View {
     let store: ProjectStore
     let exporter: HighlightExportController
+    let preview: HighlightPreviewController
     let highlight: Highlight
 
     private static let defaultFraming = 0.0
@@ -17,6 +18,7 @@ struct HighlightRow: View {
                 TextField(localized("highlight.name"), text: nameBinding)
                     .textFieldStyle(.plain)
                     .font(.subheadline.bold())
+                previewButton
                 goToButton
                 deleteButton
             }
@@ -50,6 +52,36 @@ struct HighlightRow: View {
         Task {
             await store.autoFrameHighlight(highlight.id, using: faceLocator)
             isFraming = false
+        }
+    }
+
+    private var previewButton: some View {
+        Button {
+            togglePreview()
+        } label: {
+            Image(systemName: "play.rectangle")
+                .foregroundStyle(previewTint)
+        }
+        .buttonStyle(.borderless)
+        .help(previewLabel)
+        .accessibilityLabel(previewLabel)
+    }
+
+    private var previewTint: Color {
+        if preview.isShowing(highlight.id) { return Palette.highlight }
+        return .secondary
+    }
+
+    private var previewLabel: String {
+        if preview.isShowing(highlight.id) { return localized("highlight.preview.close") }
+        return localized("highlight.preview")
+    }
+
+    private func togglePreview() {
+        if preview.isShowing(highlight.id) {
+            preview.close()
+        } else {
+            preview.show(highlight.id)
         }
     }
 
@@ -115,7 +147,9 @@ struct HighlightRow: View {
     let id = store.addHighlight(from: 1, to: 6)
     if let id, let highlight = store.project.highlight(withID: id) {
         HighlightRow(
-            store: store, exporter: HighlightExportController(store: store), highlight: highlight
+            store: store, exporter: HighlightExportController(store: store),
+            preview: HighlightPreviewController(store: store, player: PlayerController()),
+            highlight: highlight
         )
         .padding()
         .frame(width: 280)

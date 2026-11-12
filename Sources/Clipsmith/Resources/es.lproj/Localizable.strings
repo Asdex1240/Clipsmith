@@ -317,3 +317,7 @@
 "track.show" = "Mostrar pista";
 "track.lock" = "Bloquear pista";
 "track.unlock" = "Desbloquear pista";
+"highlight.preview" = "Ver en vertical";
+"highlight.preview.close" = "Volver al timeline";
+"highlight.preview.title" = "Vista vertical: %@";
+"highlight.preview.empty" = "No hay nada en este rango que previsualizar";
