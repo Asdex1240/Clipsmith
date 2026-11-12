@@ -42,6 +42,7 @@ struct PresetGrid<Item: Hashable>: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .motion(value: selected)
         .accessibilityAddTraits(traits(selected: selected))
     }
 

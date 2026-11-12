@@ -15,6 +15,7 @@ struct PreviewView: View {
     var body: some View {
         VStack(spacing: 0) {
             highlightBanner
+                .transition(.move(edge: .top).combined(with: .opacity))
             surface
                 .overlay { guides }
                 .overlay(alignment: .bottom) { floatingControls }
@@ -27,6 +28,7 @@ struct PreviewView: View {
                 controller: controller, store: store, proxies: proxies, settings: settings,
                 showsGuides: $showsGuides, onSelectTimeline: onSelectTimeline)
         }
+        .motion(.easeInOut(duration: Design.Motion.standard), value: controller.mode)
     }
 
     private var canPlay: Bool {

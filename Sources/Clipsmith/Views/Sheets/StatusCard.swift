@@ -19,7 +19,9 @@ struct StatusCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             tint.opacity(Design.Opacity.tintBadge),
-            in: RoundedRectangle(cornerRadius: Design.Radius.large))
+            in: RoundedRectangle(cornerRadius: Design.Radius.large)
+        )
+        .transition(.opacity)
     }
 }
 

@@ -39,6 +39,7 @@ struct TimelineView: View {
                 .foregroundStyle(.secondary)
                 .padding(Design.Spacing.comfortable)
                 .allowsHitTesting(false)
+                .transition(.opacity)
         }
     }
 

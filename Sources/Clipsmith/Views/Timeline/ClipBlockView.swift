@@ -83,6 +83,7 @@ struct ClipBlockView: View {
             y: moveTranslation.height
         )
         .zIndex(stackingOrder)
+        .motion(value: isSelected)
         .onTapGesture(perform: onSelect)
         .gesture(moveGesture)
     }
