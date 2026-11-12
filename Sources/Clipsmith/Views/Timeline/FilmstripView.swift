@@ -33,3 +33,17 @@ struct FilmstripView: View {
         return CGFloat(frame.width) / CGFloat(frame.height)
     }
 }
+
+#Preview {
+    let context = CGContext(
+        data: nil, width: 64, height: 36, bitsPerComponent: 8, bytesPerRow: 0,
+        space: CGColorSpaceCreateDeviceRGB(),
+        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+    if let image = context?.makeImage() {
+        FilmstripView(
+            filmstrip: Filmstrip(frames: [image], durationInSeconds: 8),
+            clip: PreviewFixtures.videoClip, pointsPerSecond: 40
+        )
+        .frame(width: 320, height: 44)
+    }
+}
