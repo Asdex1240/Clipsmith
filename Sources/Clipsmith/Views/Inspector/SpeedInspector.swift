@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct SpeedInspector: View {
+struct SpeedInspector: View, Equatable {
     let store: ProjectStore
     let clip: Clip
 
@@ -15,6 +15,11 @@ struct SpeedInspector: View {
     private func slowMomentMessage(added: Bool) -> String {
         if added { return localized("inspector.slowMoment.done") }
         return localized("inspector.slowMoment.noRoom")
+    }
+
+    static func == (lhs: SpeedInspector, rhs: SpeedInspector) -> Bool {
+        lhs.store === rhs.store && lhs.clip.id == rhs.clip.id && lhs.clip.speed == rhs.clip.speed
+            && lhs.clip.durationInSeconds == rhs.clip.durationInSeconds
     }
 
     var body: some View {

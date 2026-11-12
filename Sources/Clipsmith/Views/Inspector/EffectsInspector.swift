@@ -1,10 +1,15 @@
 import SwiftUI
 
-struct EffectsInspector: View {
+struct EffectsInspector: View, Equatable {
     let store: ProjectStore
     let clip: Clip
 
     private static let neutral = ColorAdjustments()
+
+    static func == (lhs: EffectsInspector, rhs: EffectsInspector) -> Bool {
+        lhs.store === rhs.store && lhs.clip.id == rhs.clip.id && lhs.clip.color == rhs.clip.color
+            && lhs.clip.crop == rhs.clip.crop
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Design.Spacing.comfortable) {

@@ -18,11 +18,8 @@ struct SubtitleInspector: View {
     var body: some View {
         InspectorSection(.subtitles) {
             Picker(localized("inspector.subtitles.language"), selection: selectedIdentifier) {
-                ForEach(locales, id: \.identifier) { locale in
-                    Text(
-                        locale.localizedString(forIdentifier: locale.identifier)
-                            ?? locale.identifier
-                    ).tag(locale.identifier)
+                ForEach(SpeechTranscriber.supportedLocaleOptions) { option in
+                    Text(option.name).tag(option.identifier)
                 }
             }
             Picker(localized("inspector.subtitles.style"), selection: $styleName) {

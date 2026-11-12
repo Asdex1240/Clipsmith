@@ -12,7 +12,7 @@ struct InspectorSection<Content: View>: View {
     init(_ id: InspectorSectionID, @ViewBuilder content: @escaping () -> Content) {
         self.id = id
         self.content = content
-        _isExpanded = AppStorage(wrappedValue: true, id.storageKey)
+        _isExpanded = AppStorage(wrappedValue: id.isExpandedByDefault, id.storageKey)
     }
 
     var body: some View {

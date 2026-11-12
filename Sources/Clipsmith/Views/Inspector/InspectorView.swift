@@ -29,18 +29,22 @@ struct InspectorView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: Design.Spacing.spacious) {
                     if hasVisualControls(for: clip) {
-                        VisualInspector(store: store, clip: store.clipForDisplay(clip))
-                        EffectsInspector(store: store, clip: clip)
+                        VisualInspector(store: store, clip: store.clipForDisplay(clip)).equatable()
+                        EffectsInspector(store: store, clip: clip).equatable()
                     }
                     if clip.textLayer != nil {
-                        TextInspector(store: store, clip: clip)
+                        TextInspector(store: store, clip: clip).equatable()
                     }
                     if hasSpeedControls(for: clip) {
-                        SpeedInspector(store: store, clip: clip)
+                        SpeedInspector(store: store, clip: clip).equatable()
                     }
                     if hasAudioControls(for: clip) {
                         AudioInspector(
-                            store: store, waveforms: waveforms, denoise: denoise, clip: clip)
+                            store: store, waveforms: waveforms, denoise: denoise, clip: clip,
+                            trackRole: store.project.trackRole(ofClip: clip.id),
+                            canDetachAudio: store.project.canDetachAudio(ofClip: clip.id)
+                        )
+                        .equatable()
                     }
                     if hasAudioControls(for: clip) {
                         SilenceInspector(store: store, waveforms: waveforms, clip: clip)

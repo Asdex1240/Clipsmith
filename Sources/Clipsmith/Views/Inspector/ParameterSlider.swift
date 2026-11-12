@@ -9,6 +9,9 @@ struct ParameterSlider: View {
 
     private static let defaultTolerance = 1e-6
 
+    @State private var isEditing = false
+    @FocusState private var isFocused: Bool
+
     var body: some View {
         VStack(alignment: .leading, spacing: Design.Spacing.hairline) {
             HStack(spacing: Design.Spacing.tight) {
@@ -22,7 +25,25 @@ struct ParameterSlider: View {
         }
     }
 
+    @ViewBuilder
     private var valueField: some View {
+        if isEditing {
+            editableField
+        } else {
+            Text(unit.text(for: value))
+                .font(.callout)
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .contentShape(Rectangle())
+                .onTapGesture { beginEditing() }
+                .help(localized("inspector.value.edit"))
+                .accessibilityLabel(title)
+                .accessibilityValue(unit.text(for: value))
+                .accessibilityAddTraits(.isButton)
+        }
+    }
+
+    private var editableField: some View {
         HStack(spacing: Design.Spacing.hairline) {
             TextField(
                 title, value: displayBinding,
@@ -33,10 +54,20 @@ struct ParameterSlider: View {
             .multilineTextAlignment(.trailing)
             .monospacedDigit()
             .frame(width: Design.Size.valueField)
+            .focused($isFocused)
+            .onSubmit { isEditing = false }
+            .onChange(of: isFocused) {
+                if !isFocused { isEditing = false }
+            }
             Text(unit.suffix.trimmingCharacters(in: .whitespaces))
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
         }
+    }
+
+    private func beginEditing() {
+        isEditing = true
+        isFocused = true
     }
 
     private var resetButton: some View {

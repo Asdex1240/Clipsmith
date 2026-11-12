@@ -1,10 +1,12 @@
 import SwiftUI
 
-struct AudioInspector: View {
+struct AudioInspector: View, Equatable {
     let store: ProjectStore
     let waveforms: WaveformStore
     let denoise: DenoiseStore
     let clip: Clip
+    let trackRole: Track.Role?
+    let canDetachAudio: Bool
 
     @State private var normalizeMessage: String?
     @State private var duckingMessage: String?
@@ -16,6 +18,18 @@ struct AudioInspector: View {
     private func duckingSummary(count: Int) -> String {
         guard count > 0 else { return localized("inspector.ducking.noSpeech") }
         return String(format: localized("inspector.ducking.done"), count)
+    }
+
+    static func == (lhs: AudioInspector, rhs: AudioInspector) -> Bool {
+        lhs.store === rhs.store && lhs.waveforms === rhs.waveforms && lhs.denoise === rhs.denoise
+            && lhs.trackRole == rhs.trackRole && lhs.canDetachAudio == rhs.canDetachAudio
+            && lhs.clip.id == rhs.clip.id && lhs.clip.volume == rhs.clip.volume
+            && lhs.clip.fadeInDurationInSeconds == rhs.clip.fadeInDurationInSeconds
+            && lhs.clip.fadeOutDurationInSeconds == rhs.clip.fadeOutDurationInSeconds
+            && lhs.clip.ducking == rhs.clip.ducking
+            && lhs.clip.noiseReduction == rhs.clip.noiseReduction
+            && lhs.clip.durationInSeconds == rhs.clip.durationInSeconds
+            && lhs.clip.mediaKind == rhs.clip.mediaKind && lhs.clip.sourceURL == rhs.clip.sourceURL
     }
 
     var body: some View {
@@ -34,10 +48,10 @@ struct AudioInspector: View {
             )
             normalizeControls
             noiseControls
-            if store.project.trackRole(ofClip: clip.id) == .audio { duckingControls }
-            if clip.mediaKind == .video, store.project.trackRole(ofClip: clip.id) == .main {
+            if trackRole == .audio { duckingControls }
+            if clip.mediaKind == .video, trackRole == .main {
                 Button(localized("inspector.audio.extract")) { store.detachAudio(ofClip: clip.id) }
-                    .disabled(!store.project.canDetachAudio(ofClip: clip.id))
+                    .disabled(!canDetachAudio)
                     .help(localized("inspector.audio.extract.help"))
             }
         }
@@ -191,7 +205,7 @@ struct AudioInspector: View {
 #Preview {
     AudioInspector(
         store: PreviewFixtures.store(), waveforms: WaveformStore(), denoise: DenoiseStore(),
-        clip: PreviewFixtures.videoClip
+        clip: PreviewFixtures.videoClip, trackRole: .main, canDetachAudio: true
     )
     .padding()
 }

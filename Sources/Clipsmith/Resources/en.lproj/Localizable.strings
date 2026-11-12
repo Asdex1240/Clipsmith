@@ -321,3 +321,4 @@
 "highlight.preview.close" = "Back to the timeline";
 "highlight.preview.title" = "Vertical preview: %@";
 "highlight.preview.empty" = "There is nothing in this range to preview";
+"inspector.value.edit" = "Click to type a value";
