@@ -53,13 +53,10 @@ struct ClipBlockView: View {
         ZStack {
             RoundedRectangle(cornerRadius: Self.cornerRadius)
                 .fill(blockFill)
+                .overlay(sheen)
                 .overlay(border)
             waveform
-            Text(blockTitle)
-                .font(.caption)
-                .lineLimit(1)
-                .padding(.horizontal, TimelineMetrics.trimHandleWidth + 2)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            titleLabel
             HStack {
                 trimHandle(.leading)
                 Spacer(minLength: 0)
@@ -86,6 +83,30 @@ struct ClipBlockView: View {
         .zIndex(stackingOrder)
         .onTapGesture(perform: onSelect)
         .gesture(moveGesture)
+    }
+
+    private var sheen: some View {
+        LinearGradient(
+            colors: [Palette.onMedia.opacity(Design.Opacity.sheen), .clear],
+            startPoint: .top, endPoint: .center
+        )
+        .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius))
+        .allowsHitTesting(false)
+    }
+
+    private var titleLabel: some View {
+        HStack(spacing: Design.Spacing.tight) {
+            Image(systemName: clip.mediaKind.systemImage)
+                .font(.caption2)
+                .accessibilityHidden(true)
+            Text(blockTitle)
+                .font(.caption)
+                .lineLimit(1)
+        }
+        .shadow(color: Palette.scrim.opacity(Design.Opacity.scrim), radius: 1)
+        .padding(.horizontal, TimelineMetrics.trimHandleWidth + 2)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .allowsHitTesting(false)
     }
 
     private var keyframeMarks: some View {

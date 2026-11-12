@@ -10,14 +10,9 @@ struct TimelineView: View {
 
     private var pointsPerSecond: Double { store.pointsPerSecond }
 
-    private var snappingTitle: String {
-        if store.isSnappingEnabled { return localized("timeline.snapping.on") }
-        return localized("timeline.snapping.off")
-    }
-
     var body: some View {
         VStack(spacing: 0) {
-            toolbar
+            TimelineToolbar(store: store)
             Divider()
             ScrollView(.vertical) {
                 HStack(alignment: .top, spacing: 0) {
@@ -35,84 +30,6 @@ struct TimelineView: View {
         .background(CommandScrollZoomMonitor { store.zoom(byScrollDelta: $0) })
     }
 
-    private var toolbar: some View {
-        HStack {
-            Text(store.project.name).font(.headline)
-            Text(store.playheadInSeconds.clockString).monospacedDigit().foregroundStyle(.secondary)
-            Spacer()
-            Toggle(
-                isOn: Binding(
-                    get: { store.isSnappingEnabled }, set: { _ in store.toggleSnapping() })
-            ) {
-                Image(systemName: "magnet")
-            }
-            .toggleStyle(.button)
-            .accessibilityLabel(snappingTitle)
-            .help("\(snappingTitle) (\(EditorShortcuts.displayKeys(for: .toggleSnapping)))")
-            toolbarButton(
-                "timeline.addText", systemImage: "textformat", shortcut: .addText,
-                action: store.addTextAtPlayhead)
-            toolbarButton(
-                "timeline.addMarker", systemImage: "bookmark", shortcut: .addMarker,
-                action: store.toggleMarkerAtPlayhead)
-            toolbarButton(
-                "timeline.split", systemImage: "scissors", shortcut: .split,
-                action: store.splitAtPlayhead)
-            toolbarButton(
-                "shortcut.trimStart", systemImage: "arrow.right.to.line",
-                shortcut: .trimStartToPlayhead
-            ) {
-                store.trimToPlayhead(edge: .leading)
-            }
-            toolbarButton(
-                "shortcut.trimEnd", systemImage: "arrow.left.to.line.compact",
-                shortcut: .trimEndToPlayhead
-            ) {
-                store.trimToPlayhead(edge: .trailing)
-            }
-            toolbarButton(
-                "shortcut.duplicate", systemImage: "plus.square.on.square", shortcut: .duplicate,
-                action: store.duplicateSelectedClip)
-            toolbarButton(
-                "timeline.group", systemImage: "link", shortcut: .group,
-                action: store.groupSelection
-            )
-            .disabled(!store.canGroupSelection)
-            toolbarButton(
-                "timeline.ungroup", systemImage: "link.badge.plus", shortcut: .ungroup,
-                action: store.ungroupSelection
-            )
-            .disabled(!store.selectionIsGrouped)
-            toolbarButton(
-                "timeline.delete", systemImage: "trash", shortcut: .delete,
-                action: store.deleteSelectedClip)
-            toolbarButton(
-                "timeline.rippleDelete", systemImage: "arrow.left.to.line",
-                shortcut: .rippleDelete, action: store.rippleDeleteSelectedClip
-            )
-            Divider().frame(height: 16)
-            toolbarButton(
-                "timeline.zoomOut", systemImage: "minus.magnifyingglass", shortcut: .zoomOut,
-                action: store.zoomOut)
-            toolbarButton(
-                "timeline.zoomIn", systemImage: "plus.magnifyingglass", shortcut: .zoomIn,
-                action: store.zoomIn)
-        }
-        .padding(.horizontal, Design.Spacing.regular)
-        .padding(.vertical, Design.Spacing.tight)
-    }
-
-    private func toolbarButton(
-        _ key: String.LocalizationValue,
-        systemImage: String,
-        shortcut: EditorAction,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) { Image(systemName: systemImage) }
-            .accessibilityLabel(localized(key))
-            .help("\(localized(key)) (\(EditorShortcuts.displayKeys(for: shortcut)))")
-    }
-
     private var contentHeight: CGFloat {
         TimelineMetrics.rulerHeight + CGFloat(store.project.tracks.count)
             * TimelineMetrics.laneStride + TimelineMetrics.laneHeight
@@ -122,19 +39,10 @@ struct TimelineView: View {
         VStack(alignment: .leading, spacing: TimelineMetrics.laneSpacing) {
             Spacer().frame(height: TimelineMetrics.rulerHeight)
             ForEach(store.project.tracks) { track in
-                Text(store.project.title(of: track))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .frame(
-                        width: TimelineMetrics.trackLabelWidth, height: TimelineMetrics.laneHeight,
-                        alignment: .leading
-                    )
-                    .padding(.leading, Design.Spacing.regular)
-                    .contextMenu { trackMenu(for: track) }
+                TrackHeaderView(store: store, track: track)
             }
             addTrackMenu
-                .frame(width: TimelineMetrics.trackLabelWidth, alignment: .leading)
+                .frame(width: TimelineMetrics.trackHeaderWidth, alignment: .leading)
                 .padding(.leading, Design.Spacing.regular)
         }
     }
@@ -152,17 +60,6 @@ struct TimelineView: View {
         .menuIndicator(.hidden)
         .fixedSize()
         .help(localized("track.add.help"))
-    }
-
-    @ViewBuilder
-    private func trackMenu(for track: Track) -> some View {
-        Button(localized("track.moveUp")) { store.moveTrack(track.id, direction: .up) }
-            .disabled(!store.project.canMoveTrack(track.id, direction: .up))
-        Button(localized("track.moveDown")) { store.moveTrack(track.id, direction: .down) }
-            .disabled(!store.project.canMoveTrack(track.id, direction: .down))
-        Divider()
-        Button(localized("track.remove"), role: .destructive) { store.removeTrack(track.id) }
-            .disabled(!store.project.canRemoveTrack(track.id))
     }
 
     private func contentWidth(viewportWidth: CGFloat) -> CGFloat {
@@ -192,14 +89,14 @@ struct TimelineView: View {
     }
 
     private static let contentSpace = "timelineContent"
-    private static let playheadHandleSize = CGSize(width: 14, height: 10)
 
     private var playhead: some View {
-        let size = Self.playheadHandleSize
+        let size = TimelineMetrics.playheadHeadSize
         return ZStack(alignment: .top) {
             Rectangle()
                 .fill(Palette.playhead)
                 .frame(width: 1.5)
+                .shadow(color: Palette.playhead.opacity(Design.Opacity.handle), radius: 2)
                 .allowsHitTesting(false)
             PlayheadHandle()
                 .fill(Palette.playhead)
@@ -327,17 +224,6 @@ struct TimelineView: View {
         let tracks = store.project.tracks
         let targetIndex = min(max(laneIndex + laneOffset, 0), tracks.count - 1)
         store.moveClip(clip.id, toTrack: tracks[targetIndex].id, near: start)
-    }
-}
-
-private struct PlayheadHandle: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
-        path.closeSubpath()
-        return path
     }
 }
 
