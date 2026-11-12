@@ -7,57 +7,164 @@ struct LibraryView: View {
     @Binding var selection: MediaItem.ID?
     let onAddToTimeline: (MediaItem) -> Void
     @State private var isImporterPresented = false
+    @State private var isDropTargeted = false
+    @State private var query = MediaQuery()
 
     private static let importableTypes: [UTType] = [.movie, .audio, .image]
+    private static let cardMinimumWidth: CGFloat = 120
 
     var body: some View {
         VStack(spacing: 0) {
             header
+            if !library.items.isEmpty {
+                controls
+            }
             Divider()
             content
         }
+        .overlay { dropOutline }
         .fileImporter(
             isPresented: $isImporterPresented,
             allowedContentTypes: Self.importableTypes,
             allowsMultipleSelection: true,
             onCompletion: handleImporterResult
         )
-        .onDrop(of: [.fileURL], isTargeted: nil, perform: handleDrop)
+        .onDrop(of: [.fileURL], isTargeted: $isDropTargeted, perform: handleDrop)
+    }
+
+    private var visibleItems: [MediaItem] {
+        query.apply(to: library.items)
     }
 
     private var header: some View {
         HStack {
             Text(localized("panel.library")).font(.headline)
+            if !library.items.isEmpty {
+                Text(String(format: localized("library.count"), library.items.count))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
             Spacer()
             Button(localized("library.import")) { isImporterPresented = true }
         }
         .padding(Design.Spacing.regular)
     }
 
+    private var controls: some View {
+        VStack(spacing: Design.Spacing.compact) {
+            HStack(spacing: Design.Spacing.compact) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+                TextField(localized("library.search"), text: $query.searchText)
+                    .textFieldStyle(.plain)
+                sortMenu
+            }
+            .padding(.horizontal, Design.Spacing.regular)
+            .padding(.vertical, Design.Spacing.compact)
+            .background(
+                Color.primary.opacity(Design.Opacity.chipFill),
+                in: RoundedRectangle(cornerRadius: Design.Radius.medium))
+            Picker(localized("library.filter.all"), selection: $query.filter) {
+                ForEach(MediaFilter.allCases) { filter in
+                    Label(
+                        localized(String.LocalizationValue(filter.titleKey)),
+                        systemImage: filter.systemImage
+                    )
+                    .tag(filter)
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+        }
+        .padding(.horizontal, Design.Spacing.regular)
+        .padding(.bottom, Design.Spacing.regular)
+    }
+
+    private var sortMenu: some View {
+        Menu {
+            Picker(localized("library.sort"), selection: $query.sort) {
+                ForEach(MediaSort.allCases) { sort in
+                    Text(localized(String.LocalizationValue(sort.titleKey))).tag(sort)
+                }
+            }
+        } label: {
+            Image(systemName: "arrow.up.arrow.down")
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help(localized("library.sort"))
+        .accessibilityLabel(localized("library.sort"))
+    }
+
     @ViewBuilder
     private var content: some View {
         if library.items.isEmpty {
-            ZStack {
-                Rectangle().fill(.background.secondary)
-                Text(localized("library.empty"))
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding()
-            }
+            LibraryEmptyState { isImporterPresented = true }
+        } else if visibleItems.isEmpty {
+            noResults
         } else {
-            List(library.items, selection: $selection) { item in
-                MediaRow(item: item, thumbnails: thumbnails, onAdd: { onAddToTimeline(item) })
-                    .onDrag {
-                        library.draggedItemID = item.id
-                        return NSItemProvider(object: item.id.uuidString as NSString)
-                    } preview: {
-                        DragPreview(item: item, thumbnails: thumbnails)
-                    }
-                    .onTapGesture(count: 2) { onAddToTimeline(item) }
-                    .contextMenu {
-                        Button(localized("library.addToTimeline")) { onAddToTimeline(item) }
-                    }
+            grid
+        }
+    }
+
+    private var noResults: some View {
+        VStack(spacing: Design.Spacing.cozy) {
+            Text(localized("library.noResults"))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            Button(localized("library.clearFilters")) { query = MediaQuery() }
+        }
+        .padding(Design.Spacing.roomy)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var grid: some View {
+        ScrollView {
+            LazyVGrid(
+                columns: [
+                    GridItem(
+                        .adaptive(minimum: Self.cardMinimumWidth), spacing: Design.Spacing.cozy)
+                ],
+                spacing: Design.Spacing.cozy
+            ) {
+                ForEach(visibleItems) { item in
+                    card(for: item)
+                }
             }
+            .padding(Design.Spacing.regular)
+        }
+    }
+
+    private func card(for item: MediaItem) -> some View {
+        MediaCard(
+            item: item, thumbnails: thumbnails, isSelected: selection == item.id,
+            onAdd: { onAddToTimeline(item) }
+        )
+        .onTapGesture(count: 2) { onAddToTimeline(item) }
+        .onTapGesture { selection = item.id }
+        .onDrag {
+            library.draggedItemID = item.id
+            return NSItemProvider(object: item.id.uuidString as NSString)
+        } preview: {
+            MediaDragPreview(item: item, thumbnails: thumbnails)
+        }
+        .contextMenu {
+            Button(localized("library.addToTimeline")) { onAddToTimeline(item) }
+        }
+    }
+
+    @ViewBuilder
+    private var dropOutline: some View {
+        if isDropTargeted {
+            RoundedRectangle(cornerRadius: Design.Radius.large)
+                .strokeBorder(
+                    Color.accentColor,
+                    style: StrokeStyle(lineWidth: 2, dash: [Design.Spacing.regular])
+                )
+                .padding(Design.Spacing.tight)
+                .allowsHitTesting(false)
         }
     }
 
@@ -77,91 +184,6 @@ struct LibraryView: View {
     }
 }
 
-private struct MediaRow: View {
-    let item: MediaItem
-    let thumbnails: ThumbnailGenerating
-    let onAdd: () -> Void
-    @State private var thumbnail: NSImage?
-    @State private var isHovering = false
-
-    private static let thumbnailSize = CGSize(width: 64, height: 40)
-
-    private var addButtonOpacity: Double {
-        if isHovering { return 1 }
-        return 0
-    }
-
-    private var placeholderSymbol: String {
-        if item.kind == .audio { return "waveform" }
-        return "photo"
-    }
-
-    var body: some View {
-        HStack {
-            thumbnailView
-                .frame(width: Self.thumbnailSize.width, height: Self.thumbnailSize.height)
-                .clipShape(RoundedRectangle(cornerRadius: Design.Radius.small))
-            VStack(alignment: .leading) {
-                Text(item.name).lineLimit(1)
-                Text(item.durationInSeconds.clockString)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer(minLength: 0)
-            Button(action: onAdd) {
-                Image(systemName: "plus.circle.fill").font(.title3)
-            }
-            .buttonStyle(.borderless)
-            .help(localized("library.addToTimeline"))
-            .accessibilityLabel(localized("library.addToTimeline"))
-            .opacity(addButtonOpacity)
-        }
-        .contentShape(Rectangle())
-        .onHover { isHovering = $0 }
-        .task { thumbnail = await thumbnails.thumbnail(for: item) }
-    }
-
-    @ViewBuilder
-    private var thumbnailView: some View {
-        if let thumbnail {
-            Image(nsImage: thumbnail).resizable().scaledToFill()
-        } else {
-            ZStack {
-                Rectangle().fill(.quaternary)
-                Image(systemName: placeholderSymbol)
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-}
-
-private struct DragPreview: View {
-    let item: MediaItem
-    let thumbnails: ThumbnailGenerating
-    @State private var thumbnail: NSImage?
-
-    var body: some View {
-        HStack(spacing: Design.Spacing.regular) {
-            Group {
-                if let thumbnail {
-                    Image(nsImage: thumbnail).resizable().scaledToFill()
-                } else {
-                    Rectangle().fill(.quaternary)
-                }
-            }
-            .frame(width: 48, height: 32)
-            .clipShape(RoundedRectangle(cornerRadius: Design.Radius.small))
-            VStack(alignment: .leading, spacing: 0) {
-                Text(item.name).lineLimit(1).font(.caption.bold())
-                Text(item.durationInSeconds.clockString).font(.caption2).foregroundStyle(.secondary)
-            }
-        }
-        .padding(Design.Spacing.compact)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: Design.Radius.large))
-        .task { thumbnail = await thumbnails.thumbnail(for: item) }
-    }
-}
-
 #Preview {
     @Previewable @State var selection: MediaItem.ID?
     LibraryView(
@@ -169,4 +191,21 @@ private struct DragPreview: View {
         selection: $selection, onAddToTimeline: { _ in }
     )
     .frame(width: 280, height: 360)
+}
+
+#Preview("With media") {
+    @Previewable @State var selection: MediaItem.ID?
+    let library = MediaLibrary()
+    let _ = library.replaceItems([
+        PreviewFixtures.mediaItem,
+        MediaItem(
+            url: URL(fileURLWithPath: "/tmp/music.m4a"), kind: .audio, durationInSeconds: 95),
+        MediaItem(
+            url: URL(fileURLWithPath: "/tmp/photo.jpg"), kind: .image, durationInSeconds: 5),
+    ])
+    LibraryView(
+        library: library, thumbnails: CachedThumbnailGenerator(), selection: $selection,
+        onAddToTimeline: { _ in }
+    )
+    .frame(width: 300, height: 420)
 }

@@ -322,3 +322,15 @@
 "highlight.preview.title" = "Vertical preview: %@";
 "highlight.preview.empty" = "There is nothing in this range to preview";
 "inspector.value.edit" = "Click to type a value";
+"library.filter.all" = "All";
+"library.filter.video" = "Video";
+"library.filter.audio" = "Audio";
+"library.filter.image" = "Images";
+"library.sort.added" = "Order added";
+"library.sort.name" = "Name";
+"library.sort.duration" = "Longest first";
+"library.search" = "Search media";
+"library.noResults" = "No media matches your search.";
+"library.clearFilters" = "Clear filters";
+"library.count" = "%d items";
+"library.sort" = "Sort";

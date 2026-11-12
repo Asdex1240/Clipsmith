@@ -322,3 +322,15 @@
 "highlight.preview.title" = "Vista vertical: %@";
 "highlight.preview.empty" = "No hay nada en este rango que previsualizar";
 "inspector.value.edit" = "Pulsa para escribir un valor";
+"library.filter.all" = "Todo";
+"library.filter.video" = "Video";
+"library.filter.audio" = "Audio";
+"library.filter.image" = "Imágenes";
+"library.sort.added" = "Orden de importación";
+"library.sort.name" = "Nombre";
+"library.sort.duration" = "Más largos primero";
+"library.search" = "Buscar medios";
+"library.noResults" = "Ningún medio coincide con la búsqueda.";
+"library.clearFilters" = "Quitar filtros";
+"library.count" = "%d elementos";
+"library.sort" = "Ordenar";
