@@ -7,6 +7,7 @@ struct ClipBlockView: View {
     var allowsLaneChange = true
     var companionOffset: CGFloat = 0
     let waveformPeaks: [Float]?
+    var filmstrip: Filmstrip?
     let isMissing: Bool
     let onSelect: () -> Void
     let onMove: (_ proposedStart: TimeInterval, _ laneOffset: Int) -> Void
@@ -53,13 +54,11 @@ struct ClipBlockView: View {
         ZStack {
             RoundedRectangle(cornerRadius: Self.cornerRadius)
                 .fill(blockFill)
+                .overlay(filmstripLayer)
+                .overlay(sheen)
                 .overlay(border)
             waveform
-            Text(blockTitle)
-                .font(.caption)
-                .lineLimit(1)
-                .padding(.horizontal, TimelineMetrics.trimHandleWidth + 2)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            titleLabel
             HStack {
                 trimHandle(.leading)
                 Spacer(minLength: 0)
@@ -86,6 +85,42 @@ struct ClipBlockView: View {
         .zIndex(stackingOrder)
         .onTapGesture(perform: onSelect)
         .gesture(moveGesture)
+    }
+
+    private static let maximumFilmstripWidth: CGFloat = 16_000
+
+    @ViewBuilder
+    private var filmstripLayer: some View {
+        let width = max(clip.durationInSeconds * pointsPerSecond, 2)
+        if let filmstrip, width <= Self.maximumFilmstripWidth, !isMissing {
+            FilmstripView(filmstrip: filmstrip, clip: clip, pointsPerSecond: pointsPerSecond)
+                .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius))
+                .opacity(Design.Opacity.filmstrip)
+        }
+    }
+
+    private var sheen: some View {
+        LinearGradient(
+            colors: [Palette.onMedia.opacity(Design.Opacity.sheen), .clear],
+            startPoint: .top, endPoint: .center
+        )
+        .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius))
+        .allowsHitTesting(false)
+    }
+
+    private var titleLabel: some View {
+        HStack(spacing: Design.Spacing.tight) {
+            Image(systemName: clip.mediaKind.systemImage)
+                .font(.caption2)
+                .accessibilityHidden(true)
+            Text(blockTitle)
+                .font(.caption)
+                .lineLimit(1)
+        }
+        .shadow(color: Palette.scrim.opacity(Design.Opacity.scrim), radius: 1)
+        .padding(.horizontal, TimelineMetrics.trimHandleWidth + 2)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .allowsHitTesting(false)
     }
 
     private var keyframeMarks: some View {

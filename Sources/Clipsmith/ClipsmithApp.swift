@@ -16,6 +16,7 @@ struct ClipsmithApp: App {
     private let shortcutMonitor: KeyboardShortcutMonitor
     @State private var isShortcutsPresented = false
     @State private var waveforms = WaveformStore()
+    @State private var filmstrips = FilmstripStore()
     private let thumbnails = CachedThumbnailGenerator()
 
     init() {
@@ -48,7 +49,8 @@ struct ClipsmithApp: App {
                 store: store, library: library, player: player, previewer: previewer,
                 exporter: exporter, highlightExporter: highlightExporter, subtitles: subtitles,
                 document: document,
-                documentActions: documentActions, thumbnails: thumbnails, waveforms: waveforms
+                documentActions: documentActions, thumbnails: thumbnails, waveforms: waveforms,
+                filmstrips: filmstrips
             )
             .frame(minWidth: 1100, minHeight: 700)
             .onAppear {

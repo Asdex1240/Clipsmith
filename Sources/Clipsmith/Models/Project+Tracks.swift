@@ -33,7 +33,7 @@ extension Project {
     }
 
     func trackWithRoom(role: Track.Role, start: TimeInterval, duration: TimeInterval) -> Track? {
-        let candidates = tracks(withRole: role)
+        let candidates = tracks(withRole: role).filter { !$0.isLocked }
         return candidates.first { $0.isFree(from: start, to: start + duration) } ?? candidates.first
     }
 

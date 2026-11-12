@@ -24,13 +24,14 @@ struct CompositionBuilder: CompositionBuilding {
             framesPerSecond: framesPerSecond,
             stillImages: stillImages
         )
+        let playable = project.renderedForPlayback
         for role in Self.assemblyOrder {
-            for track in project.tracks(withRole: role) {
+            for track in playable.tracks(withRole: role) {
                 for clip in track.clips {
                     await assembler.add(clip, in: track)
                 }
             }
         }
-        return assembler.finish(segments: CompositionPlanner.segments(for: project))
+        return assembler.finish(segments: CompositionPlanner.segments(for: playable))
     }
 }

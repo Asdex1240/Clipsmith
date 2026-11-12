@@ -311,3 +311,9 @@
 "highlight.export.choose" = "Export here";
 "highlight.select" = "Include in export";
 "highlight.selectAll" = "Select all";
+"track.mute" = "Mute track";
+"track.unmute" = "Unmute track";
+"track.hide" = "Hide track";
+"track.show" = "Show track";
+"track.lock" = "Lock track";
+"track.unlock" = "Unlock track";

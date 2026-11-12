@@ -230,7 +230,7 @@ extension Project {
     }
 
     private mutating func updateClip(_ id: Clip.ID, _ transform: (Clip) -> Clip) {
-        guard let position = location(of: id) else { return }
+        guard let position = location(of: id), !tracks[position.track].isLocked else { return }
         tracks[position.track].clips[position.clip] = transform(
             tracks[position.track].clips[position.clip])
     }
