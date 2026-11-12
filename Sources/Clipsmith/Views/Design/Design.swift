@@ -52,6 +52,7 @@ enum Design {
         static let minimumHitTarget: CGFloat = 24
         static let sectionIcon: CGFloat = 18
         static let valueField: CGFloat = 56
+        static let playButton: CGFloat = 28
         static let presetColumn: CGFloat = 72
         static let highlightBand: CGFloat = 5
     }

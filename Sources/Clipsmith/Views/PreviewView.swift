@@ -6,14 +6,84 @@ struct PreviewView: View {
     var proxies: ProxyStore?
     var highlightPreview: HighlightPreviewController?
     let onSelectTimeline: () -> Void
+    @AppStorage("preview.guides") private var showsGuides = false
+    @State private var pointerIsIdle = false
+    @State private var pointerActivity = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(spacing: 0) {
             highlightBanner
             surface
+                .overlay { guides }
+                .overlay(alignment: .bottom) { floatingControls }
+                .onContinuousHover { phase in
+                    if case .active = phase { registerPointerActivity() }
+                }
+                .task(id: pointerActivity) { await waitForPointerToRest() }
             Divider()
-            playbackBar
+            PreviewOptionsBar(
+                controller: controller, store: store, proxies: proxies,
+                showsGuides: $showsGuides, onSelectTimeline: onSelectTimeline)
         }
+    }
+
+    private var canPlay: Bool {
+        switch controller.mode {
+        case .timeline: return controller.hasTimeline
+        case .highlight: return controller.hasHighlight
+        case .source: return !controller.sourceIsStillImage && controller.sourceItem != nil
+        }
+    }
+
+    private var controlsAreVisible: Bool {
+        ControlsVisibility(isPlaying: controller.isPlaying, pointerIsIdle: pointerIsIdle)
+            .isVisible
+    }
+
+    @ViewBuilder
+    private var floatingControls: some View {
+        if canPlay {
+            PreviewPlaybackControls(controller: controller, store: store)
+                .padding(Design.Spacing.spacious)
+                .opacity(controlsOpacity)
+                .animation(controlsAnimation, value: controlsAreVisible)
+        }
+    }
+
+    private var controlsOpacity: Double {
+        if controlsAreVisible { return 1 }
+        return 0
+    }
+
+    private var controlsAnimation: Animation? {
+        if reduceMotion { return nil }
+        return .easeInOut(duration: Design.Motion.standard)
+    }
+
+    @ViewBuilder
+    private var guides: some View {
+        if showsGuides {
+            GuidesOverlay(renderSize: guideRenderSize)
+        }
+    }
+
+    private var guideRenderSize: CGSize? {
+        switch controller.mode {
+        case .timeline: return controller.timelineOverlay?.renderSize
+        case .highlight: return controller.highlightOverlay?.renderSize
+        case .source: return nil
+        }
+    }
+
+    private func registerPointerActivity() {
+        pointerIsIdle = false
+        pointerActivity += 1
+    }
+
+    private func waitForPointerToRest() async {
+        try? await Task.sleep(for: .seconds(ControlsVisibility.hideDelayInSeconds))
+        pointerIsIdle = true
     }
 
     @ViewBuilder
@@ -109,96 +179,6 @@ struct PreviewView: View {
             Rectangle().fill(.background.secondary)
             Text(message).foregroundStyle(.secondary)
         }
-    }
-
-    private var playbackBar: some View {
-        HStack {
-            Button(action: controller.togglePlayback) {
-                Label(
-                    playbackTitle,
-                    systemImage: playbackIcon
-                )
-            }
-            .disabled(!canPlay)
-            .help("\(playbackTitle) (\(EditorShortcuts.displayKeys(for: .togglePlayback)))")
-            Text(positionText)
-                .monospacedDigit()
-                .foregroundStyle(.secondary)
-            Spacer()
-            if controller.mode != .highlight {
-                if let proxies { fastPreview(proxies) }
-                CanvasPicker(store: store)
-                modePicker
-            }
-        }
-        .padding(Design.Spacing.regular)
-    }
-
-    private func fastPreview(_ proxies: ProxyStore) -> some View {
-        HStack(spacing: Design.Spacing.compact) {
-            if proxies.isPreparing {
-                ProgressView().controlSize(.small)
-                Text(String(format: localized("preview.fast.preparing"), proxies.pendingCount))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            Toggle(
-                localized("preview.fast"),
-                isOn: Binding(get: { proxies.isEnabled }, set: { proxies.setEnabled($0) })
-            )
-            .toggleStyle(.button)
-            .help(localized("preview.fast.help"))
-        }
-    }
-
-    private var positionText: String {
-        if controller.mode == .highlight {
-            let current = controller.highlightTimeInSeconds.clockString
-            return "\(current) / \(controller.highlightDurationInSeconds.clockString)"
-        }
-        let current = store.playheadInSeconds.clockString
-        let total = store.project.durationInSeconds.clockString
-        return "\(current) / \(total)"
-    }
-
-    private var playbackTitle: String {
-        if controller.isPlaying { return localized("preview.pause") }
-        return localized("preview.play")
-    }
-
-    private var playbackIcon: String {
-        if controller.isPlaying { return "pause.fill" }
-        return "play.fill"
-    }
-
-    private var canPlay: Bool {
-        switch controller.mode {
-        case .timeline: return controller.hasTimeline
-        case .highlight: return controller.hasHighlight
-        case .source: return !controller.sourceIsStillImage && controller.sourceItem != nil
-        }
-    }
-
-    private var modePicker: some View {
-        Picker("", selection: modeBinding) {
-            Text(localized("preview.mode.source")).tag(PlayerController.Mode.source)
-            Text(localized("preview.mode.timeline")).tag(PlayerController.Mode.timeline)
-        }
-        .pickerStyle(.segmented)
-        .labelsHidden()
-        .fixedSize()
-    }
-
-    private var modeBinding: Binding<PlayerController.Mode> {
-        Binding(
-            get: { controller.mode },
-            set: { newMode in
-                switch newMode {
-                case .timeline, .highlight: onSelectTimeline()
-                case .source: controller.sourceItem.map(controller.showSource)
-                }
-            }
-        )
     }
 }
 
