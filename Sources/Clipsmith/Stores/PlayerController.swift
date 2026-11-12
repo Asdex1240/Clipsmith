@@ -9,7 +9,7 @@ private enum PlaybackAfterInstall {
 @MainActor
 @Observable
 final class PlayerController {
-    enum Mode { case source, timeline }
+    enum Mode { case source, timeline, highlight }
 
     private static let updateInterval = CMTime(value: 1, timescale: 30)
     private static let seekToleranceInSeconds: TimeInterval = 1.0 / 60
@@ -23,7 +23,12 @@ final class PlayerController {
     private(set) var timelineRevision = 0
     private(set) var visualFrames: [Clip.ID: CGRect] = [:]
     private(set) var isPlaying = false
+    private(set) var hasHighlight = false
+    private(set) var highlightOverlay: TextOverlay?
+    private(set) var highlightTimeInSeconds: TimeInterval = 0
+    private(set) var highlightDurationInSeconds: TimeInterval = 0
     @ObservationIgnored private var timeline: BuiltComposition?
+    @ObservationIgnored private var highlight: BuiltComposition?
     @ObservationIgnored private var statusObservation: AnyCancellable?
 
     init() {
@@ -68,6 +73,24 @@ final class PlayerController {
         installTimeline(playback: currentPlayback, at: time)
     }
 
+    func showHighlight(_ built: BuiltComposition?) {
+        let wasShowing = mode == .highlight
+        var resumeTime: TimeInterval = 0
+        var playback = PlaybackAfterInstall.stayPaused
+        if wasShowing {
+            resumeTime = min(player.currentTime().seconds, built?.durationInSeconds ?? 0)
+            playback = currentPlayback
+        }
+        mode = .highlight
+        highlight = built
+        hasHighlight = built != nil
+        highlightOverlay = built?.textOverlay
+        highlightDurationInSeconds = built?.durationInSeconds ?? 0
+        highlightTimeInSeconds = resumeTime
+        player.pause()
+        install(built, playback: playback, at: resumeTime)
+    }
+
     func updateTransforms(_ built: BuiltComposition) {
         timeline = built
         visualFrames = built.visualFrames
@@ -100,11 +123,17 @@ final class PlayerController {
     }
 
     private func installTimeline(playback: PlaybackAfterInstall, at time: TimeInterval) {
-        guard let timeline else {
+        install(timeline, playback: playback, at: time)
+    }
+
+    private func install(
+        _ composition: BuiltComposition?, playback: PlaybackAfterInstall, at time: TimeInterval
+    ) {
+        guard let composition else {
             player.replaceCurrentItem(with: nil)
             return
         }
-        player.replaceCurrentItem(with: timeline.makePlayerItem())
+        player.replaceCurrentItem(with: composition.makePlayerItem())
         Task { @MainActor in
             await player.seek(to: time.cmTime, toleranceBefore: .zero, toleranceAfter: .zero)
             if playback == .resume { player.play() }
@@ -119,7 +148,14 @@ final class PlayerController {
     }
 
     private func playerTimeDidChange(_ time: CMTime) {
-        guard mode == .timeline, isPlaying else { return }
-        onTimelineTimeChange?(time.seconds)
+        switch mode {
+        case .highlight:
+            highlightTimeInSeconds = time.seconds
+        case .timeline:
+            guard isPlaying else { return }
+            onTimelineTimeChange?(time.seconds)
+        case .source:
+            return
+        }
     }
 }

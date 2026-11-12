@@ -4,14 +4,39 @@ struct PreviewView: View {
     let controller: PlayerController
     let store: ProjectStore
     var proxies: ProxyStore?
+    var highlightPreview: HighlightPreviewController?
     let onSelectTimeline: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
+            highlightBanner
             surface
             Divider()
             playbackBar
         }
+    }
+
+    @ViewBuilder
+    private var highlightBanner: some View {
+        if controller.mode == .highlight, let highlightPreview {
+            HStack(spacing: Design.Spacing.regular) {
+                Image(systemName: "rectangle.portrait")
+                    .foregroundStyle(Palette.highlight)
+                    .accessibilityHidden(true)
+                Text(highlightTitle(highlightPreview))
+                    .font(.subheadline.bold())
+                    .lineLimit(1)
+                Spacer()
+                Button(localized("highlight.preview.close"), action: highlightPreview.close)
+            }
+            .padding(Design.Spacing.regular)
+            .background(Palette.highlight.opacity(Design.Opacity.highlightBackground))
+        }
+    }
+
+    private func highlightTitle(_ preview: HighlightPreviewController) -> String {
+        let name = preview.activeHighlight?.name ?? ""
+        return String(format: localized("highlight.preview.title"), name)
     }
 
     @ViewBuilder
@@ -21,6 +46,21 @@ struct PreviewView: View {
             timelineSurface
         case .source:
             sourceSurface
+        case .highlight:
+            highlightSurface
+        }
+    }
+
+    @ViewBuilder
+    private var highlightSurface: some View {
+        if controller.hasHighlight {
+            PlayerSurface(
+                player: controller.player, overlay: controller.highlightOverlay,
+                time: controller.highlightTimeInSeconds
+            )
+            .background(.black)
+        } else {
+            emptyState(localized("highlight.preview.empty"))
         }
     }
 
@@ -85,9 +125,11 @@ struct PreviewView: View {
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
             Spacer()
-            if let proxies { fastPreview(proxies) }
-            CanvasPicker(store: store)
-            modePicker
+            if controller.mode != .highlight {
+                if let proxies { fastPreview(proxies) }
+                CanvasPicker(store: store)
+                modePicker
+            }
         }
         .padding(Design.Spacing.regular)
     }
@@ -110,6 +152,10 @@ struct PreviewView: View {
     }
 
     private var positionText: String {
+        if controller.mode == .highlight {
+            let current = controller.highlightTimeInSeconds.clockString
+            return "\(current) / \(controller.highlightDurationInSeconds.clockString)"
+        }
         let current = store.playheadInSeconds.clockString
         let total = store.project.durationInSeconds.clockString
         return "\(current) / \(total)"
@@ -126,10 +172,11 @@ struct PreviewView: View {
     }
 
     private var canPlay: Bool {
-        guard controller.mode == .timeline else {
-            return !controller.sourceIsStillImage && controller.sourceItem != nil
+        switch controller.mode {
+        case .timeline: return controller.hasTimeline
+        case .highlight: return controller.hasHighlight
+        case .source: return !controller.sourceIsStillImage && controller.sourceItem != nil
         }
-        return controller.hasTimeline
     }
 
     private var modePicker: some View {
@@ -147,7 +194,7 @@ struct PreviewView: View {
             get: { controller.mode },
             set: { newMode in
                 switch newMode {
-                case .timeline: onSelectTimeline()
+                case .timeline, .highlight: onSelectTimeline()
                 case .source: controller.sourceItem.map(controller.showSource)
                 }
             }

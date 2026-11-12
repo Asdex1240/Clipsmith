@@ -3,6 +3,7 @@ import SwiftUI
 struct HighlightsView: View {
     let store: ProjectStore
     let exporter: HighlightExportController
+    let preview: HighlightPreviewController
     let waveforms: WaveformStore
     @State private var suggestionState = SuggestionState.idle
 
@@ -18,7 +19,9 @@ struct HighlightsView: View {
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(store.project.highlights) { highlight in
-                        HighlightRow(store: store, exporter: exporter, highlight: highlight)
+                        HighlightRow(
+                            store: store, exporter: exporter, preview: preview,
+                            highlight: highlight)
                     }
                 }
             }
@@ -215,7 +218,9 @@ struct HighlightsView: View {
 #Preview {
     let store = PreviewFixtures.store()
     HighlightsView(
-        store: store, exporter: HighlightExportController(store: store), waveforms: WaveformStore()
+        store: store, exporter: HighlightExportController(store: store),
+        preview: HighlightPreviewController(store: store, player: PlayerController()),
+        waveforms: WaveformStore()
     )
     .frame(width: 280, height: 420)
 }

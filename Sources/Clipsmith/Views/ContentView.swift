@@ -7,6 +7,7 @@ struct ContentView: View {
     let previewer: TimelinePreviewer
     let exporter: ExportController
     let highlightExporter: HighlightExportController
+    let highlightPreview: HighlightPreviewController
     let subtitles: SubtitleController
     let document: DocumentController
     let documentActions: DocumentActions
@@ -32,6 +33,7 @@ struct ContentView: View {
                 SidebarView(
                     store: store,
                     highlightExporter: highlightExporter,
+                    highlightPreview: highlightPreview,
                     library: library,
                     thumbnails: thumbnails,
                     waveforms: waveforms,
@@ -42,7 +44,7 @@ struct ContentView: View {
                 .panelSurface()
                 PreviewView(
                     controller: player, store: store, proxies: previewer.proxies,
-                    onSelectTimeline: showTimeline
+                    highlightPreview: highlightPreview, onSelectTimeline: showTimeline
                 )
                 .frame(minWidth: Layout.previewMinWidth)
                 InspectorView(
@@ -91,7 +93,10 @@ struct ContentView: View {
             Text(document.errorMessage ?? "")
         }
         .onChange(of: selection, selectionDidChange)
-        .onChange(of: store.projectRevision) { previewer.projectDidChange() }
+        .onChange(of: store.projectRevision) {
+            previewer.projectDidChange()
+            highlightPreview.projectDidChange()
+        }
         .onChange(of: store.playheadInSeconds) { player.seekTimeline(to: store.playheadInSeconds) }
         .onAppear { player.onTimelineTimeChange = store.followPlayback(at:) }
         .alert(localized("alert.error.title"), isPresented: errorIsPresented) {
@@ -149,6 +154,7 @@ struct ContentView: View {
         previewer: TimelinePreviewer(store: store, player: player),
         exporter: ExportController(store: store),
         highlightExporter: HighlightExportController(store: store),
+        highlightPreview: HighlightPreviewController(store: store, player: player),
         subtitles: SubtitleController(store: store),
         document: document, documentActions: DocumentActions(document: document),
         thumbnails: CachedThumbnailGenerator(), waveforms: WaveformStore(),

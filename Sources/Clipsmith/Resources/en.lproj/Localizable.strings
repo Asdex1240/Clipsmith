@@ -317,3 +317,7 @@
 "track.show" = "Show track";
 "track.lock" = "Lock track";
 "track.unlock" = "Unlock track";
+"highlight.preview" = "Preview in vertical";
+"highlight.preview.close" = "Back to the timeline";
+"highlight.preview.title" = "Vertical preview: %@";
+"highlight.preview.empty" = "There is nothing in this range to preview";

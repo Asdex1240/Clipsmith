@@ -3,6 +3,7 @@ import SwiftUI
 struct SidebarView: View {
     let store: ProjectStore
     let highlightExporter: HighlightExportController
+    let highlightPreview: HighlightPreviewController
     let library: MediaLibrary
     let thumbnails: ThumbnailGenerating
     let waveforms: WaveformStore
@@ -37,7 +38,9 @@ struct SidebarView: View {
                 library: library, thumbnails: thumbnails, selection: $selection,
                 onAddToTimeline: onAddToTimeline)
         case .highlights:
-            HighlightsView(store: store, exporter: highlightExporter, waveforms: waveforms)
+            HighlightsView(
+                store: store, exporter: highlightExporter, preview: highlightPreview,
+                waveforms: waveforms)
         }
     }
 }
@@ -47,6 +50,7 @@ struct SidebarView: View {
     let store = PreviewFixtures.store()
     SidebarView(
         store: store, highlightExporter: HighlightExportController(store: store),
+        highlightPreview: HighlightPreviewController(store: store, player: PlayerController()),
         library: MediaLibrary(),
         thumbnails: CachedThumbnailGenerator(), waveforms: WaveformStore(), selection: $selection,
         onAddToTimeline: { _ in }
