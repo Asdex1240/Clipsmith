@@ -75,7 +75,7 @@ struct ParameterSlider: View {
             guard let defaultValue else { return }
             value = defaultValue
         } label: {
-            Image(systemName: "arrow.counterclockwise")
+            Image(systemName: "arrow.counterclockwise").minimumHitTarget()
         }
         .buttonStyle(.borderless)
         .opacity(resetOpacity)

@@ -82,7 +82,7 @@ struct ExportView: View {
     private func finishedView(_ url: URL) -> some View {
         VStack(alignment: .leading, spacing: Design.Spacing.comfortable) {
             Label(localized("export.done"), systemImage: "checkmark.circle.fill")
-                .foregroundStyle(Palette.success)
+                .foregroundStyle(Palette.successText)
             HStack {
                 Spacer()
                 Button(localized("export.showInFinder")) {
@@ -97,7 +97,7 @@ struct ExportView: View {
     private func failedView(_ message: String) -> some View {
         VStack(alignment: .leading, spacing: Design.Spacing.comfortable) {
             Label(message, systemImage: "exclamationmark.triangle.fill").foregroundStyle(
-                Palette.invalid)
+                Palette.invalidText)
             HStack {
                 Spacer()
                 Button(localized("export.close")) { closeAndReset() }

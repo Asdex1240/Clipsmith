@@ -75,6 +75,7 @@ struct MediaCard: View {
             Image(systemName: "plus.circle.fill")
                 .font(.title3)
                 .foregroundStyle(Palette.onMedia, Color.accentColor)
+                .minimumHitTarget()
         }
         .buttonStyle(.plain)
         .padding(Design.Spacing.tight)

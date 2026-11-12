@@ -85,7 +85,7 @@ struct AudioInspector: View, Equatable {
         } else if let failure = denoise.lastFailure {
             Text(String(format: localized("inspector.noise.failed"), failure))
                 .font(.caption)
-                .foregroundStyle(Palette.warning)
+                .foregroundStyle(Palette.warningText)
         }
         Text(localized("inspector.noise.hint")).font(.caption).foregroundStyle(.secondary)
     }

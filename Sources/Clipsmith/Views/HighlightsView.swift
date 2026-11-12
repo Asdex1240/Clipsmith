@@ -158,11 +158,11 @@ struct HighlightsView: View {
                 String(format: localized("highlight.export.done"), exportedCount(outcomes)),
                 systemImage: "checkmark.circle.fill"
             )
-            .foregroundStyle(Palette.success)
+            .foregroundStyle(Palette.successText)
             ForEach(Array(failures(outcomes).enumerated()), id: \.offset) { _, line in
                 Label(line, systemImage: "exclamationmark.triangle.fill")
                     .font(.caption)
-                    .foregroundStyle(Palette.warning)
+                    .foregroundStyle(Palette.warningText)
             }
             HStack {
                 Button(localized("export.showInFinder")) {

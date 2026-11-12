@@ -7,14 +7,23 @@ enum Palette {
     static let keyframe = selection
     static let marker = Color.orange
     static let highlight = Color.teal
-    static let warning = Color.orange
-    static let success = Color.green
     static let invalid = Color.red
     static let playhead = Color.red
     static let guideEdge = Color.red
     static let guideCenter = Color.cyan
     static let onMedia = Color.white
     static let scrim = Color.black
+
+    static let successTone = AdaptiveTone(
+        light: RGBAColor(hex: 0x157033), dark: RGBAColor(hex: 0x4CD964))
+    static let warningTone = AdaptiveTone(
+        light: RGBAColor(hex: 0x8A5200), dark: RGBAColor(hex: 0xFFB340))
+    static let invalidTone = AdaptiveTone(
+        light: RGBAColor(hex: 0xB3261E), dark: RGBAColor(hex: 0xFF8A82))
+
+    static let successText = successTone.color
+    static let warningText = warningTone.color
+    static let invalidText = invalidTone.color
 
     static func clipFill(for kind: MediaKind) -> Color {
         switch kind {

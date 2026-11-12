@@ -84,7 +84,7 @@ struct VisualInspector: View, Equatable {
                     Button {
                         store.movePlayhead(to: clip.startInSeconds + frame.timeInSeconds)
                     } label: {
-                        Image(systemName: "arrow.right.to.line")
+                        Image(systemName: "arrow.right.to.line").minimumHitTarget()
                     }
                     .buttonStyle(.borderless)
                     .help(localized("inspector.keyframes.go"))
@@ -92,7 +92,7 @@ struct VisualInspector: View, Equatable {
                     Button {
                         store.removeKeyframe(frame.id, from: clip.id)
                     } label: {
-                        Image(systemName: "trash")
+                        Image(systemName: "trash").minimumHitTarget()
                     }
                     .buttonStyle(.borderless)
                     .help(localized("inspector.keyframes.remove"))
