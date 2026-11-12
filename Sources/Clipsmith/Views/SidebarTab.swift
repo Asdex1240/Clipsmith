@@ -7,8 +7,8 @@ enum SidebarTab: String, CaseIterable, Identifiable {
 
     var titleKey: String {
         switch self {
-        case .media: return "sidebar.media"
-        case .highlights: return "sidebar.highlights"
+        case .media: return "sidebarTab.media"
+        case .highlights: return "sidebarTab.highlights"
         }
     }
 

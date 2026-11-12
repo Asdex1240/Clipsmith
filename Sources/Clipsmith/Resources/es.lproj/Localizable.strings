@@ -283,8 +283,8 @@
 "shortcut.markHighlightStart" = "Marcar inicio del highlight";
 "shortcut.markHighlightEnd" = "Marcar fin del highlight";
 "shortcut.addHighlight" = "Guardar highlight";
-"sidebar.media" = "Medios";
-"sidebar.highlights" = "Highlights";
+"sidebarTab.media" = "Medios";
+"sidebarTab.highlights" = "Highlights";
 "highlight.suggest" = "Sugerir highlights";
 "highlight.suggest.hint" = "Busca los tramos con más actividad de audio del clip seleccionado y los guarda como highlights.";
 "highlight.suggest.done" = "%d highlights sugeridos.";

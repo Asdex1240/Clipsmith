@@ -283,8 +283,8 @@
 "shortcut.markHighlightStart" = "Mark highlight start";
 "shortcut.markHighlightEnd" = "Mark highlight end";
 "shortcut.addHighlight" = "Save highlight";
-"sidebar.media" = "Media";
-"sidebar.highlights" = "Highlights";
+"sidebarTab.media" = "Media";
+"sidebarTab.highlights" = "Highlights";
 "highlight.suggest" = "Suggest highlights";
 "highlight.suggest.hint" = "Finds the most active stretches of the selected clip's audio and saves them as highlights.";
 "highlight.suggest.done" = "%d highlights suggested.";
