@@ -4,6 +4,7 @@ struct TimelineView: View {
     let store: ProjectStore
     let library: MediaLibrary
     let waveforms: WaveformStore
+    let filmstrips: FilmstripStore
     let missingMedia: Set<URL>
     @State private var dropPreview: DropPreview?
     @State private var drag: (clipID: Clip.ID, offset: CGFloat)?
@@ -153,6 +154,7 @@ struct TimelineView: View {
                 !(store.hasMultipleSelected && store.selectedClipIDs.contains(clip.id)),
             companionOffset: companionOffset(for: clip),
             waveformPeaks: waveformPeaks(for: clip, in: track),
+            filmstrip: filmstrip(for: clip),
             isMissing: clip.sourceURL.map(missingMedia.contains) ?? false,
             onSelect: { select(clip) },
             onMove: { start, laneOffset in
@@ -161,7 +163,10 @@ struct TimelineView: View {
             onTrim: { edge, time in store.trimClip(clip.id, edge: edge, near: time) },
             onDragChange: { offset in drag = offset.map { (clip.id, $0) } }
         )
-        .task(id: clip.sourceURL) { await loadWaveform(for: clip, in: track) }
+        .task(id: clip.sourceURL) {
+            await loadWaveform(for: clip, in: track)
+            await loadFilmstrip(for: clip)
+        }
     }
 
     @ViewBuilder
@@ -197,6 +202,16 @@ struct TimelineView: View {
     private func waveformPeaks(for clip: Clip, in track: Track) -> [Float]? {
         guard showsWaveform(clip, in: track), let url = clip.sourceURL else { return nil }
         return waveforms.peaksByURL[url]
+    }
+
+    private func filmstrip(for clip: Clip) -> Filmstrip? {
+        guard clip.mediaKind == .video, let url = clip.sourceURL else { return nil }
+        return filmstrips.stripsByURL[url]
+    }
+
+    private func loadFilmstrip(for clip: Clip) async {
+        guard clip.mediaKind == .video, let url = clip.sourceURL else { return }
+        await filmstrips.load(url)
     }
 
     private func loadWaveform(for clip: Clip, in track: Track) async {
@@ -236,6 +251,7 @@ struct TimelineView: View {
 #Preview {
     TimelineView(
         store: PreviewFixtures.store(), library: MediaLibrary(), waveforms: WaveformStore(),
+        filmstrips: FilmstripStore(),
         missingMedia: []
     )
     .frame(width: 800, height: 320)

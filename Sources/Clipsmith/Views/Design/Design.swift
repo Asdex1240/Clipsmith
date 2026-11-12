@@ -37,6 +37,7 @@ enum Design {
         static let highlightBand = 0.8
         static let sheen = 0.18
         static let hiddenLane = 0.4
+        static let filmstrip = 0.85
         static let highlightBackground = 0.12
         static let chipFill = 0.08
         static let selectedChipFill = 0.25

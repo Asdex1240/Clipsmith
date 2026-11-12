@@ -12,6 +12,7 @@ struct ContentView: View {
     let documentActions: DocumentActions
     let thumbnails: ThumbnailGenerating
     let waveforms: WaveformStore
+    let filmstrips: FilmstripStore
     @State private var selection: MediaItem.ID?
     @State private var isExportPresented = false
     @State private var relinkDismissed = false
@@ -55,7 +56,7 @@ struct ContentView: View {
             }
             Divider()
             TimelineView(
-                store: store, library: library, waveforms: waveforms,
+                store: store, library: library, waveforms: waveforms, filmstrips: filmstrips,
                 missingMedia: Set(document.missingMedia)
             )
             .frame(height: Layout.timelineHeight)
@@ -150,7 +151,8 @@ struct ContentView: View {
         highlightExporter: HighlightExportController(store: store),
         subtitles: SubtitleController(store: store),
         document: document, documentActions: DocumentActions(document: document),
-        thumbnails: CachedThumbnailGenerator(), waveforms: WaveformStore()
+        thumbnails: CachedThumbnailGenerator(), waveforms: WaveformStore(),
+        filmstrips: FilmstripStore()
     )
     .frame(width: 1280, height: 800)
 }
