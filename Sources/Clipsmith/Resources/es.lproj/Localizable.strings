@@ -311,3 +311,9 @@
 "highlight.export.choose" = "Exportar aquí";
 "highlight.select" = "Incluir en la exportación";
 "highlight.selectAll" = "Seleccionar todos";
+"track.mute" = "Silenciar pista";
+"track.unmute" = "Activar el sonido de la pista";
+"track.hide" = "Ocultar pista";
+"track.show" = "Mostrar pista";
+"track.lock" = "Bloquear pista";
+"track.unlock" = "Desbloquear pista";

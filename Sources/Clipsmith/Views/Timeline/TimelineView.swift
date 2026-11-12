@@ -127,6 +127,7 @@ struct TimelineView: View {
             }
         }
         .frame(width: width, height: TimelineMetrics.laneHeight, alignment: .topLeading)
+        .opacity(laneOpacity(of: track))
         .overlay(alignment: .topLeading) { dropGhost(on: track) }
         .overlay { dropOutline(on: track) }
         .onDrop(
@@ -136,6 +137,11 @@ struct TimelineView: View {
                 preview: $dropPreview
             )
         )
+    }
+
+    private func laneOpacity(of track: Track) -> Double {
+        if track.isHidden { return Design.Opacity.hiddenLane }
+        return 1
     }
 
     private func clipBlock(for clip: Clip, in track: Track, at index: Int) -> some View {

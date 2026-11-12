@@ -23,7 +23,8 @@ extension Project {
     }
 
     @discardableResult
-    mutating func moveClips(_ ids: Set<Clip.ID>, by delta: TimeInterval) -> TimeInterval {
+    mutating func moveClips(_ requested: Set<Clip.ID>, by delta: TimeInterval) -> TimeInterval {
+        let ids = unlocked(requested)
         let (lowest, highest) = movementLimits(of: ids)
         guard lowest.isFinite || highest.isFinite else { return 0 }
         guard lowest <= highest else { return 0 }
@@ -68,7 +69,7 @@ extension Project {
     }
 
     mutating func deleteClips(_ ids: Set<Clip.ID>) {
-        for trackIndex in tracks.indices {
+        for trackIndex in tracks.indices where !tracks[trackIndex].isLocked {
             tracks[trackIndex].clips.removeAll { ids.contains($0.id) }
         }
     }

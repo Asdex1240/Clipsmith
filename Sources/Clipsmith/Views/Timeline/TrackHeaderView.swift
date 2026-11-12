@@ -14,6 +14,7 @@ struct TrackHeaderView: View {
                 .font(.caption)
                 .lineLimit(1)
             Spacer(minLength: 0)
+            stateButtons
         }
         .padding(.horizontal, Design.Spacing.regular)
         .frame(width: TimelineMetrics.trackHeaderWidth, height: TimelineMetrics.laneHeight)
@@ -22,6 +23,27 @@ struct TrackHeaderView: View {
             in: RoundedRectangle(cornerRadius: Design.Radius.medium)
         )
         .contextMenu { menu }
+    }
+
+    @ViewBuilder
+    private var stateButtons: some View {
+        if track.role.canBeMuted {
+            TrackStateButton(
+                activeImage: "speaker.slash.fill", inactiveImage: "speaker.wave.2",
+                isActive: track.isMuted, activeLabel: localized("track.unmute"),
+                inactiveLabel: localized("track.mute")
+            ) { store.toggleMute(ofTrack: track.id) }
+        }
+        if track.role.canBeHidden {
+            TrackStateButton(
+                activeImage: "eye.slash.fill", inactiveImage: "eye", isActive: track.isHidden,
+                activeLabel: localized("track.show"), inactiveLabel: localized("track.hide")
+            ) { store.toggleVisibility(ofTrack: track.id) }
+        }
+        TrackStateButton(
+            activeImage: "lock.fill", inactiveImage: "lock.open", isActive: track.isLocked,
+            activeLabel: localized("track.unlock"), inactiveLabel: localized("track.lock")
+        ) { store.toggleLock(ofTrack: track.id) }
     }
 
     @ViewBuilder

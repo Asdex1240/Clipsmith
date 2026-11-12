@@ -27,7 +27,7 @@ extension Project {
     @discardableResult
     mutating func addClip(_ clip: Clip, toTrack trackID: Track.ID) -> Bool {
         guard let trackIndex = tracks.firstIndex(where: { $0.id == trackID }),
-            tracks[trackIndex].role.accepts(clip.mediaKind)
+            tracks[trackIndex].role.accepts(clip.mediaKind), !tracks[trackIndex].isLocked
         else { return false }
         insert(clip, intoTrackAt: trackIndex)
         return true
@@ -37,8 +37,9 @@ extension Project {
     mutating func moveClip(
         _ id: Clip.ID, toTrack trackID: Track.ID, startingAt proposedStart: TimeInterval
     ) -> Bool {
-        guard let source = location(of: id),
+        guard let source = location(of: id), !tracks[source.track].isLocked,
             let targetIndex = tracks.firstIndex(where: { $0.id == trackID }),
+            !tracks[targetIndex].isLocked,
             tracks[targetIndex].role.accepts(tracks[source.track].clips[source.clip].mediaKind)
         else { return false }
         let clip = tracks[source.track].clips.remove(at: source.clip)
@@ -47,7 +48,7 @@ extension Project {
     }
 
     mutating func trimClip(_ id: Clip.ID, edge: ClipEdge, to time: TimeInterval) {
-        guard let position = location(of: id) else { return }
+        guard let position = location(of: id), !tracks[position.track].isLocked else { return }
         let track = tracks[position.track]
         let clip = track.clips[position.clip]
         switch edge {
@@ -64,7 +65,7 @@ extension Project {
 
     @discardableResult
     mutating func splitClip(_ id: Clip.ID, at time: TimeInterval) -> Bool {
-        guard let position = location(of: id),
+        guard let position = location(of: id), !tracks[position.track].isLocked,
             let halves = tracks[position.track].clips[position.clip].split(at: time)
         else { return false }
         tracks[position.track].clips[position.clip] = halves.left
@@ -73,12 +74,12 @@ extension Project {
     }
 
     mutating func deleteClip(_ id: Clip.ID) {
-        guard let position = location(of: id) else { return }
+        guard let position = location(of: id), !tracks[position.track].isLocked else { return }
         tracks[position.track].clips.remove(at: position.clip)
     }
 
     mutating func rippleDeleteClip(_ id: Clip.ID) {
-        guard let position = location(of: id) else { return }
+        guard let position = location(of: id), !tracks[position.track].isLocked else { return }
         let removed = tracks[position.track].clips.remove(at: position.clip)
         for index in tracks[position.track].clips.indices
         where tracks[position.track].clips[index].startInSeconds >= removed.startInSeconds {

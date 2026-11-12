@@ -31,6 +31,9 @@ struct Track: Codable, Identifiable, Equatable {
     var role: Role
     var name: String?
     var clips: [Clip] = []
+    var isMuted = false
+    var isHidden = false
+    var isLocked = false
 
     var endInSeconds: TimeInterval {
         clips.map(\.endInSeconds).max() ?? 0

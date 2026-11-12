@@ -15,6 +15,18 @@ extension ProjectStore {
         mutate { $0.moveTrack(id, direction: direction) }
     }
 
+    func toggleMute(ofTrack id: Track.ID) {
+        mutate { $0.toggleMute(ofTrack: id) }
+    }
+
+    func toggleVisibility(ofTrack id: Track.ID) {
+        mutate { $0.toggleVisibility(ofTrack: id) }
+    }
+
+    func toggleLock(ofTrack id: Track.ID) {
+        mutate { $0.toggleLock(ofTrack: id) }
+    }
+
     func renameTrack(_ id: Track.ID, to name: String) {
         mutate(coalescingKey: "track-name-\(id)") { $0.renameTrack(id, to: name) }
     }
