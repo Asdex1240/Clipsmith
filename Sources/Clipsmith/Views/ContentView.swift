@@ -17,6 +17,8 @@ struct ContentView: View {
     @State private var selection: MediaItem.ID?
     @State private var isExportPresented = false
     @State private var relinkDismissed = false
+    @AppStorage("layout.sidebarVisible") private var isSidebarVisible = true
+    @AppStorage("layout.inspectorVisible") private var isInspectorVisible = true
 
     private enum Layout {
         static let libraryMinWidth: CGFloat = 220
@@ -30,31 +32,13 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 0) {
             HSplitView {
-                SidebarView(
-                    store: store,
-                    highlightExporter: highlightExporter,
-                    highlightPreview: highlightPreview,
-                    library: library,
-                    thumbnails: thumbnails,
-                    waveforms: waveforms,
-                    selection: $selection,
-                    onAddToTimeline: store.appendToTimeline
-                )
-                .frame(minWidth: Layout.libraryMinWidth, idealWidth: Layout.libraryIdealWidth)
-                .panelSurface()
+                if isSidebarVisible { sidebar }
                 PreviewView(
                     controller: player, store: store, proxies: previewer.proxies,
                     highlightPreview: highlightPreview, onSelectTimeline: showTimeline
                 )
                 .frame(minWidth: Layout.previewMinWidth)
-                InspectorView(
-                    store: store, subtitles: subtitles, waveforms: waveforms,
-                    denoise: previewer.denoise
-                )
-                .frame(
-                    minWidth: Layout.inspectorMinWidth, idealWidth: Layout.inspectorIdealWidth
-                )
-                .panelSurface()
+                if isInspectorVisible { inspector }
             }
             Divider()
             TimelineView(
@@ -64,13 +48,10 @@ struct ContentView: View {
             .frame(height: Layout.timelineHeight)
         }
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button(localized("export.open"), systemImage: "square.and.arrow.up") {
-                    isExportPresented = true
-                }
-                .keyboardShortcut("e", modifiers: .command)
-                .disabled(store.project.durationInSeconds == 0)
-            }
+            MainToolbar(
+                store: store, documentActions: documentActions,
+                isSidebarVisible: $isSidebarVisible, isInspectorVisible: $isInspectorVisible,
+                onExport: { isExportPresented = true })
         }
         .sheet(isPresented: $isExportPresented) { ExportView(controller: exporter) }
         .sheet(isPresented: relinkIsPresented) {
@@ -104,6 +85,30 @@ struct ContentView: View {
         } message: {
             Text(library.lastErrorMessage ?? "")
         }
+    }
+
+    private var sidebar: some View {
+        SidebarView(
+            store: store,
+            highlightExporter: highlightExporter,
+            highlightPreview: highlightPreview,
+            library: library,
+            thumbnails: thumbnails,
+            waveforms: waveforms,
+            selection: $selection,
+            onAddToTimeline: store.appendToTimeline
+        )
+        .frame(minWidth: Layout.libraryMinWidth, idealWidth: Layout.libraryIdealWidth)
+        .panelSurface()
+    }
+
+    private var inspector: some View {
+        InspectorView(
+            store: store, subtitles: subtitles, waveforms: waveforms,
+            denoise: previewer.denoise
+        )
+        .frame(minWidth: Layout.inspectorMinWidth, idealWidth: Layout.inspectorIdealWidth)
+        .panelSurface()
     }
 
     private var relinkIsPresented: Binding<Bool> {

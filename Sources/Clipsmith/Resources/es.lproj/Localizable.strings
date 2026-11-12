@@ -334,3 +334,5 @@
 "library.clearFilters" = "Quitar filtros";
 "library.count" = "%d elementos";
 "library.sort" = "Ordenar";
+"toolbar.sidebar" = "Mostrar u ocultar la biblioteca";
+"toolbar.inspector" = "Mostrar u ocultar el inspector";
