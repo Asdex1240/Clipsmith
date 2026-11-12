@@ -15,7 +15,7 @@ struct ExportView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Design.Spacing.spacious) {
-            Text(localized("export.title")).font(.title2.bold())
+            SheetHeader(title: localized("export.title"), systemImage: "square.and.arrow.up")
             content
         }
         .padding(Design.Spacing.roomy)
@@ -52,6 +52,8 @@ struct ExportView: View {
                     }
                 }
             }
+            .formStyle(.grouped)
+            .scrollContentBackground(.hidden)
             Text(outputSizeText)
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
@@ -81,8 +83,9 @@ struct ExportView: View {
 
     private func finishedView(_ url: URL) -> some View {
         VStack(alignment: .leading, spacing: Design.Spacing.comfortable) {
-            Label(localized("export.done"), systemImage: "checkmark.circle.fill")
-                .foregroundStyle(Palette.success)
+            StatusCard(
+                message: localized("export.done"), systemImage: "checkmark.circle.fill",
+                tint: Palette.successText)
             HStack {
                 Spacer()
                 Button(localized("export.showInFinder")) {
@@ -96,8 +99,9 @@ struct ExportView: View {
 
     private func failedView(_ message: String) -> some View {
         VStack(alignment: .leading, spacing: Design.Spacing.comfortable) {
-            Label(message, systemImage: "exclamationmark.triangle.fill").foregroundStyle(
-                Palette.invalid)
+            StatusCard(
+                message: message, systemImage: "exclamationmark.triangle.fill",
+                tint: Palette.invalidText)
             HStack {
                 Spacer()
                 Button(localized("export.close")) { closeAndReset() }

@@ -37,10 +37,24 @@ enum Design {
         static let highlightBand = 0.8
         static let sheen = 0.18
         static let hiddenLane = 0.4
+        static let tintBadge = 0.15
         static let filmstrip = 0.85
         static let highlightBackground = 0.12
         static let chipFill = 0.08
         static let selectedChipFill = 0.25
+    }
+
+    enum Stroke {
+        static let hairline: CGFloat = 1
+        static let regular: CGFloat = 1.5
+        static let emphasized: CGFloat = 2
+        static let dash: [CGFloat] = [4, 3]
+    }
+
+    enum IconSize {
+        static let emptyState: CGFloat = 36
+        static let badge: CGFloat = 9
+        static let keyframeMark: CGFloat = 7
     }
 
     enum Motion {
@@ -53,6 +67,8 @@ enum Design {
         static let sectionIcon: CGFloat = 18
         static let valueField: CGFloat = 56
         static let playButton: CGFloat = 28
+        static let headerBadge: CGFloat = 32
+        static let emptyStateMinimumHeight: CGFloat = 160
         static let presetColumn: CGFloat = 72
         static let highlightBand: CGFloat = 5
     }

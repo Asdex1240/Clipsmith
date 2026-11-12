@@ -321,7 +321,7 @@
 "highlight.preview.close" = "Volver al timeline";
 "highlight.preview.title" = "Vista vertical: %@";
 "highlight.preview.empty" = "No hay nada en este rango que previsualizar";
-"inspector.value.edit" = "Pulsa para escribir un valor";
+"inspector.value.edit" = "Pulsa para escribir un valor, arrastra para ajustarlo (con ⌥ más fino)";
 "library.filter.all" = "Todo";
 "library.filter.video" = "Video";
 "library.filter.audio" = "Audio";
@@ -339,3 +339,11 @@
 "preview.scrub" = "Posición";
 "preview.guides" = "Guías";
 "preview.guides.help" = "Muestra las zonas seguras y el centro de la imagen";
+"shortcuts.section.editing" = "Edición";
+"shortcuts.section.window" = "Ventana y proyecto";
+"timeline.empty" = "Arrastra medios aquí, o haz doble clic en la biblioteca";
+"preview.quality" = "Calidad del preview";
+"preview.quality.full" = "Completa";
+"preview.quality.half" = "Media (más ligera)";
+"preview.quality.quarter" = "Cuarto (la más ligera)";
+"preview.quality.help" = "Dibuja el preview a menor resolución para que vaya fluido. El export siempre usa la calidad completa.";

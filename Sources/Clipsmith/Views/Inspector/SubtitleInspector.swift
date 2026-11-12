@@ -66,11 +66,11 @@ struct SubtitleInspector: View {
                 systemImage: "checkmark.circle"
             )
             .font(.caption)
-            .foregroundStyle(Palette.success)
+            .foregroundStyle(Palette.successText)
         case .failed(let message):
             Label(message, systemImage: "exclamationmark.triangle")
                 .font(.caption)
-                .foregroundStyle(Palette.warning)
+                .foregroundStyle(Palette.warningText)
         }
     }
 

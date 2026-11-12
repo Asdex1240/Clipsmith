@@ -3,23 +3,29 @@ import SwiftUI
 struct ShortcutsView: View {
     @Environment(\.dismiss) private var dismiss
 
-    private static let width: CGFloat = 380
+    private static let width: CGFloat = 420
+    private static let maximumListHeight: CGFloat = 520
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.comfortable) {
-            Text(localized("shortcuts.title")).font(.title2.bold())
-            ForEach(EditorAction.allCases, id: \.self) { action in
-                HStack {
-                    Text(title(of: action))
-                    Spacer()
-                    Text(EditorShortcuts.displayKeys(for: action))
-                        .monospaced()
-                        .padding(.horizontal, Design.Spacing.compact)
-                        .padding(.vertical, Design.Spacing.hairline)
-                        .background(
-                            .quaternary, in: RoundedRectangle(cornerRadius: Design.Radius.small))
+        VStack(alignment: .leading, spacing: Design.Spacing.spacious) {
+            SheetHeader(title: localized("shortcuts.title"), systemImage: "keyboard")
+            ScrollView {
+                VStack(alignment: .leading, spacing: Design.Spacing.comfortable) {
+                    section("shortcuts.section.editing") {
+                        ForEach(EditorAction.allCases, id: \.self) { action in
+                            row(title(of: action), EditorShortcuts.displayKeys(for: action))
+                        }
+                    }
+                    section("shortcuts.section.window") {
+                        ForEach(WindowShortcuts.all) { shortcut in
+                            row(
+                                localized(String.LocalizationValue(shortcut.titleKey)),
+                                shortcut.keys)
+                        }
+                    }
                 }
             }
+            .frame(maxHeight: Self.maximumListHeight)
             HStack {
                 Spacer()
                 Button(localized("export.close")) { dismiss() }
@@ -28,6 +34,33 @@ struct ShortcutsView: View {
         }
         .padding(Design.Spacing.roomy)
         .frame(width: Self.width)
+    }
+
+    private func section<Content: View>(
+        _ key: String.LocalizationValue, @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: Design.Spacing.compact) {
+            Text(localized(key)).font(.subheadline.bold()).foregroundStyle(.secondary)
+            VStack(spacing: Design.Spacing.compact) {
+                content()
+            }
+            .padding(Design.Spacing.comfortable)
+            .background(
+                Color.primary.opacity(Design.Opacity.chipFill),
+                in: RoundedRectangle(cornerRadius: Design.Radius.large))
+        }
+    }
+
+    private func row(_ title: String, _ keys: String) -> some View {
+        HStack {
+            Text(title)
+            Spacer()
+            Text(keys)
+                .monospaced()
+                .padding(.horizontal, Design.Spacing.compact)
+                .padding(.vertical, Design.Spacing.hairline)
+                .background(.quaternary, in: RoundedRectangle(cornerRadius: Design.Radius.small))
+        }
     }
 
     private func title(of action: EditorAction) -> String {

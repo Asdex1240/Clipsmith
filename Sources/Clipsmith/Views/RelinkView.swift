@@ -9,7 +9,7 @@ struct RelinkView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Design.Spacing.spacious) {
-            Text(localized("relink.title")).font(.title2.bold())
+            SheetHeader(title: localized("relink.title"), systemImage: "exclamationmark.link")
             Text(localized("relink.message")).foregroundStyle(.secondary)
             List(document.missingMedia, id: \.self) { url in
                 HStack {
@@ -26,6 +26,10 @@ struct RelinkView: View {
                 }
             }
             .frame(minHeight: 120)
+            .scrollContentBackground(.hidden)
+            .background(
+                Color.primary.opacity(Design.Opacity.chipFill),
+                in: RoundedRectangle(cornerRadius: Design.Radius.large))
             HStack {
                 Spacer()
                 Button(localized("relink.continue"), action: onDismiss)

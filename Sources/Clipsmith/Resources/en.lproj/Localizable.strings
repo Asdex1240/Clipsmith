@@ -321,7 +321,7 @@
 "highlight.preview.close" = "Back to the timeline";
 "highlight.preview.title" = "Vertical preview: %@";
 "highlight.preview.empty" = "There is nothing in this range to preview";
-"inspector.value.edit" = "Click to type a value";
+"inspector.value.edit" = "Click to type a value, drag to adjust (hold ⌥ for fine control)";
 "library.filter.all" = "All";
 "library.filter.video" = "Video";
 "library.filter.audio" = "Audio";
@@ -339,3 +339,11 @@
 "preview.scrub" = "Position";
 "preview.guides" = "Guides";
 "preview.guides.help" = "Shows the safe areas and the center of the picture";
+"shortcuts.section.editing" = "Editing";
+"shortcuts.section.window" = "Window and project";
+"timeline.empty" = "Drag media here, or double-click it in the library";
+"preview.quality" = "Preview quality";
+"preview.quality.full" = "Full";
+"preview.quality.half" = "Half (lighter)";
+"preview.quality.quarter" = "Quarter (lightest)";
+"preview.quality.help" = "Renders the preview at a lower resolution so it plays smoothly. The export always uses full quality.";

@@ -10,7 +10,8 @@ struct DropGhostView: View {
             .fill(tint.opacity(0.25))
             .overlay(
                 RoundedRectangle(cornerRadius: Design.Radius.medium).strokeBorder(
-                    tint, style: StrokeStyle(lineWidth: 1.5, dash: [5, 3]))
+                    tint,
+                    style: StrokeStyle(lineWidth: Design.Stroke.regular, dash: Design.Stroke.dash))
             )
             .overlay(alignment: .leading) {
                 Label(preview.name, systemImage: preview.iconName)

@@ -5,6 +5,7 @@ struct PreviewView: View {
     let store: ProjectStore
     var proxies: ProxyStore?
     var highlightPreview: HighlightPreviewController?
+    let settings: PreviewSettings
     let onSelectTimeline: () -> Void
     @AppStorage("preview.guides") private var showsGuides = false
     @State private var pointerIsIdle = false
@@ -14,6 +15,7 @@ struct PreviewView: View {
     var body: some View {
         VStack(spacing: 0) {
             highlightBanner
+                .transition(.move(edge: .top).combined(with: .opacity))
             surface
                 .overlay { guides }
                 .overlay(alignment: .bottom) { floatingControls }
@@ -23,9 +25,10 @@ struct PreviewView: View {
                 .task(id: pointerActivity) { await waitForPointerToRest() }
             Divider()
             PreviewOptionsBar(
-                controller: controller, store: store, proxies: proxies,
+                controller: controller, store: store, proxies: proxies, settings: settings,
                 showsGuides: $showsGuides, onSelectTimeline: onSelectTimeline)
         }
+        .motion(.easeInOut(duration: Design.Motion.standard), value: controller.mode)
     }
 
     private var canPlay: Bool {
@@ -130,7 +133,7 @@ struct PreviewView: View {
             )
             .background(.black)
         } else {
-            emptyState(localized("highlight.preview.empty"))
+            emptyState("rectangle.portrait", localized("highlight.preview.empty"))
         }
     }
 
@@ -151,7 +154,7 @@ struct PreviewView: View {
                 )
             }
         } else {
-            emptyState(localized("preview.timelineEmpty"))
+            emptyState("film.stack", localized("preview.timelineEmpty"))
         }
     }
 
@@ -170,21 +173,20 @@ struct PreviewView: View {
                 PlayerSurface(player: controller.player).background(.black)
             }
         } else {
-            emptyState(localized("preview.empty"))
+            emptyState("play.rectangle", localized("preview.empty"))
         }
     }
 
-    private func emptyState(_ message: String) -> some View {
-        ZStack {
-            Rectangle().fill(.background.secondary)
-            Text(message).foregroundStyle(.secondary)
-        }
+    private func emptyState(_ symbol: String, _ message: String) -> some View {
+        EmptyStateView(systemImage: symbol, message: message)
+            .background(.background.secondary)
     }
 }
 
 #Preview {
     PreviewView(
-        controller: PlayerController(), store: PreviewFixtures.store(), onSelectTimeline: {}
+        controller: PlayerController(), store: PreviewFixtures.store(), settings: PreviewSettings(),
+        onSelectTimeline: {}
     )
     .frame(width: 640, height: 400)
 }

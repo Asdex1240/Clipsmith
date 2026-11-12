@@ -18,6 +18,7 @@ struct ClipsmithApp: App {
     @State private var isShortcutsPresented = false
     @State private var waveforms = WaveformStore()
     @State private var filmstrips = FilmstripStore()
+    @State private var previewSettings: PreviewSettings
     private let thumbnails = CachedThumbnailGenerator()
 
     init() {
@@ -32,7 +33,9 @@ struct ClipsmithApp: App {
         let runner = EditorShortcutRunner(store: store, player: player)
         shortcutMonitor = KeyboardShortcutMonitor(perform: runner.perform)
         _player = State(initialValue: player)
-        let previewer = TimelinePreviewer(store: store, player: player)
+        let previewSettings = PreviewSettings()
+        _previewSettings = State(initialValue: previewSettings)
+        let previewer = TimelinePreviewer(store: store, player: player, settings: previewSettings)
         _previewer = State(initialValue: previewer)
         _caches = State(
             initialValue: CacheController(
@@ -44,7 +47,7 @@ struct ClipsmithApp: App {
         _highlightPreview = State(
             initialValue: HighlightPreviewController(
                 store: store, player: player, proxies: previewer.proxies,
-                denoise: previewer.denoise))
+                denoise: previewer.denoise, settings: previewSettings))
         _subtitles = State(initialValue: SubtitleController(store: store))
     }
 
@@ -56,7 +59,7 @@ struct ClipsmithApp: App {
                 highlightPreview: highlightPreview, subtitles: subtitles,
                 document: document,
                 documentActions: documentActions, thumbnails: thumbnails, waveforms: waveforms,
-                filmstrips: filmstrips
+                filmstrips: filmstrips, previewSettings: previewSettings
             )
             .frame(minWidth: 1100, minHeight: 700)
             .onAppear {

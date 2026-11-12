@@ -14,19 +14,21 @@ final class HighlightPreviewController {
     @ObservationIgnored private let builder: CompositionBuilding
     @ObservationIgnored private let proxies: ProxyStore?
     @ObservationIgnored private let denoise: DenoiseStore?
+    @ObservationIgnored private let settings: PreviewSettings?
     @ObservationIgnored private let logger = Logger(subsystem: "Clipsmith", category: "highlight")
     @ObservationIgnored private var buildTask: Task<Void, Never>?
 
     init(
         store: ProjectStore, player: PlayerController,
         builder: CompositionBuilding = CompositionBuilder(), proxies: ProxyStore? = nil,
-        denoise: DenoiseStore? = nil
+        denoise: DenoiseStore? = nil, settings: PreviewSettings? = nil
     ) {
         self.store = store
         self.player = player
         self.builder = builder
         self.proxies = proxies
         self.denoise = denoise
+        self.settings = settings
     }
 
     var activeHighlight: Highlight? {
@@ -89,7 +91,10 @@ final class HighlightPreviewController {
         if let denoise { derived = denoise.applying(derived) }
         if let proxies { derived = proxies.substituting(derived) }
         do {
-            let built = try await builder.build(from: derived)
+            let quality = settings?.quality ?? .full
+            let built = try await builder.build(
+                from: derived, renderSize: quality.renderSize(for: derived.canvas),
+                framesPerSecond: CompositionBuilder.previewFramesPerSecond)
             guard !Task.isCancelled, requestedID == highlight.id else { return }
             isBuilding = false
             if built.durationInSeconds > 0 {

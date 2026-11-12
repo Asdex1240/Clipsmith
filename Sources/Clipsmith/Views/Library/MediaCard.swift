@@ -29,6 +29,8 @@ struct MediaCard: View {
         }
         .contentShape(Rectangle())
         .onHover { isHovering = $0 }
+        .motion(value: isHovering)
+        .motion(value: isSelected)
         .task { thumbnail = await thumbnails.thumbnail(for: item) }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(traits)
@@ -75,6 +77,7 @@ struct MediaCard: View {
             Image(systemName: "plus.circle.fill")
                 .font(.title3)
                 .foregroundStyle(Palette.onMedia, Color.accentColor)
+                .minimumHitTarget()
         }
         .buttonStyle(.plain)
         .padding(Design.Spacing.tight)

@@ -5,7 +5,7 @@ struct PlayheadView: View {
     let pointsPerSecond: Double
     let coordinateSpaceName: String
 
-    private static let lineWidth: CGFloat = 1.5
+    private static let lineWidth = Design.Stroke.regular
 
     var body: some View {
         let size = TimelineMetrics.playheadHeadSize

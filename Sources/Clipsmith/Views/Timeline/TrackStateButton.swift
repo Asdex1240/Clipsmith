@@ -13,6 +13,7 @@ struct TrackStateButton: View {
             Image(systemName: symbol)
                 .frame(width: Design.Size.sectionIcon)
                 .foregroundStyle(tint)
+                .minimumHitTarget()
         }
         .buttonStyle(.borderless)
         .controlSize(.small)
@@ -32,7 +33,7 @@ struct TrackStateButton: View {
     }
 
     private var tint: Color {
-        if isActive { return Palette.warning }
+        if isActive { return Palette.warningText }
         return .secondary
     }
 

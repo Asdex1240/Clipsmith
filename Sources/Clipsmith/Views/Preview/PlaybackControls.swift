@@ -44,6 +44,7 @@ struct PlaybackControls: View {
             Image(systemName: playIcon)
                 .font(.title2)
                 .frame(width: Design.Size.playButton)
+                .minimumHitTarget()
         }
         .buttonStyle(.borderless)
         .help("\(playTitle) (\(EditorShortcuts.displayKeys(for: .togglePlayback)))")
@@ -54,7 +55,7 @@ struct PlaybackControls: View {
         _ key: String.LocalizationValue, _ symbol: String, action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            Image(systemName: symbol).frame(width: Design.Size.sectionIcon)
+            Image(systemName: symbol).frame(width: Design.Size.sectionIcon).minimumHitTarget()
         }
         .buttonStyle(.borderless)
         .help(localized(key))

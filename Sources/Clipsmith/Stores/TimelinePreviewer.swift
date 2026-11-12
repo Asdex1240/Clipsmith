@@ -12,6 +12,7 @@ final class TimelinePreviewer {
     private let store: ProjectStore
     private let player: PlayerController
     private let builder: CompositionBuilding
+    private let settings: PreviewSettings?
     let proxies: ProxyStore
     let denoise: DenoiseStore
     private let logger = Logger(subsystem: "Clipsmith", category: "preview")
@@ -23,17 +24,22 @@ final class TimelinePreviewer {
     init(
         store: ProjectStore, player: PlayerController,
         builder: CompositionBuilding = CompositionBuilder(), proxies: ProxyStore? = nil,
-        denoise: DenoiseStore? = nil
+        denoise: DenoiseStore? = nil, settings: PreviewSettings? = nil
     ) {
         self.store = store
         self.player = player
         self.builder = builder
+        self.settings = settings
         let proxies = proxies ?? ProxyStore()
         self.proxies = proxies
         let denoise = denoise ?? DenoiseStore()
         self.denoise = denoise
         proxies.onChange = { [weak self] in self?.proxiesDidChange() }
         denoise.onChange = { [weak self] in self?.proxiesDidChange() }
+    }
+
+    func qualityDidChange() {
+        scheduleFullRebuild(of: store.project)
     }
 
     func cachesWereCleared() {
@@ -116,10 +122,17 @@ final class TimelinePreviewer {
         return copy
     }
 
+    private func renderSize(for project: Project) -> CGSize {
+        let quality = settings?.quality ?? .full
+        return quality.renderSize(for: project.canvas)
+    }
+
     private func rebuild(_ project: Project, mode: RebuildMode) async {
         do {
+            let prepared = proxies.substituting(denoise.applying(project))
             let built = try await builder.build(
-                from: proxies.substituting(denoise.applying(project)))
+                from: prepared, renderSize: renderSize(for: prepared),
+                framesPerSecond: CompositionBuilder.previewFramesPerSecond)
             guard !Task.isCancelled else { return }
             lastBuiltStructure = Self.withoutText(project)
             if built.durationInSeconds > 0 {

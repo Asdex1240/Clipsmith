@@ -61,6 +61,7 @@ struct HighlightRow: View {
         } label: {
             Image(systemName: "play.rectangle")
                 .foregroundStyle(previewTint)
+                .minimumHitTarget()
         }
         .buttonStyle(.borderless)
         .help(previewLabel)
@@ -89,7 +90,7 @@ struct HighlightRow: View {
         Button {
             store.movePlayhead(to: highlight.startInSeconds)
         } label: {
-            Image(systemName: "arrow.right.to.line")
+            Image(systemName: "arrow.right.to.line").minimumHitTarget()
         }
         .buttonStyle(.borderless)
         .help(localized("highlight.goTo"))
@@ -100,7 +101,7 @@ struct HighlightRow: View {
         Button {
             store.removeHighlight(highlight.id)
         } label: {
-            Image(systemName: "trash")
+            Image(systemName: "trash").minimumHitTarget()
         }
         .buttonStyle(.borderless)
         .help(localized("highlight.delete"))

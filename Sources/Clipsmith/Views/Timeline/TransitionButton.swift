@@ -60,7 +60,7 @@ struct TransitionButton: View {
             }
         } label: {
             Image(systemName: iconName)
-                .font(.system(size: 9, weight: .bold))
+                .font(.system(size: Design.IconSize.badge, weight: .bold))
                 .foregroundStyle(iconColor)
                 .frame(width: Self.size, height: Self.size)
                 .background(Circle().fill(badgeColor))

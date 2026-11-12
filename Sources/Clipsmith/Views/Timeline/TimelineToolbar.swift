@@ -111,7 +111,7 @@ struct TimelineToolbar: View {
         shortcut: EditorAction,
         action: @escaping () -> Void
     ) -> some View {
-        Button(action: action) { Image(systemName: systemImage) }
+        Button(action: action) { Image(systemName: systemImage).minimumHitTarget() }
             .accessibilityLabel(localized(key))
             .help("\(localized(key)) (\(EditorShortcuts.displayKeys(for: shortcut)))")
     }

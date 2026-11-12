@@ -37,11 +37,12 @@ struct PresetGrid<Item: Hashable>: View {
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: Design.Radius.medium)
-                        .stroke(border(selected: selected), lineWidth: 1)
+                        .stroke(border(selected: selected), lineWidth: Design.Stroke.hairline)
                 )
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .motion(value: selected)
         .accessibilityAddTraits(traits(selected: selected))
     }
 

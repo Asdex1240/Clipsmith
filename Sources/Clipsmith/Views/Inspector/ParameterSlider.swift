@@ -8,8 +8,10 @@ struct ParameterSlider: View {
     var defaultValue: Double?
 
     private static let defaultTolerance = 1e-6
+    private static let scrubStartDistance: CGFloat = 3
 
     @State private var isEditing = false
+    @State private var scrubStart: Double?
     @FocusState private var isFocused: Bool
 
     var body: some View {
@@ -36,6 +38,7 @@ struct ParameterSlider: View {
                 .foregroundStyle(.secondary)
                 .contentShape(Rectangle())
                 .onTapGesture { beginEditing() }
+                .gesture(scrubGesture)
                 .help(localized("inspector.value.edit"))
                 .accessibilityLabel(title)
                 .accessibilityValue(unit.text(for: value))
@@ -65,6 +68,23 @@ struct ParameterSlider: View {
         }
     }
 
+    private var scrubSpeed: ScrubSpeed {
+        if NSEvent.modifierFlags.contains(.option) { return .fine }
+        return .normal
+    }
+
+    private var scrubGesture: some Gesture {
+        DragGesture(minimumDistance: Self.scrubStartDistance)
+            .onChanged { drag in
+                let start = scrubStart ?? value
+                scrubStart = start
+                value = ValueScrubber.value(
+                    startingAt: start, dragging: drag.translation.width, in: range,
+                    speed: scrubSpeed)
+            }
+            .onEnded { _ in scrubStart = nil }
+    }
+
     private func beginEditing() {
         isEditing = true
         isFocused = true
@@ -75,7 +95,7 @@ struct ParameterSlider: View {
             guard let defaultValue else { return }
             value = defaultValue
         } label: {
-            Image(systemName: "arrow.counterclockwise")
+            Image(systemName: "arrow.counterclockwise").minimumHitTarget()
         }
         .buttonStyle(.borderless)
         .opacity(resetOpacity)

@@ -3,8 +3,8 @@ import SwiftUI
 struct GuidesOverlay: View {
     let renderSize: CGSize?
 
-    private static let lineWidth: CGFloat = 1
-    private static let dash: [CGFloat] = [4, 4]
+    private static let lineWidth = Design.Stroke.hairline
+    private static let dash = Design.Stroke.dash
 
     var body: some View {
         GeometryReader { proxy in
