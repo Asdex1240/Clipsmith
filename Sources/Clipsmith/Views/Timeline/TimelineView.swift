@@ -85,34 +85,16 @@ struct TimelineView: View {
                 lane(for: track, at: index, width: contentWidth)
             }
         }
-        .overlay(alignment: .topLeading) { playhead }
+        .overlay(alignment: .topLeading) {
+            PlayheadView(
+                store: store, pointsPerSecond: pointsPerSecond,
+                coordinateSpaceName: Self.contentSpace
+            )
+        }
         .coordinateSpace(name: Self.contentSpace)
     }
 
     private static let contentSpace = "timelineContent"
-
-    private var playhead: some View {
-        let size = TimelineMetrics.playheadHeadSize
-        return ZStack(alignment: .top) {
-            Rectangle()
-                .fill(Palette.playhead)
-                .frame(width: 1.5)
-                .shadow(color: Palette.playhead.opacity(Design.Opacity.handle), radius: 2)
-                .allowsHitTesting(false)
-            PlayheadHandle()
-                .fill(Palette.playhead)
-                .frame(width: size.width, height: size.height)
-                .contentShape(Rectangle())
-                .gesture(
-                    DragGesture(minimumDistance: 0, coordinateSpace: .named(Self.contentSpace))
-                        .onChanged { value in
-                            store.setPlayhead(near: value.location.x / pointsPerSecond)
-                        }
-                )
-        }
-        .frame(width: size.width)
-        .offset(x: store.playheadInSeconds * pointsPerSecond - size.width / 2 + 0.75)
-    }
 
     private func lane(for track: Track, at index: Int, width: CGFloat) -> some View {
         ZStack(alignment: .topLeading) {

@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct VisualInspector: View {
+struct VisualInspector: View, Equatable {
     let store: ProjectStore
     let clip: Clip
 
@@ -20,6 +20,15 @@ struct VisualInspector: View {
     private static let neutralScale = 1.0
     private static let neutralRotation = 0.0
     private static let fullOpacity = 1.0
+
+    static func == (lhs: VisualInspector, rhs: VisualInspector) -> Bool {
+        lhs.store === rhs.store && lhs.clip.id == rhs.clip.id
+            && lhs.clip.fitMode == rhs.clip.fitMode && lhs.clip.offsetX == rhs.clip.offsetX
+            && lhs.clip.offsetY == rhs.clip.offsetY && lhs.clip.scale == rhs.clip.scale
+            && lhs.clip.rotationInDegrees == rhs.clip.rotationInDegrees
+            && lhs.clip.opacity == rhs.clip.opacity && lhs.clip.keyframes == rhs.clip.keyframes
+            && lhs.clip.startInSeconds == rhs.clip.startInSeconds
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Design.Spacing.comfortable) {
@@ -58,11 +67,6 @@ struct VisualInspector: View {
             && !clip.isAnimated
     }
 
-    private var playheadIsInsideClip: Bool {
-        store.playheadInSeconds >= clip.startInSeconds
-            && store.playheadInSeconds <= clip.endInSeconds
-    }
-
     private var keyframesSection: some View {
         InspectorSection(.keyframes) {
             Text(localized(keyframesHintKey))
@@ -96,10 +100,7 @@ struct VisualInspector: View {
                 }
             }
             HStack {
-                Button(localized("inspector.keyframes.add")) {
-                    store.addKeyframeAtPlayhead(to: clip.id)
-                }
-                .disabled(!playheadIsInsideClip)
+                AddKeyframeButton(store: store, clip: clip)
                 if clip.isAnimated {
                     Button(localized("inspector.keyframes.clear")) {
                         store.clearKeyframes(of: clip.id)

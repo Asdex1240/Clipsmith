@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-struct TextInspector: View {
+struct TextInspector: View, Equatable {
     private static let defaultBackgroundColor = RGBAColor(red: 0, green: 0, blue: 0, alpha: 0.65)
     let store: ProjectStore
     let clip: Clip
@@ -22,6 +22,11 @@ struct TextInspector: View {
 
     private var layer: TextLayer {
         clip.textLayer ?? TextLayer(content: "")
+    }
+
+    static func == (lhs: TextInspector, rhs: TextInspector) -> Bool {
+        lhs.store === rhs.store && lhs.clip.id == rhs.clip.id
+            && lhs.clip.textLayer == rhs.clip.textLayer
     }
 
     var body: some View {

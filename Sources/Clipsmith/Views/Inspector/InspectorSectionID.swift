@@ -8,6 +8,13 @@ enum InspectorSectionID: String, CaseIterable {
         "inspector.section.\(rawValue)"
     }
 
+    var isExpandedByDefault: Bool {
+        switch self {
+        case .framing, .color, .text, .speed, .audio: return true
+        case .keyframes, .crop, .textStyle, .textAnimation, .silences, .subtitles: return false
+        }
+    }
+
     var titleKey: String {
         switch self {
         case .framing: return "inspector.visual.section"
