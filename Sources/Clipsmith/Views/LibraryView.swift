@@ -101,7 +101,11 @@ struct LibraryView: View {
     @ViewBuilder
     private var content: some View {
         if library.items.isEmpty {
-            LibraryEmptyState { isImporterPresented = true }
+            EmptyStateView(
+                systemImage: "square.and.arrow.down.on.square",
+                message: localized("library.empty"),
+                actionTitle: localized("library.import"),
+                action: { isImporterPresented = true })
         } else if visibleItems.isEmpty {
             noResults
         } else {

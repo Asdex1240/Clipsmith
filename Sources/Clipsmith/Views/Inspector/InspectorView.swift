@@ -61,13 +61,8 @@ struct InspectorView: View {
                 .padding(Design.Spacing.comfortable)
             }
         } else {
-            ZStack {
-                Rectangle().fill(.background.secondary)
-                Text(localized("inspector.empty"))
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding()
-            }
+            EmptyStateView(
+                systemImage: "slider.horizontal.3", message: localized("inspector.empty"))
         }
     }
 

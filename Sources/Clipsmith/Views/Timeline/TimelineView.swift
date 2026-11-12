@@ -29,6 +29,17 @@ struct TimelineView: View {
             }
         }
         .background(CommandScrollZoomMonitor { store.zoom(byScrollDelta: $0) })
+        .overlay { emptyHint }
+    }
+
+    @ViewBuilder
+    private var emptyHint: some View {
+        if store.project.allClipIDs.isEmpty {
+            Label(localized("timeline.empty"), systemImage: "arrow.down.to.line")
+                .foregroundStyle(.secondary)
+                .padding(Design.Spacing.comfortable)
+                .allowsHitTesting(false)
+        }
     }
 
     private var contentHeight: CGFloat {

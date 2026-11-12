@@ -339,3 +339,6 @@
 "preview.scrub" = "Posición";
 "preview.guides" = "Guías";
 "preview.guides.help" = "Muestra las zonas seguras y el centro de la imagen";
+"shortcuts.section.editing" = "Edición";
+"shortcuts.section.window" = "Ventana y proyecto";
+"timeline.empty" = "Arrastra medios aquí, o haz doble clic en la biblioteca";

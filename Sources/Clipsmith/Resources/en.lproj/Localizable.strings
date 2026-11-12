@@ -339,3 +339,6 @@
 "preview.scrub" = "Position";
 "preview.guides" = "Guides";
 "preview.guides.help" = "Shows the safe areas and the center of the picture";
+"shortcuts.section.editing" = "Editing";
+"shortcuts.section.window" = "Window and project";
+"timeline.empty" = "Drag media here, or double-click it in the library";

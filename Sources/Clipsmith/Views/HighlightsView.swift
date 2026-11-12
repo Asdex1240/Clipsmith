@@ -14,9 +14,11 @@ struct HighlightsView: View {
                 suggestCard
                 exportCard
                 if store.project.highlights.isEmpty {
-                    Text(localized("highlight.empty"))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    EmptyStateView(
+                        systemImage: "sparkles.rectangle.stack",
+                        message: localized("highlight.empty")
+                    )
+                    .frame(minHeight: Design.Size.emptyStateMinimumHeight)
                 } else {
                     ForEach(store.project.highlights) { highlight in
                         HighlightRow(

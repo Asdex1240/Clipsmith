@@ -130,7 +130,7 @@ struct PreviewView: View {
             )
             .background(.black)
         } else {
-            emptyState(localized("highlight.preview.empty"))
+            emptyState("rectangle.portrait", localized("highlight.preview.empty"))
         }
     }
 
@@ -151,7 +151,7 @@ struct PreviewView: View {
                 )
             }
         } else {
-            emptyState(localized("preview.timelineEmpty"))
+            emptyState("film.stack", localized("preview.timelineEmpty"))
         }
     }
 
@@ -170,15 +170,13 @@ struct PreviewView: View {
                 PlayerSurface(player: controller.player).background(.black)
             }
         } else {
-            emptyState(localized("preview.empty"))
+            emptyState("play.rectangle", localized("preview.empty"))
         }
     }
 
-    private func emptyState(_ message: String) -> some View {
-        ZStack {
-            Rectangle().fill(.background.secondary)
-            Text(message).foregroundStyle(.secondary)
-        }
+    private func emptyState(_ symbol: String, _ message: String) -> some View {
+        EmptyStateView(systemImage: symbol, message: message)
+            .background(.background.secondary)
     }
 }
 
