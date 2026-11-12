@@ -336,3 +336,6 @@
 "library.sort" = "Sort";
 "toolbar.sidebar" = "Show or hide the library";
 "toolbar.inspector" = "Show or hide the inspector";
+"preview.scrub" = "Position";
+"preview.guides" = "Guides";
+"preview.guides.help" = "Shows the safe areas and the center of the picture";

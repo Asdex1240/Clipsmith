@@ -26,6 +26,7 @@ final class PlayerController {
     private(set) var hasHighlight = false
     private(set) var highlightOverlay: TextOverlay?
     private(set) var highlightTimeInSeconds: TimeInterval = 0
+    private(set) var sourceTimeInSeconds: TimeInterval = 0
     private(set) var highlightDurationInSeconds: TimeInterval = 0
     @ObservationIgnored private var timeline: BuiltComposition?
     @ObservationIgnored private var highlight: BuiltComposition?
@@ -48,6 +49,7 @@ final class PlayerController {
     func showSource(_ item: MediaItem) {
         mode = .source
         sourceItem = item
+        sourceTimeInSeconds = 0
         player.pause()
         if sourceIsStillImage {
             player.replaceCurrentItem(with: nil)
@@ -155,7 +157,18 @@ final class PlayerController {
             guard isPlaying else { return }
             onTimelineTimeChange?(time.seconds)
         case .source:
-            return
+            sourceTimeInSeconds = time.seconds
+        }
+    }
+
+    func seek(to seconds: TimeInterval) {
+        guard mode != .timeline else { return }
+        let target = max(seconds, 0)
+        player.seek(to: target.cmTime, toleranceBefore: .zero, toleranceAfter: .zero)
+        switch mode {
+        case .highlight: highlightTimeInSeconds = target
+        case .source: sourceTimeInSeconds = target
+        case .timeline: return
         }
     }
 }

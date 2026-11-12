@@ -336,3 +336,6 @@
 "library.sort" = "Ordenar";
 "toolbar.sidebar" = "Mostrar u ocultar la biblioteca";
 "toolbar.inspector" = "Mostrar u ocultar el inspector";
+"preview.scrub" = "Posición";
+"preview.guides" = "Guías";
+"preview.guides.help" = "Muestra las zonas seguras y el centro de la imagen";
