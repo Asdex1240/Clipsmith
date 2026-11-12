@@ -165,3 +165,81 @@ private final class StubFilmstripGenerator: FilmstripGenerating, @unchecked Send
         return Filmstrip(frames: [image], durationInSeconds: 1)
     }
 }
+
+final class ImageFilmstripGeneratorTests: XCTestCase {
+    private var directory: URL!
+
+    override func setUpWithError() throws {
+        directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "image-strip-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    }
+
+    override func tearDownWithError() throws {
+        try? FileManager.default.removeItem(at: directory)
+    }
+
+    private func makePNG(width: Int, height: Int) throws -> URL {
+        let bitmap = try XCTUnwrap(
+            NSBitmapImageRep(
+                bitmapDataPlanes: nil, pixelsWide: width, pixelsHigh: height, bitsPerSample: 8,
+                samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0))
+        let url = directory.appendingPathComponent("photo-\(width)x\(height).png")
+        try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: url)
+        return url
+    }
+
+    func testAPhotoBecomesASingleDownscaledFrame() async throws {
+        let url = try makePNG(width: 4000, height: 3000)
+
+        let generated = await ImageFilmstripGenerator().filmstrip(for: url)
+        let strip = try XCTUnwrap(generated)
+
+        XCTAssertEqual(strip.frames.count, 1)
+        XCTAssertLessThanOrEqual(
+            CGFloat(try XCTUnwrap(strip.frames.first).width),
+            AVFilmstripGenerator.frameHeightInPixels * 4)
+        XCTAssertEqual(strip.durationInSeconds, ImageFilmstripGenerator.durationInSeconds)
+    }
+
+    func testAnyTimeOnAnImageMapsToItsOnlyFrame() async throws {
+        let url = try makePNG(width: 64, height: 36)
+        let generated = await ImageFilmstripGenerator().filmstrip(for: url)
+        let strip = try XCTUnwrap(generated)
+
+        XCTAssertNotNil(strip.frame(atSourceTime: 0))
+        XCTAssertNotNil(strip.frame(atSourceTime: 99))
+    }
+
+    func testAMissingImageGivesNoFilmstrip() async {
+        let strip = await ImageFilmstripGenerator().filmstrip(
+            for: directory.appendingPathComponent("none.png"))
+
+        XCTAssertNil(strip)
+    }
+
+    func testTheMediaGeneratorSendsImagesAndVideosToTheRightOne() async throws {
+        let image = SpyGenerator()
+        let video = SpyGenerator()
+        let generator = MediaFilmstripGenerator(video: video, image: image)
+
+        _ = await generator.filmstrip(for: URL(fileURLWithPath: "/tmp/a.png"))
+        _ = await generator.filmstrip(for: URL(fileURLWithPath: "/tmp/b.mov"))
+
+        XCTAssertEqual(image.requested.map(\.lastPathComponent), ["a.png"])
+        XCTAssertEqual(video.requested.map(\.lastPathComponent), ["b.mov"])
+    }
+}
+
+private final class SpyGenerator: FilmstripGenerating, @unchecked Sendable {
+    private let lock = NSLock()
+    private var urls: [URL] = []
+
+    var requested: [URL] { lock.withLock { urls } }
+
+    func filmstrip(for url: URL) async -> Filmstrip? {
+        lock.withLock { urls.append(url) }
+        return nil
+    }
+}

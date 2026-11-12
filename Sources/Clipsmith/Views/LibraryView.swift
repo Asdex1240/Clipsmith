@@ -165,7 +165,8 @@ struct LibraryView: View {
             RoundedRectangle(cornerRadius: Design.Radius.large)
                 .strokeBorder(
                     Color.accentColor,
-                    style: StrokeStyle(lineWidth: 2, dash: [Design.Spacing.regular])
+                    style: StrokeStyle(
+                        lineWidth: Design.Stroke.emphasized, dash: Design.Stroke.dash)
                 )
                 .padding(Design.Spacing.tight)
                 .allowsHitTesting(false)

@@ -73,7 +73,7 @@ struct ClipBlockView: View {
         .overlay(alignment: .topTrailing) {
             if clip.groupID != nil {
                 Image(systemName: "link")
-                    .font(.system(size: 9, weight: .bold))
+                    .font(.system(size: Design.IconSize.badge, weight: .bold))
                     .padding(3)
                     .allowsHitTesting(false)
             }
@@ -127,7 +127,7 @@ struct ClipBlockView: View {
         ZStack(alignment: .bottomLeading) {
             ForEach(clip.keyframes) { frame in
                 Image(systemName: "diamond.fill")
-                    .font(.system(size: 7))
+                    .font(.system(size: Design.IconSize.keyframeMark))
                     .foregroundStyle(Palette.keyframe)
                     .offset(x: frame.timeInSeconds * pointsPerSecond - 3.5, y: -2)
             }

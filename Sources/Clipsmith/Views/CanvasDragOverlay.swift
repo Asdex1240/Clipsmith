@@ -14,7 +14,7 @@ struct CanvasDragOverlay: View {
     private static let magnetDistance = 10.0
     private static let guideColor = Palette.guideEdge
     private static let centerGuideColor = Palette.guideCenter
-    private static let guideWidth = 2.0
+    private static let guideWidth = Design.Stroke.emphasized
     private static let textRange = -0.25...1.25
     private static let offsetRange = -1.0...1.0
     private static let fontSizeRange = 20.0...240.0
@@ -122,7 +122,7 @@ struct CanvasDragOverlay: View {
             .overlay {
                 Rectangle().strokeBorder(
                     Color.accentColor.opacity(outlineOpacity(of: target)),
-                    style: StrokeStyle(lineWidth: 1, dash: [4, 3])
+                    style: StrokeStyle(lineWidth: Design.Stroke.hairline, dash: Design.Stroke.dash)
                 )
             }
             .frame(
@@ -151,7 +151,7 @@ struct CanvasDragOverlay: View {
                 path.move(to: rotated(0, -halfHeight))
                 path.addLine(to: knob)
             }
-            .stroke(Color.accentColor, lineWidth: 1)
+            .stroke(Color.accentColor, lineWidth: Design.Stroke.hairline)
             ForEach(corners.indices, id: \.self) { index in
                 let corner = corners[index]
                 cornerHandle(at: rotated(corner.0 * halfWidth, corner.1 * halfHeight))
@@ -165,7 +165,7 @@ struct CanvasDragOverlay: View {
     private func cornerHandle(at point: CGPoint) -> some View {
         Rectangle()
             .fill(.white)
-            .overlay(Rectangle().stroke(Color.accentColor, lineWidth: 1.5))
+            .overlay(Rectangle().stroke(Color.accentColor, lineWidth: Design.Stroke.regular))
             .frame(width: Self.cornerSize, height: Self.cornerSize)
             .position(point)
     }
@@ -173,7 +173,7 @@ struct CanvasDragOverlay: View {
     private func rotationHandle(at point: CGPoint) -> some View {
         Circle()
             .fill(.white)
-            .overlay(Circle().stroke(Color.accentColor, lineWidth: 1.5))
+            .overlay(Circle().stroke(Color.accentColor, lineWidth: Design.Stroke.regular))
             .frame(width: Self.rotationKnob, height: Self.rotationKnob)
             .position(point)
     }

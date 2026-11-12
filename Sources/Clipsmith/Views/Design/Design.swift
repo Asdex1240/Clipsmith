@@ -44,6 +44,13 @@ enum Design {
         static let selectedChipFill = 0.25
     }
 
+    enum Stroke {
+        static let hairline: CGFloat = 1
+        static let regular: CGFloat = 1.5
+        static let emphasized: CGFloat = 2
+        static let dash: [CGFloat] = [4, 3]
+    }
+
     enum IconSize {
         static let emptyState: CGFloat = 36
         static let badge: CGFloat = 9

@@ -182,7 +182,10 @@ struct TimelineView: View {
     private func dropOutline(on track: Track) -> some View {
         if let dropPreview, dropPreview.trackID == track.id {
             Rectangle()
-                .strokeBorder(dropPreview.tint.opacity(0.6), lineWidth: 1.5)
+                .strokeBorder(
+                    dropPreview.tint.opacity(Design.Opacity.outline),
+                    lineWidth: Design.Stroke.regular
+                )
                 .allowsHitTesting(false)
         }
     }
@@ -197,13 +200,17 @@ struct TimelineView: View {
         return waveforms.peaksByURL[url]
     }
 
+    private func hasFilmstrip(_ clip: Clip) -> Bool {
+        clip.mediaKind == .video || clip.mediaKind == .image
+    }
+
     private func filmstrip(for clip: Clip) -> Filmstrip? {
-        guard clip.mediaKind == .video, let url = clip.sourceURL else { return nil }
+        guard hasFilmstrip(clip), let url = clip.sourceURL else { return nil }
         return filmstrips.stripsByURL[url]
     }
 
     private func loadFilmstrip(for clip: Clip) async {
-        guard clip.mediaKind == .video, let url = clip.sourceURL else { return }
+        guard hasFilmstrip(clip), let url = clip.sourceURL else { return }
         await filmstrips.load(url)
     }
 

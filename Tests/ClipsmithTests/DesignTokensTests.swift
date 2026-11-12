@@ -43,4 +43,16 @@ final class DesignTokensTests: XCTestCase {
 
         XCTAssertFalse(kinds.contains { Palette.clipFill(for: $0) == Palette.missingClipFill })
     }
+
+    func testStrokeWidthsGrowAndKeepADashPattern() {
+        XCTAssertLessThan(Design.Stroke.hairline, Design.Stroke.regular)
+        XCTAssertLessThan(Design.Stroke.regular, Design.Stroke.emphasized)
+        XCTAssertEqual(Design.Stroke.dash.count, 2)
+    }
+
+    func testIconSizesArePositive() {
+        XCTAssertGreaterThan(Design.IconSize.keyframeMark, 0)
+        XCTAssertGreaterThan(Design.IconSize.badge, Design.IconSize.keyframeMark)
+        XCTAssertGreaterThan(Design.IconSize.emptyState, Design.IconSize.badge)
+    }
 }

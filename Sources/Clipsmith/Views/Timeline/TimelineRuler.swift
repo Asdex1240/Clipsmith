@@ -51,7 +51,7 @@ struct TimelineRuler: View {
         var path = Path()
         path.move(to: CGPoint(x: x, y: height - length))
         path.addLine(to: CGPoint(x: x, y: height))
-        context.stroke(path, with: .color(.secondary), lineWidth: 1)
+        context.stroke(path, with: .color(.secondary), lineWidth: Design.Stroke.hairline)
     }
 }
 

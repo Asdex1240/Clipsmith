@@ -8,7 +8,7 @@ final class FilmstripStore {
     @ObservationIgnored private var loading: Set<URL> = []
     @ObservationIgnored private let generator: FilmstripGenerating
 
-    init(generator: FilmstripGenerating = AVFilmstripGenerator()) {
+    init(generator: FilmstripGenerating = MediaFilmstripGenerator()) {
         self.generator = generator
     }
 
