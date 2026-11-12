@@ -1,13 +1,5 @@
 import SwiftUI
 
-struct PreviewProjectStorage: ProjectStoring {
-    func write(project: Project, library: [MediaItem], to url: URL) throws {}
-
-    func read(from url: URL) throws -> LoadedProject {
-        throw CocoaError(.fileReadUnknown)
-    }
-}
-
 @MainActor
 enum PreviewFixtures {
     private static let sampleVideoURL = URL(fileURLWithPath: "/tmp/sample.mov")

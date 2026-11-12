@@ -70,6 +70,11 @@ struct SilenceInspector: View {
         ranges.reduce(0) { $0 + ($1.upperBound - $1.lowerBound) }
     }
 
+    private var rippleScope: RippleScope {
+        if syncsAllTracks { return .allTracks }
+        return .ownTracks
+    }
+
     private func find() {
         guard let url = clip.sourceURL else { return }
         isSearching = true
@@ -86,7 +91,15 @@ struct SilenceInspector: View {
 
     private func remove() {
         guard let proposals else { return }
-        store.removeSilences(proposals, from: clip.id, syncingAllTracks: syncsAllTracks)
+        store.removeSilences(proposals, from: clip.id, scope: rippleScope)
         self.proposals = nil
     }
+}
+
+#Preview {
+    SilenceInspector(
+        store: PreviewFixtures.store(), waveforms: WaveformStore(), clip: PreviewFixtures.videoClip
+    )
+    .padding()
+    .frame(width: 280)
 }

@@ -10,6 +10,11 @@ struct SubtitleInspector: View {
     @AppStorage("subtitleHighlightWord") private var highlightsSpokenWord = false
     private let locales = SpeechTranscriber.supportedLocales
 
+    private var wordHighlighting: SpokenWordHighlighting {
+        if highlightsSpokenWord { return .on }
+        return .off
+    }
+
     var body: some View {
         InspectorSection(.subtitles) {
             Picker(localized("inspector.subtitles.language"), selection: selectedIdentifier) {
@@ -39,7 +44,7 @@ struct SubtitleInspector: View {
                         locale: Locale(identifier: selectedIdentifier.wrappedValue),
                         style: TextStylePreset(rawValue: styleName) ?? .classic,
                         animation: .both(TextAnimationKind(rawValue: animationName) ?? .none),
-                        highlightsSpokenWord: highlightsSpokenWord
+                        wordHighlighting: wordHighlighting
                     )
                 }
                 .disabled(subtitles.isWorking || locales.isEmpty)

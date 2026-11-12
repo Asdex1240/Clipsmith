@@ -20,30 +20,18 @@ struct AVProxyGenerator: ProxyGenerating {
                 asset: asset, presetName: AVAssetExportPreset1280x720)
         else { throw ProxyError.cannotCreateSession }
         let partial = destination.appendingPathExtension("partial")
-        try? FileManager.default.removeItem(at: partial)
+        FileManager.default.discardItemIgnoringFailure(at: partial)
         try FileManager.default.createDirectory(
             at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
         session.outputURL = partial
         session.outputFileType = .mov
-        nonisolated(unsafe) let shared = session
-        await withTaskCancellationHandler {
-            await withCheckedContinuation { continuation in
-                shared.exportAsynchronously { continuation.resume() }
-            }
-        } onCancel: {
-            shared.cancelExport()
-        }
+        await session.exportUntilFinishedOrCancelled()
         try Task.checkCancellation()
         guard session.status == .completed else {
-            try? FileManager.default.removeItem(at: partial)
+            FileManager.default.discardItemIgnoringFailure(at: partial)
             throw ProxyError.exportFailed(session.error?.localizedDescription ?? "")
         }
-        try? FileManager.default.removeItem(at: destination)
+        FileManager.default.discardItemIgnoringFailure(at: destination)
         try FileManager.default.moveItem(at: partial, to: destination)
     }
-}
-
-enum ProxyError: Error, Equatable {
-    case cannotCreateSession
-    case exportFailed(String)
 }

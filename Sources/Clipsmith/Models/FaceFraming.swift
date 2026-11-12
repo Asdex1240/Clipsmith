@@ -1,8 +1,9 @@
 import Foundation
 
 enum FaceFraming {
-    static func offsetX(faceCenters: [Double], sourceAspect: Double, canvasAspect: Double) -> Double?
-    {
+    static func offsetX(
+        faceCenters: [Double], sourceAspect: Double, canvasAspect: Double
+    ) -> Double? {
         guard !faceCenters.isEmpty, sourceAspect > 0, canvasAspect > 0 else { return nil }
         let ratio = sourceAspect / canvasAspect
         guard ratio > 1 else { return 0 }

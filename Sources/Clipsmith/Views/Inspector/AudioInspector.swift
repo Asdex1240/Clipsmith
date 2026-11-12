@@ -13,6 +13,11 @@ struct AudioInspector: View {
     private static let defaultVolume = 1.0
     private static let noFade = 0.0
 
+    private func duckingSummary(count: Int) -> String {
+        guard count > 0 else { return localized("inspector.ducking.noSpeech") }
+        return String(format: localized("inspector.ducking.done"), count)
+    }
+
     var body: some View {
         InspectorSection(.audio) {
             ParameterSlider(
@@ -130,7 +135,8 @@ struct AudioInspector: View {
             let peaks = waveforms.peaksByURL[url] ?? []
             if let volume = store.normalizeVolume(of: clip.id, peaks: peaks) {
                 normalizeMessage = String(
-                    format: localized("inspector.audio.normalize.done"), Int((volume * 100).rounded()))
+                    format: localized("inspector.audio.normalize.done"),
+                    Int((volume * 100).rounded()))
             } else {
                 normalizeMessage = localized("inspector.audio.normalize.none")
             }
@@ -139,10 +145,11 @@ struct AudioInspector: View {
     }
 
     private func duck() {
-        let voices = store.project.track(withRole: .main)?.clips.filter {
-            ($0.mediaKind == .video || $0.mediaKind == .audio) && !$0.isAudioDetached
-                && $0.sourceURL != nil
-        } ?? []
+        let voices =
+            store.project.track(withRole: .main)?.clips.filter {
+                ($0.mediaKind == .video || $0.mediaKind == .audio) && !$0.isAudioDetached
+                    && $0.sourceURL != nil
+            } ?? []
         guard !voices.isEmpty else {
             duckingMessage = localized("inspector.ducking.noSpeech")
             return
@@ -157,10 +164,7 @@ struct AudioInspector: View {
             }
             let ranges = DuckingPlanner.timelineRanges(voices: withPeaks)
             let count = store.applyDucking(to: clip.id, under: ranges, level: duckingLevel)
-            duckingMessage =
-                count == 0
-                ? localized("inspector.ducking.noSpeech")
-                : String(format: localized("inspector.ducking.done"), count)
+            duckingMessage = duckingSummary(count: count)
             isWorking = false
         }
     }
@@ -187,6 +191,7 @@ struct AudioInspector: View {
 #Preview {
     AudioInspector(
         store: PreviewFixtures.store(), waveforms: WaveformStore(), denoise: DenoiseStore(),
-        clip: PreviewFixtures.videoClip)
-        .padding()
+        clip: PreviewFixtures.videoClip
+    )
+    .padding()
 }

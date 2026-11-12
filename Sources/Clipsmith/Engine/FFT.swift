@@ -39,36 +39,54 @@ final class FFT {
         let count = size
         real.withUnsafeMutableBufferPointer { re in
             imaginary.withUnsafeMutableBufferPointer { im in
-                for index in 0..<count {
-                    let other = bitReversed[index]
-                    if other > index {
-                        re.swapAt(index, other)
-                        im.swapAt(index, other)
-                    }
-                }
-                var length = 2
-                while length <= count {
-                    let half = length / 2
-                    let step = count / length
-                    var start = 0
-                    while start < count {
-                        for k in 0..<half {
-                            let wr = cosTable[k * step]
-                            let wi = -sinTable[k * step]
-                            let a = start + k
-                            let b = a + half
-                            let tr = re[b] * wr - im[b] * wi
-                            let ti = re[b] * wi + im[b] * wr
-                            re[b] = re[a] - tr
-                            im[b] = im[a] - ti
-                            re[a] += tr
-                            im[a] += ti
-                        }
-                        start += length
-                    }
-                    length <<= 1
-                }
+                permuteBitReversed(re, im, count: count)
+                combineButterflies(re, im, count: count)
             }
         }
+    }
+
+    private func permuteBitReversed(
+        _ re: UnsafeMutableBufferPointer<Float>, _ im: UnsafeMutableBufferPointer<Float>, count: Int
+    ) {
+        for index in 0..<count {
+            let other = bitReversed[index]
+            if other > index {
+                re.swapAt(index, other)
+                im.swapAt(index, other)
+            }
+        }
+    }
+
+    private func combineButterflies(
+        _ re: UnsafeMutableBufferPointer<Float>, _ im: UnsafeMutableBufferPointer<Float>, count: Int
+    ) {
+        var length = 2
+        while length <= count {
+            let half = length / 2
+            let step = count / length
+            var start = 0
+            while start < count {
+                for k in 0..<half {
+                    butterfly(re, im, at: start + k, half: half, twiddle: k * step)
+                }
+                start += length
+            }
+            length <<= 1
+        }
+    }
+
+    private func butterfly(
+        _ re: UnsafeMutableBufferPointer<Float>, _ im: UnsafeMutableBufferPointer<Float>,
+        at a: Int, half: Int, twiddle: Int
+    ) {
+        let wr = cosTable[twiddle]
+        let wi = -sinTable[twiddle]
+        let b = a + half
+        let tr = re[b] * wr - im[b] * wi
+        let ti = re[b] * wi + im[b] * wr
+        re[b] = re[a] - tr
+        im[b] = im[a] - ti
+        re[a] += tr
+        im[a] += ti
     }
 }

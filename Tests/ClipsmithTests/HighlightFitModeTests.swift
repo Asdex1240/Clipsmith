@@ -58,7 +58,7 @@ final class HighlightFitModeTests: XCTestCase {
         project.setHighlightFitMode(id, to: .blur)
         let clipID = project.track(withRole: .main)!.clips[0].id
 
-        project.removeRanges([10..<12], from: clipID, syncingAllTracks: true)
+        project.removeRanges([10..<12], from: clipID, scope: .allTracks)
 
         XCTAssertEqual(project.highlight(withID: id)?.fitMode, .blur)
     }

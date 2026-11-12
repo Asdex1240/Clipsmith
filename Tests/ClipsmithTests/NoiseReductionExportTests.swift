@@ -30,7 +30,7 @@ final class NoiseReductionExportTests: XCTestCase {
         let data = try XCTUnwrap(buffer.floatChannelData)[0]
         for index in 0..<frames {
             let time = Double(index) / rate
-            let tone = Int(time / 0.7) % 2 == 0 ? Float(0.3 * sin(2 * .pi * 1000 * time)) : 0
+            let tone = TestSignals.toneBurst(at: time)
             data[index] = tone + Float.random(in: -0.05...0.05)
         }
         try AVAudioFile(forWriting: url, settings: format.settings).write(from: buffer)
@@ -62,7 +62,8 @@ final class NoiseReductionExportTests: XCTestCase {
         audio.noiseReduction = level
         project.addClip(audio, toTrack: project.track(withRole: .audio)!.id)
         let builder = CompositionBuilder(
-            stillImages: StillImageVideoWriter(directory: directory.appendingPathComponent("stills")))
+            stillImages: StillImageVideoWriter(
+                directory: directory.appendingPathComponent("stills")))
         let exporter = ProjectExporter(
             builder: builder,
             denoisedAudio: DenoisedAudioCache(directory: directory.appendingPathComponent("clean")))

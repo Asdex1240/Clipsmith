@@ -194,11 +194,14 @@ final class CacheControllerTests: XCTestCase {
         let big = URL(fileURLWithPath: "/tmp/clipsmith-cache-big.mp4")
         let proxyDirectory = root.appendingPathComponent("proxies")
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "cc-\(UUID().uuidString)"))
-        let proxies = ProxyStore(generator: generator, directory: proxyDirectory, defaults: defaults)
-        let denoise = DenoiseStore(cache: DenoisedAudioCache(directory: root.appendingPathComponent("clean")))
+        let proxies = ProxyStore(
+            generator: generator, directory: proxyDirectory, defaults: defaults)
+        let denoise = DenoiseStore(
+            cache: DenoisedAudioCache(directory: root.appendingPathComponent("clean")))
         var cleared = 0
         let controller = CacheController(
-            cleaner: CacheCleaner(directories: [proxyDirectory]), proxies: proxies, denoise: denoise,
+            cleaner: CacheCleaner(directories: [proxyDirectory]), proxies: proxies,
+            denoise: denoise,
             onCleared: { cleared += 1 })
         proxies.prepare(for: project(big))
         for _ in 0..<200 where proxies.isPreparing { try await Task.sleep(for: .milliseconds(10)) }

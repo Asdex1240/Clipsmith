@@ -27,7 +27,9 @@ final class RippleAllTracksTests: XCTestCase {
         let third = TestClips.video(start: 10, sourceEnd: 5)
         [first, second, third].forEach { add($0, .main) }
         add(TestClips.audio(start: 0, duration: 15), .audio)
-        add(Clip(text: TextLayer(content: "later"), startInSeconds: 11, durationInSeconds: 2), .text)
+        add(
+            Clip(text: TextLayer(content: "later"), startInSeconds: 11, durationInSeconds: 2), .text
+        )
 
         let result = store(deleting: [second.id]).project
 
@@ -82,7 +84,8 @@ final class RippleAllTracksTests: XCTestCase {
 
         XCTAssertEqual(clips(.main, in: result).map(\.id), [ids[1], ids[3]])
         XCTAssertEqual(clips(.main, in: result).map(\.startInSeconds), [0, 5])
-        XCTAssertEqual(clips(.audio, in: result).reduce(0) { $0 + $1.durationInSeconds }, 10, accuracy: 1e-9)
+        XCTAssertEqual(
+            clips(.audio, in: result).reduce(0) { $0 + $1.durationInSeconds }, 10, accuracy: 1e-9)
     }
 
     func testItIsOneUndoStep() {

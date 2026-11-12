@@ -48,7 +48,8 @@ struct SidebarView: View {
     SidebarView(
         store: store, highlightExporter: HighlightExportController(store: store),
         library: MediaLibrary(),
-        thumbnails: CachedThumbnailGenerator(), waveforms: WaveformStore(), selection: $selection, onAddToTimeline: { _ in }
+        thumbnails: CachedThumbnailGenerator(), waveforms: WaveformStore(), selection: $selection,
+        onAddToTimeline: { _ in }
     )
     .frame(width: 280, height: 420)
 }

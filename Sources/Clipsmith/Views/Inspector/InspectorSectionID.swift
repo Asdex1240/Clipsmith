@@ -1,7 +1,8 @@
 import Foundation
 
 enum InspectorSectionID: String, CaseIterable {
-    case framing, keyframes, color, crop, text, textStyle, textAnimation, speed, audio, silences, subtitles
+    case framing, keyframes, color, crop, text, textStyle, textAnimation, speed, audio, silences,
+        subtitles
 
     var storageKey: String {
         "inspector.section.\(rawValue)"

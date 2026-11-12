@@ -100,7 +100,8 @@ final class SilenceRemovalTests: XCTestCase {
 
         XCTAssertEqual(project.track(withRole: .main)!.clips.count, 2)
         XCTAssertEqual(project.track(withRole: .broll)!.clips.count, 2)
-        XCTAssertEqual(project.track(withRole: .broll)!.clips.last?.startInSeconds ?? 0, 4, accuracy: 1e-9)
+        XCTAssertEqual(
+            project.track(withRole: .broll)!.clips.last?.startInSeconds ?? 0, 4, accuracy: 1e-9)
     }
 
     @MainActor
@@ -131,7 +132,7 @@ final class TimeRemovalTests: XCTestCase {
         add(video, .main)
         add(music, .audio)
 
-        project.removeRanges([5..<8], from: video.id, syncingAllTracks: true)
+        project.removeRanges([5..<8], from: video.id, scope: .allTracks)
 
         XCTAssertEqual(clips(.main).map(\.durationInSeconds), [5, 12])
         XCTAssertEqual(clips(.audio).map(\.startInSeconds), [0, 5])
@@ -143,9 +144,11 @@ final class TimeRemovalTests: XCTestCase {
         let video = TestClips.video(start: 0, sourceEnd: 20)
         add(video, .main)
         add(Clip(text: TextLayer(content: "gone"), startInSeconds: 6, durationInSeconds: 1), .text)
-        add(Clip(text: TextLayer(content: "later"), startInSeconds: 12, durationInSeconds: 2), .text)
+        add(
+            Clip(text: TextLayer(content: "later"), startInSeconds: 12, durationInSeconds: 2), .text
+        )
 
-        project.removeRanges([5..<8], from: video.id, syncingAllTracks: true)
+        project.removeRanges([5..<8], from: video.id, scope: .allTracks)
 
         XCTAssertEqual(clips(.text).compactMap { $0.textLayer?.content }, ["later"])
         XCTAssertEqual(clips(.text).first?.startInSeconds ?? 0, 9, accuracy: 1e-9)
@@ -157,7 +160,7 @@ final class TimeRemovalTests: XCTestCase {
         add(Clip(text: TextLayer(content: "a"), startInSeconds: 3, durationInSeconds: 4), .text)
         add(Clip(text: TextLayer(content: "b"), startInSeconds: 7, durationInSeconds: 4), .text)
 
-        project.removeRanges([5..<8], from: video.id, syncingAllTracks: true)
+        project.removeRanges([5..<8], from: video.id, scope: .allTracks)
 
         let text = clips(.text)
         XCTAssertEqual(text.map(\.startInSeconds), [3, 5])
@@ -173,7 +176,7 @@ final class TimeRemovalTests: XCTestCase {
         ]
         project.addHighlight(Highlight(name: "h", startInSeconds: 10, endInSeconds: 25))
 
-        project.removeRanges([5..<8], from: video.id, syncingAllTracks: true)
+        project.removeRanges([5..<8], from: video.id, scope: .allTracks)
 
         XCTAssertEqual(project.markers.map(\.timeInSeconds), [2, 17])
         XCTAssertEqual(project.highlights.first?.startInSeconds ?? 0, 7, accuracy: 1e-9)
@@ -186,7 +189,7 @@ final class TimeRemovalTests: XCTestCase {
         add(video, .main)
         add(music, .audio)
 
-        project.removeRanges([5..<8], from: video.id, syncingAllTracks: false)
+        project.removeRanges([5..<8], from: video.id, scope: .ownTracks)
 
         XCTAssertEqual(clips(.audio), [music])
     }

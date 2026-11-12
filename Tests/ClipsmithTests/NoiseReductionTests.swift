@@ -205,7 +205,7 @@ final class AVNoiseReducerTests: XCTestCase {
             let data = try XCTUnwrap(buffer.floatChannelData)[channel]
             for index in 0..<frames {
                 let time = Double(index) / rate
-                let tone = Int(time / 0.7) % 2 == 0 ? Float(0.3 * sin(2 * .pi * 1000 * time)) : 0
+                let tone = TestSignals.toneBurst(at: time)
                 data[index] = tone + Float.random(in: -0.05...0.05)
             }
         }

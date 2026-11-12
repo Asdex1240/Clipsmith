@@ -34,3 +34,10 @@ enum TestClips {
             url: URL(fileURLWithPath: "/tmp/item.mp4"), kind: kind, durationInSeconds: duration)
     }
 }
+
+enum TestSignals {
+    static func toneBurst(at time: Double) -> Float {
+        guard Int(time / 0.7) % 2 == 0 else { return 0 }
+        return Float(0.3 * sin(2 * .pi * 1000 * time))
+    }
+}

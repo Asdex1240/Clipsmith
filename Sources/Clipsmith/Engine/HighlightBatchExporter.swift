@@ -1,22 +1,5 @@
 import Foundation
 
-struct HighlightBatchProgress: Equatable {
-    let completed: Int
-    let total: Int
-    let currentName: String
-    let fraction: Double
-}
-
-struct HighlightExportOutcome: Equatable {
-    enum Result: Equatable {
-        case exported(URL)
-        case failed(String)
-    }
-
-    let name: String
-    let result: Result
-}
-
 struct HighlightBatchExporter {
     static let settings = ExportPreset.vertical1080.settings
 

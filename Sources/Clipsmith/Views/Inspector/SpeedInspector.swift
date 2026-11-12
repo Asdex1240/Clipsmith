@@ -12,6 +12,11 @@ struct SpeedInspector: View {
     private static let presets: [Double] = [0.25, 0.5, 1, 1.5, 2, 4]
     private static let selectionTolerance = 0.001
 
+    private func slowMomentMessage(added: Bool) -> String {
+        if added { return localized("inspector.slowMoment.done") }
+        return localized("inspector.slowMoment.noRoom")
+    }
+
     var body: some View {
         InspectorSection(.speed) {
             VStack(alignment: .leading, spacing: Design.Spacing.hairline) {
@@ -47,7 +52,8 @@ struct SpeedInspector: View {
         Text(localized("inspector.slowMoment.title")).font(.subheadline.bold())
         ParameterSlider(
             title: localized("inspector.slowMoment.speed"), value: $momentFactor,
-            range: SlowMoment.factorRange, unit: .multiplier, defaultValue: SlowMoment.defaultFactor)
+            range: SlowMoment.factorRange, unit: .multiplier, defaultValue: SlowMoment.defaultFactor
+        )
         ParameterSlider(
             title: localized("inspector.slowMoment.length"), value: $momentDuration,
             range: SlowMoment.sourceDurationRange, unit: .seconds,
@@ -57,8 +63,7 @@ struct SpeedInspector: View {
             let added = store.addSlowMoment(
                 to: clip.id, at: store.playheadInSeconds, sourceDuration: momentDuration,
                 factor: momentFactor, mutesAudio: mutesAudio)
-            momentMessage = localized(
-                added ? "inspector.slowMoment.done" : "inspector.slowMoment.noRoom")
+            momentMessage = slowMomentMessage(added: added)
         }
         if let momentMessage {
             Text(momentMessage).font(.caption).foregroundStyle(.secondary)

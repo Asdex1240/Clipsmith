@@ -24,12 +24,14 @@ enum LayerImage {
         }
         let opacity = layer.opacity(at: time)
         guard opacity > 0 else { return nil }
-        if opacity < 1 {
-            image = image.applyingFilter(
-                "CIColorMatrix",
-                parameters: ["inputAVector": CIVector(x: 0, y: 0, z: 0, w: opacity)])
-        }
-        return image
+        return faded(image, to: opacity)
+    }
+
+    private static func faded(_ image: CIImage, to opacity: Double) -> CIImage {
+        guard opacity < 1 else { return image }
+        return image.applyingFilter(
+            "CIColorMatrix",
+            parameters: ["inputAVector": CIVector(x: 0, y: 0, z: 0, w: opacity)])
     }
 
     static func make(_ sprite: TextSprite, at time: TimeInterval, renderHeight: CGFloat) -> CIImage?
@@ -47,13 +49,8 @@ enum LayerImage {
                 CGAffineTransform(
                     translationX: sprite.center.x, y: sprite.center.y - state.offsetY * renderHeight
                 ))
-        var image = CIImage(cgImage: sprite.image).transformed(by: placement)
-        if state.opacity < 1 {
-            image = image.applyingFilter(
-                "CIColorMatrix",
-                parameters: ["inputAVector": CIVector(x: 0, y: 0, z: 0, w: state.opacity)])
-        }
-        return image
+        let image = CIImage(cgImage: sprite.image).transformed(by: placement)
+        return faded(image, to: state.opacity)
     }
 
     private static func cropped(
