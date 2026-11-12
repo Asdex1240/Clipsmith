@@ -11,11 +11,9 @@ struct SpeechTranscriber: Transcribing {
                 != nil
     }
 
-    static var supportedLocales: [Locale] {
-        SFSpeechRecognizer.supportedLocales().sorted {
-            ($0.localizedString(forIdentifier: $0.identifier) ?? $0.identifier)
-                < ($1.localizedString(forIdentifier: $1.identifier) ?? $1.identifier)
-        }
+    static let supportedLocales: [Locale] = SFSpeechRecognizer.supportedLocales().sorted {
+        ($0.localizedString(forIdentifier: $0.identifier) ?? $0.identifier)
+            < ($1.localizedString(forIdentifier: $1.identifier) ?? $1.identifier)
     }
 
     func transcribe(

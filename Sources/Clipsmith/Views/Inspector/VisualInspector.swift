@@ -58,11 +58,6 @@ struct VisualInspector: View {
             && !clip.isAnimated
     }
 
-    private var playheadIsInsideClip: Bool {
-        store.playheadInSeconds >= clip.startInSeconds
-            && store.playheadInSeconds <= clip.endInSeconds
-    }
-
     private var keyframesSection: some View {
         InspectorSection(.keyframes) {
             Text(localized(keyframesHintKey))
@@ -96,10 +91,7 @@ struct VisualInspector: View {
                 }
             }
             HStack {
-                Button(localized("inspector.keyframes.add")) {
-                    store.addKeyframeAtPlayhead(to: clip.id)
-                }
-                .disabled(!playheadIsInsideClip)
+                AddKeyframeButton(store: store, clip: clip)
                 if clip.isAnimated {
                     Button(localized("inspector.keyframes.clear")) {
                         store.clearKeyframes(of: clip.id)

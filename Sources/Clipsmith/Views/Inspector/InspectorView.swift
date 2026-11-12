@@ -29,9 +29,7 @@ struct InspectorView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: Design.Spacing.spacious) {
                     if hasVisualControls(for: clip) {
-                        VisualInspector(
-                            store: store,
-                            clip: clip.presented(atTimelineTime: store.playheadInSeconds))
+                        VisualInspector(store: store, clip: store.clipForDisplay(clip))
                         EffectsInspector(store: store, clip: clip)
                     }
                     if clip.textLayer != nil {
