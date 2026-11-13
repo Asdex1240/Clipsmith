@@ -58,6 +58,25 @@ final class HighlightExportIntegrationTests: XCTestCase {
         XCTAssertEqual(built.durationInSeconds, 3, accuracy: 0.1)
     }
 
+    func testAnAnimatedFramingBuildsAndExportsAsAVerticalVideo() async throws {
+        let stills = StillImageVideoWriter(directory: directory.appendingPathComponent("stills"))
+        var highlight = Highlight(name: "Pan", startInSeconds: 1, endInSeconds: 5)
+        highlight.framingKeyframes = [
+            FramingKeyframe(timeInSeconds: 0, offsetX: -0.8),
+            FramingKeyframe(timeInSeconds: 4, offsetX: 0.8, easing: .easeInOut),
+        ]
+        let destination = directory.appendingPathComponent("pan.mp4")
+
+        try await ProjectExporter(builder: CompositionBuilder(stillImages: stills)).export(
+            project.extracting(highlight), with: HighlightBatchExporter.settings, to: destination
+        ) { _ in }
+
+        let asset = AVURLAsset(url: destination)
+        let tracks = try await asset.loadTracks(withMediaType: .video)
+        let size = try await XCTUnwrap(tracks.first).load(.naturalSize)
+        XCTAssertEqual(size, CGSize(width: 1080, height: 1920))
+    }
+
     private func addImageAndMusic(duration: TimeInterval) throws {
         let image = try makeImage()
         let music = try makeSilentWav(seconds: duration)

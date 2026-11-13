@@ -138,8 +138,6 @@ extension Highlight {
             guard time >= boundary else { return time }
             return time + delta
         }
-        return Highlight(
-            id: id, name: name, startInSeconds: moved(startInSeconds),
-            endInSeconds: moved(endInSeconds), framingOffsetX: framingOffsetX, fitMode: fitMode)
+        return withRange(start: moved(startInSeconds), end: moved(endInSeconds))
     }
 }

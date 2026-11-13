@@ -9,6 +9,7 @@ struct VisionFaceLocator: FaceLocating {
         generator.appliesPreferredTrackTransform = true
         generator.maximumSize = CGSize(width: Self.maximumSide, height: Self.maximumSide)
         var centers: [Double] = []
+        var foundTimes: [TimeInterval] = []
         var aspect: Double?
         for time in times {
             guard
@@ -17,10 +18,13 @@ struct VisionFaceLocator: FaceLocating {
                 ).image
             else { continue }
             aspect = Double(image.width) / Double(image.height)
-            if let center = Self.largestFaceCenter(in: image) { centers.append(center) }
+            if let center = Self.largestFaceCenter(in: image) {
+                centers.append(center)
+                foundTimes.append(time)
+            }
         }
         guard let aspect else { return nil }
-        return FaceSample(centers: centers, sourceAspect: aspect)
+        return FaceSample(centers: centers, sourceAspect: aspect, times: foundTimes)
     }
 
     private static func largestFaceCenter(in image: CGImage) -> Double? {

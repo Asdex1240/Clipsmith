@@ -22,11 +22,9 @@ extension Project {
         }
         for index in highlights.indices {
             let highlight = highlights[index]
-            highlights[index] = Highlight(
-                id: highlight.id, name: highlight.name,
-                startInSeconds: Self.timeAfterRemoving(range, from: highlight.startInSeconds),
-                endInSeconds: Self.timeAfterRemoving(range, from: highlight.endInSeconds),
-                framingOffsetX: highlight.framingOffsetX, fitMode: highlight.fitMode)
+            highlights[index] = highlight.withRange(
+                start: Self.timeAfterRemoving(range, from: highlight.startInSeconds),
+                end: Self.timeAfterRemoving(range, from: highlight.endInSeconds))
         }
     }
 

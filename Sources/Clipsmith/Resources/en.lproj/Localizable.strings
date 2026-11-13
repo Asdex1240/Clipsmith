@@ -347,3 +347,9 @@
 "preview.quality.half" = "Half (lighter)";
 "preview.quality.quarter" = "Quarter (lightest)";
 "preview.quality.help" = "Renders the preview at a lower resolution so it plays smoothly. The export always uses full quality.";
+"highlight.framing.keyframes" = "Framing keyframes";
+"highlight.framing.addKeyframe" = "Add at playhead";
+"highlight.framing.clear" = "Remove animation";
+"highlight.framing.animate" = "Animate framing";
+"highlight.framing.animate.help" = "Adds a framing keyframe at the playhead so the framing can change over time";
+"highlight.autoFrame.track" = "Follow over time";
