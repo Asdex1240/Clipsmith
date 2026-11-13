@@ -21,7 +21,7 @@ What it does:
 - **Color and crop** — brightness, contrast, saturation, temperature, one-click looks and a per-side crop.
 - **Subtitles** — generate text clips from the speech in a clip, on device where the language allows (needs the packaged app, see below). Optionally highlight each word as it is spoken.
 - **Silence removal** — find the silent stretches of a clip from its waveform (adjustable volume threshold and minimum length), review the proposed cuts, then cut them and close the gaps in one undoable step.
-- **Highlights** — mark ranges of a vlog as clips (in/out points), reframe each one to vertical 9:16 (fill the screen by hand or following the face, or keep the whole shot over a blurred background) and export several at once as separate MP4 files, ready for TikTok, Reels and Shorts. Each highlight can be previewed in vertical before exporting. Clipsmith can also suggest highlights from the most active stretches of a clip's audio.
+- **Highlights** — mark ranges of a vlog as clips (in/out points), reframe each one to vertical 9:16 (fill the screen by hand or following the face, or keep the whole shot over a blurred background) and export several at once as separate MP4 files, ready for TikTok, Reels and Shorts. Each highlight can be previewed in vertical before exporting. The framing can be animated with keyframes, or follow the face over time. Clipsmith can also suggest highlights from the most active stretches of a clip's audio.
 - **Export** — MP4 (H.264 / HEVC) at 720p, 1080p, 1440p, 4K or exactly the canvas size, with configurable frame rate and 16:9 / 9:16 presets.
 
 Everything runs locally; there is no backend and no account.

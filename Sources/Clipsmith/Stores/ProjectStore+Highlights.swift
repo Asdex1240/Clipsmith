@@ -50,6 +50,9 @@ extension ProjectStore {
     }
 
     static let faceSampleCount = 8
+    static let trackingSecondsPerSample: TimeInterval = 1.5
+    static let minimumTrackingSamples = 4
+    static let maximumTrackingSamples = 30
 
     @discardableResult
     func autoFrameHighlight(_ id: Highlight.ID, using locator: FaceLocating) async -> Bool {
@@ -71,6 +74,75 @@ extension ProjectStore {
         else { return false }
         setHighlightFraming(id, offsetX: offset)
         return true
+    }
+
+    @discardableResult
+    func trackFaceInHighlight(_ id: Highlight.ID, using locator: FaceLocating) async -> Bool {
+        guard let highlight = project.highlight(withID: id),
+            let clip = videoClip(at: (highlight.startInSeconds + highlight.endInSeconds) / 2),
+            let url = clip.sourceURL
+        else { return false }
+        let times = trackingTimes(for: highlight, in: clip)
+        guard let sample = await locator.faceSample(in: url, at: times),
+            let frames = FaceFraming.keyframes(
+                faceCenters: sample.centers,
+                at: sample.times.map { relativeTime(ofSourceTime: $0, in: clip, for: highlight) },
+                sourceAspect: sample.sourceAspect,
+                canvasAspect: Project.highlightCanvas.aspectRatio)
+        else { return false }
+        mutate { $0.replaceFramingKeyframes(of: id, with: frames) }
+        return true
+    }
+
+    private func trackingTimes(for highlight: Highlight, in clip: Clip) -> [TimeInterval] {
+        let count = min(
+            max(
+                Int(highlight.durationInSeconds / Self.trackingSecondsPerSample),
+                Self.minimumTrackingSamples),
+            Self.maximumTrackingSamples)
+        return (0..<count).map { index in
+            let fraction = (Double(index) + 0.5) / Double(count)
+            let timeline = highlight.startInSeconds + fraction * highlight.durationInSeconds
+            let source = clip.sourceStartInSeconds + (timeline - clip.startInSeconds) * clip.speed
+            return min(max(source, clip.sourceStartInSeconds), clip.sourceEndInSeconds)
+        }
+    }
+
+    private func relativeTime(
+        ofSourceTime source: TimeInterval, in clip: Clip, for highlight: Highlight
+    ) -> TimeInterval {
+        clip.timelineTime(forSourceTime: source) - highlight.startInSeconds
+    }
+
+    @discardableResult
+    func addFramingKeyframeAtPlayhead(to id: Highlight.ID) -> FramingKeyframe.ID? {
+        guard let highlight = project.highlight(withID: id) else { return nil }
+        let time = playheadInSeconds - highlight.startInSeconds
+        var added: FramingKeyframe.ID?
+        mutate { added = $0.addFramingKeyframe(to: id, at: time) }
+        return added
+    }
+
+    func setFramingKeyframeOffset(
+        _ keyframeID: FramingKeyframe.ID, in id: Highlight.ID, to offsetX: Double
+    ) {
+        mutate(coalescingKey: "framing-key-\(keyframeID)") {
+            $0.setFramingKeyframeOffset(keyframeID, in: id, to: offsetX)
+        }
+    }
+
+    func setFramingKeyframeEasing(
+        _ keyframeID: FramingKeyframe.ID, in id: Highlight.ID, to easing: Easing
+    ) {
+        mutate { $0.setFramingKeyframeEasing(keyframeID, in: id, to: easing) }
+    }
+
+    func removeFramingKeyframe(_ keyframeID: FramingKeyframe.ID, from id: Highlight.ID) {
+        mutate { $0.removeFramingKeyframe(keyframeID, from: id) }
+    }
+
+    func clearFramingKeyframes(of id: Highlight.ID) {
+        mutate { $0.clearFramingKeyframes(of: id) }
     }
 
     private func videoClip(at time: TimeInterval) -> Clip? {

@@ -347,3 +347,9 @@
 "preview.quality.half" = "Media (más ligera)";
 "preview.quality.quarter" = "Cuarto (la más ligera)";
 "preview.quality.help" = "Dibuja el preview a menor resolución para que vaya fluido. El export siempre usa la calidad completa.";
+"highlight.framing.keyframes" = "Keyframes de encuadre";
+"highlight.framing.addKeyframe" = "Añadir en el playhead";
+"highlight.framing.clear" = "Quitar animación";
+"highlight.framing.animate" = "Animar encuadre";
+"highlight.framing.animate.help" = "Añade un keyframe de encuadre en el playhead para que el encuadre cambie con el tiempo";
+"highlight.autoFrame.track" = "Seguir en el tiempo";

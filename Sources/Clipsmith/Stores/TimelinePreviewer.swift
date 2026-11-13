@@ -8,6 +8,7 @@ private enum RebuildMode {
 @MainActor
 final class TimelinePreviewer {
     private static let debounce: Duration = .milliseconds(150)
+    static let liveInterval: Duration = .milliseconds(60)
 
     private let store: ProjectStore
     private let player: PlayerController
@@ -55,8 +56,6 @@ final class TimelinePreviewer {
 
     func projectDidChange() {
         let project = store.project
-        proxies.prepare(for: project)
-        denoise.prepare(for: project)
         let structure = Self.withoutText(project)
         guard structure != lastBuiltStructure else { return }
         let isLiveEdit =
@@ -65,6 +64,8 @@ final class TimelinePreviewer {
             applyLive(project)
             return
         }
+        proxies.prepare(for: project)
+        denoise.prepare(for: project)
         scheduleFullRebuild(of: project)
     }
 
@@ -90,6 +91,7 @@ final class TimelinePreviewer {
             while let next = pendingLiveProject, !Task.isCancelled {
                 pendingLiveProject = nil
                 await rebuild(next, mode: .transformsOnly)
+                try? await Task.sleep(for: Self.liveInterval)
             }
             if !Task.isCancelled { liveTask = nil }
         }

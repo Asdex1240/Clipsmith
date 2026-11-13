@@ -31,20 +31,47 @@ struct HighlightRow: View {
                 Text(localized("highlight.background.blur")).tag(FitMode.blur)
             }
             .pickerStyle(.segmented)
-            if highlight.fitMode == .fill {
-                ParameterSlider(
-                    title: localized("highlight.framing"), value: framingBinding,
-                    range: Highlight.framingRange, unit: .percent,
-                    defaultValue: Self.defaultFraming)
-                Button(action: autoFrame) {
-                    Label(localized("highlight.autoFrame"), systemImage: "face.dashed")
-                }
-                .disabled(isFraming)
-            }
+            if highlight.fitMode == .fill { fillControls }
         }
         .padding(Design.Spacing.comfortable)
         .frame(maxWidth: .infinity, alignment: .leading)
         .cardSurface()
+    }
+
+    @ViewBuilder
+    private var fillControls: some View {
+        if highlight.framingKeyframes.isEmpty {
+            ParameterSlider(
+                title: localized("highlight.framing"), value: framingBinding,
+                range: Highlight.framingRange, unit: .percent,
+                defaultValue: Self.defaultFraming)
+        } else {
+            FramingKeyframesView(store: store, highlight: highlight)
+        }
+        HStack {
+            Button(action: autoFrame) {
+                Label(localized("highlight.autoFrame"), systemImage: "face.dashed")
+            }
+            .disabled(isFraming)
+            Button(action: trackFace) {
+                Label(localized("highlight.autoFrame.track"), systemImage: "person.crop.rectangle")
+            }
+            .disabled(isFraming)
+            if highlight.framingKeyframes.isEmpty {
+                Button(localized("highlight.framing.animate")) {
+                    store.addFramingKeyframeAtPlayhead(to: highlight.id)
+                }
+                .help(localized("highlight.framing.animate.help"))
+            }
+        }
+    }
+
+    private func trackFace() {
+        isFraming = true
+        Task {
+            await store.trackFaceInHighlight(highlight.id, using: faceLocator)
+            isFraming = false
+        }
     }
 
     private func autoFrame() {
