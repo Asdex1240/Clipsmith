@@ -1,7 +1,7 @@
 import Foundation
 
 enum SidebarTab: String, CaseIterable, Identifiable {
-    case media, highlights
+    case media, highlights, titles
 
     var id: String { rawValue }
 
@@ -9,6 +9,7 @@ enum SidebarTab: String, CaseIterable, Identifiable {
         switch self {
         case .media: return "sidebarTab.media"
         case .highlights: return "sidebarTab.highlights"
+        case .titles: return "sidebarTab.titles"
         }
     }
 
@@ -16,6 +17,7 @@ enum SidebarTab: String, CaseIterable, Identifiable {
         switch self {
         case .media: return "photo.on.rectangle"
         case .highlights: return "sparkles.rectangle.stack"
+        case .titles: return "textformat"
         }
     }
 }

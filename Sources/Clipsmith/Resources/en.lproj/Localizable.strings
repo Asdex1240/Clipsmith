@@ -353,3 +353,16 @@
 "highlight.framing.animate" = "Animate framing";
 "highlight.framing.animate.help" = "Adds a framing keyframe at the playhead so the framing can change over time";
 "highlight.autoFrame.track" = "Follow over time";
+"sidebarTab.titles" = "Titles";
+"title.centerTitle" = "Title";
+"title.centerTitle.sample" = "My Vlog";
+"title.lowerThird" = "Lower third";
+"title.lowerThird.sample" = "Your name";
+"title.locationTag" = "Location";
+"title.locationTag.sample" = "Lisbon, Portugal";
+"title.chapter" = "Chapter";
+"title.chapter.sample" = "DAY 1";
+"title.caption" = "Caption";
+"title.caption.sample" = "Add your text";
+"title.hint" = "Pick a style to add a title at the playhead. You can edit the text, font and animation afterwards.";
+"title.add.help" = "Add at the playhead";

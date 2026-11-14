@@ -353,3 +353,16 @@
 "highlight.framing.animate" = "Animar encuadre";
 "highlight.framing.animate.help" = "Añade un keyframe de encuadre en el playhead para que el encuadre cambie con el tiempo";
 "highlight.autoFrame.track" = "Seguir en el tiempo";
+"sidebarTab.titles" = "Títulos";
+"title.centerTitle" = "Título";
+"title.centerTitle.sample" = "Mi vlog";
+"title.lowerThird" = "Tercio inferior";
+"title.lowerThird.sample" = "Tu nombre";
+"title.locationTag" = "Lugar";
+"title.locationTag.sample" = "Lisboa, Portugal";
+"title.chapter" = "Capítulo";
+"title.chapter.sample" = "DÍA 1";
+"title.caption" = "Pie de texto";
+"title.caption.sample" = "Escribe tu texto";
+"title.hint" = "Elige un estilo para añadir un título en el playhead. Después puedes editar el texto, la fuente y la animación.";
+"title.add.help" = "Añadir en el playhead";
