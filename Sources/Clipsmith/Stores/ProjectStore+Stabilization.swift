@@ -17,6 +17,10 @@ extension ProjectStore {
         return true
     }
 
+    func setBackgroundEffect(of id: Clip.ID, to effect: BackgroundEffect?) {
+        mutate { $0.setBackgroundEffect(of: id, to: effect) }
+    }
+
     func clearStabilization(of id: Clip.ID) {
         mutate { $0.setStabilization(of: id, to: nil) }
     }

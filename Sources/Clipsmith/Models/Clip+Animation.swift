@@ -10,7 +10,9 @@ extension Clip {
             opacity: opacity)
     }
 
-    var hasLookEffects: Bool { !color.isIdentity || !crop.isNone || stabilization != nil }
+    var hasLookEffects: Bool {
+        !color.isIdentity || !crop.isNone || stabilization != nil || backgroundEffect != nil
+    }
 
     var isAnimated: Bool { !keyframes.isEmpty }
 

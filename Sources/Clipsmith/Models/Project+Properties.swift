@@ -33,6 +33,14 @@ extension Project {
         updateClip(id) { $0.settingFadeOut(seconds) }
     }
 
+    mutating func setBackgroundEffect(of id: Clip.ID, to effect: BackgroundEffect?) {
+        updateClip(id) { clip in
+            var copy = clip
+            copy.backgroundEffect = effect
+            return copy
+        }
+    }
+
     mutating func setStabilization(of id: Clip.ID, to stabilization: Stabilization?) {
         updateClip(id) { clip in
             var copy = clip

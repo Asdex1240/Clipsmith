@@ -376,3 +376,8 @@
 "inspector.stabilization.working" = "Analyzing the shot…";
 "inspector.stabilization.none" = "There is not enough detail or movement in this clip to stabilize it.";
 "inspector.stabilization.hint" = "Smooths hand-held shaking by reframing the picture slightly (it zooms in up to 15 %). The analysis can take a moment.";
+"inspector.background.section" = "Background";
+"inspector.background.none" = "Keep";
+"inspector.background.remove" = "Remove";
+"inspector.background.blur" = "Blur";
+"inspector.background.hint" = "Finds the people in the shot and removes or blurs everything behind them. Removing shows whatever is on the tracks below (such as B-roll). It works frame by frame, so previewing and exporting take longer.";

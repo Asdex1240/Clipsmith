@@ -8,6 +8,7 @@ final class EffectsCompositor: NSObject, AVVideoCompositing {
         .workingColorSpace: NSNull(), .outputColorSpace: NSNull(),
     ])
     private let queue = DispatchQueue(label: "Clipsmith.EffectsCompositor")
+    private var maskers: [Clip.ID: VisionPersonMasker] = [:]
 
     var sourcePixelBufferAttributes: [String: any Sendable]? {
         [kCVPixelBufferPixelFormatTypeKey as String: [Self.pixelFormat]]
@@ -25,6 +26,14 @@ final class EffectsCompositor: NSObject, AVVideoCompositing {
 
     func cancelAllPendingVideoCompositionRequests() {}
 
+    private func masker(for clip: Clip) -> VisionPersonMasker? {
+        guard clip.backgroundEffect != nil else { return nil }
+        if let existing = maskers[clip.id] { return existing }
+        let created = VisionPersonMasker()
+        maskers[clip.id] = created
+        return created
+    }
+
     private func render(_ request: AVAsynchronousVideoCompositionRequest) {
         guard let instruction = request.videoCompositionInstruction as? EffectsInstruction,
             let output = request.renderContext.newPixelBuffer()
@@ -39,7 +48,8 @@ final class EffectsCompositor: NSObject, AVVideoCompositing {
         for layer in instruction.layers.reversed() {
             guard let frame = request.sourceFrame(byTrackID: layer.trackID),
                 let image = LayerImage.make(
-                    for: layer, frame: frame, at: time, renderHeight: size.height)
+                    for: layer, frame: frame, at: time, renderHeight: size.height,
+                    masker: masker(for: layer.clip))
             else { continue }
             canvas = image.composited(over: canvas)
         }

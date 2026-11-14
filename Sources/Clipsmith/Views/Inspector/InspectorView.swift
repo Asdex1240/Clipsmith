@@ -33,6 +33,7 @@ struct InspectorView: View {
                         EffectsInspector(store: store, clip: clip).equatable()
                         if clip.mediaKind == .video {
                             StabilizationInspector(store: store, clip: clip).equatable()
+                            BackgroundInspector(store: store, clip: clip).equatable()
                         }
                     }
                     if clip.textLayer != nil {
