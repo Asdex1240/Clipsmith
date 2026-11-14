@@ -26,7 +26,8 @@ struct RenderLayer {
             offset: CGPoint(
                 x: state.offsetX * renderSize.width, y: state.offsetY * renderSize.height),
             scale: state.scale,
-            rotationInDegrees: state.rotationInDegrees
+            rotationInDegrees: state.rotationInDegrees,
+            stabilization: clip.stabilizationCorrection(atClipTime: time - clip.startInSeconds)
         )
         guard let blend else { return fitted }
         return fitted.concatenating(

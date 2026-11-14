@@ -366,3 +366,13 @@
 "title.caption.sample" = "Escribe tu texto";
 "title.hint" = "Elige un estilo para añadir un título en el playhead. Después puedes editar el texto, la fuente y la animación.";
 "title.add.help" = "Añadir en el playhead";
+"inspector.stabilization.section" = "Estabilización";
+"inspector.stabilization.strength" = "Intensidad";
+"inspector.stabilization.light" = "Suave";
+"inspector.stabilization.normal" = "Normal";
+"inspector.stabilization.strong" = "Fuerte";
+"inspector.stabilization.apply" = "Estabilizar";
+"inspector.stabilization.remove" = "Quitar estabilización";
+"inspector.stabilization.working" = "Analizando el plano…";
+"inspector.stabilization.none" = "Este clip no tiene suficiente detalle o movimiento para estabilizarlo.";
+"inspector.stabilization.hint" = "Suaviza el temblor de la cámara en mano reencuadrando un poco la imagen (amplía hasta un 15 %). El análisis puede tardar un momento.";

@@ -366,3 +366,13 @@
 "title.caption.sample" = "Add your text";
 "title.hint" = "Pick a style to add a title at the playhead. You can edit the text, font and animation afterwards.";
 "title.add.help" = "Add at the playhead";
+"inspector.stabilization.section" = "Stabilization";
+"inspector.stabilization.strength" = "Strength";
+"inspector.stabilization.light" = "Light";
+"inspector.stabilization.normal" = "Normal";
+"inspector.stabilization.strong" = "Strong";
+"inspector.stabilization.apply" = "Stabilize";
+"inspector.stabilization.remove" = "Remove stabilization";
+"inspector.stabilization.working" = "Analyzing the shot…";
+"inspector.stabilization.none" = "There is not enough detail or movement in this clip to stabilize it.";
+"inspector.stabilization.hint" = "Smooths hand-held shaking by reframing the picture slightly (it zooms in up to 15 %). The analysis can take a moment.";

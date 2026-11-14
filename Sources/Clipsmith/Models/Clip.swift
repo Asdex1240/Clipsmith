@@ -32,6 +32,7 @@ struct Clip: Codable, Identifiable, Equatable {
     var groupID: UUID?
     var ducking: ClipDucking?
     var noiseReduction: NoiseReductionLevel?
+    var stabilization: Stabilization?
     var audioOverrideURL: URL?
 
     var displayName: String {
@@ -199,7 +200,8 @@ extension Clip {
         case id, sourceURL, mediaKind, startInSeconds, sourceStartInSeconds, sourceEndInSeconds
         case sourceDurationInSeconds, volume, fadeInDurationInSeconds, fadeOutDurationInSeconds
         case textLayer, fitMode, offsetX, offsetY, isAudioDetached, scale, rotationInDegrees, speed,
-            opacity, keyframes, transition, color, crop, groupID, ducking, noiseReduction
+            opacity, keyframes, transition, color, crop, groupID, ducking, noiseReduction,
+            stabilization
     }
 
     init(from decoder: Decoder) throws {
@@ -239,6 +241,7 @@ extension Clip {
         ducking = try container.decodeIfPresent(ClipDucking.self, forKey: .ducking)
         noiseReduction = try container.decodeIfPresent(
             NoiseReductionLevel.self, forKey: .noiseReduction)
+        stabilization = try container.decodeIfPresent(Stabilization.self, forKey: .stabilization)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -271,5 +274,6 @@ extension Clip {
         try container.encodeIfPresent(groupID, forKey: .groupID)
         try container.encodeIfPresent(ducking, forKey: .ducking)
         try container.encodeIfPresent(noiseReduction, forKey: .noiseReduction)
+        try container.encodeIfPresent(stabilization, forKey: .stabilization)
     }
 }
