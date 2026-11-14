@@ -41,6 +41,7 @@ cd Clipsmith
 
 swift run          # build and launch the app
 swift test         # run the unit tests
+./scripts/install-hooks.sh # check formatting and comments before each commit
 open Package.swift # open the project in Xcode
 ```
 
