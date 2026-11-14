@@ -18,6 +18,9 @@ What it does:
 - **Speed** — play a clip from 0.25× to 4×; its length on the timeline follows. A one-click *slow-motion moment* slows a stretch down smoothly and speeds back up.
 - **Animation** — keyframes for position, size, rotation and opacity, edited at the playhead.
 - **Transitions** — dissolve, fade through black or slide between touching clips.
+- **Titles** — a Titles tab with ready-made styles (title, lower third, location, chapter, caption) that add an animated title at the playhead.
+- **Stabilization** — smooths hand-held shaking by analyzing the shot and reframing it slightly; light, normal and strong settings.
+- **Background** — find the people in a shot (Vision) and remove or blur everything behind them; removing shows the tracks below, such as B-roll.
 - **Color and crop** — brightness, contrast, saturation, temperature, one-click looks and a per-side crop.
 - **Subtitles** — generate text clips from the speech in a clip, on device where the language allows (needs the packaged app, see below). Optionally highlight each word as it is spoken.
 - **Silence removal** — find the silent stretches of a clip from its waveform (adjustable volume threshold and minimum length), review the proposed cuts, then cut them and close the gaps in one undoable step.
@@ -41,6 +44,7 @@ cd Clipsmith
 
 swift run          # build and launch the app
 swift test         # run the unit tests
+./scripts/install-hooks.sh # check formatting and comments before each commit
 open Package.swift # open the project in Xcode
 ```
 

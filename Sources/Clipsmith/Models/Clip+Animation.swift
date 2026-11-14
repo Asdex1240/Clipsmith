@@ -10,11 +10,18 @@ extension Clip {
             opacity: opacity)
     }
 
-    var hasLookEffects: Bool { !color.isIdentity || !crop.isNone }
+    var hasLookEffects: Bool {
+        !color.isIdentity || !crop.isNone || stabilization != nil || backgroundEffect != nil
+    }
 
     var isAnimated: Bool { !keyframes.isEmpty }
 
-    var needsAnimatedLayer: Bool { isAnimated || opacity != 1 }
+    var needsAnimatedLayer: Bool { isAnimated || opacity != 1 || stabilization != nil }
+
+    func stabilizationCorrection(atClipTime time: TimeInterval) -> Stabilization.Correction {
+        guard let stabilization else { return .none }
+        return stabilization.correction(atSourceTime: sourceStartInSeconds + time * speed)
+    }
 
     func eased(from time: TimeInterval) -> Bool {
         !KeyframeInterpolation.easing(at: time + 1e-9, in: keyframes).isLinear

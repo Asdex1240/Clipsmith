@@ -38,6 +38,7 @@ enum Design {
         static let sheen = 0.18
         static let hiddenLane = 0.4
         static let tintBadge = 0.15
+        static let titleBackdrop = 0.85
         static let filmstrip = 0.85
         static let highlightBackground = 0.12
         static let chipFill = 0.08

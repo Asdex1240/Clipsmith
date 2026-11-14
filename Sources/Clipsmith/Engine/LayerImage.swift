@@ -3,10 +3,14 @@ import CoreImage
 
 enum LayerImage {
     static func make(
-        for layer: RenderLayer, frame: CVPixelBuffer, at time: TimeInterval, renderHeight: CGFloat
+        for layer: RenderLayer, frame: CVPixelBuffer, at time: TimeInterval, renderHeight: CGFloat,
+        masker: PersonMasking? = nil
     ) -> CIImage? {
         let sourceHeight = CGFloat(CVPixelBufferGetHeight(frame))
         var image = CIImage(cvPixelBuffer: frame)
+        if let effect = layer.clip.backgroundEffect, let mask = masker?.mask(for: frame) {
+            image = BackgroundCompositing.apply(effect, to: image, mask: mask)
+        }
         image = cropped(image, to: layer, sourceHeight: sourceHeight)
         image = colorCorrected(image, with: layer.clip.color)
         let flipSource = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: sourceHeight)

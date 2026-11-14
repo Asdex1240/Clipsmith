@@ -88,6 +88,18 @@ extension ProjectStore {
     }
 
     @discardableResult
+    func addTitle(_ template: TitleTemplate) -> Clip.ID? {
+        let layer = template.layer(content: localized(String.LocalizationValue(template.sampleKey)))
+        var addedID: Clip.ID?
+        mutate {
+            addedID = $0.addTextClip(
+                layer, at: playheadInSeconds, duration: template.durationInSeconds)
+        }
+        if let addedID { selectClip(addedID) }
+        return addedID
+    }
+
+    @discardableResult
     func addSubtitles(
         _ lines: [SubtitleLine], style: TextStylePreset = .classic,
         animation: TextAnimation = TextAnimation(), highlightColor: RGBAColor? = nil

@@ -37,6 +37,8 @@ struct SidebarView: View {
             LibraryView(
                 library: library, thumbnails: thumbnails, selection: $selection,
                 onAddToTimeline: onAddToTimeline)
+        case .titles:
+            TitlesView(store: store)
         case .highlights:
             HighlightsView(
                 store: store, exporter: highlightExporter, preview: highlightPreview,

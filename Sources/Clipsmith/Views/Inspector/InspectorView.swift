@@ -31,6 +31,10 @@ struct InspectorView: View {
                     if hasVisualControls(for: clip) {
                         VisualInspector(store: store, clip: store.clipForDisplay(clip)).equatable()
                         EffectsInspector(store: store, clip: clip).equatable()
+                        if clip.mediaKind == .video {
+                            StabilizationInspector(store: store, clip: clip).equatable()
+                            BackgroundInspector(store: store, clip: clip).equatable()
+                        }
                     }
                     if clip.textLayer != nil {
                         TextInspector(store: store, clip: clip).equatable()

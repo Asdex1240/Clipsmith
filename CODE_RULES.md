@@ -111,5 +111,6 @@ Reglas para mantener el código simple, consistente y fácil de probar. Compleme
 ## 10. Git y flujo de trabajo
 - Commits pequeños y atómicos, en inglés, en imperativo y con un prefijo: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`.
 - Una rama por hito o funcionalidad (`feat/timeline-split`); `main` siempre compila y pasa los tests.
+- Un hook de pre-commit (`.githooks/pre-commit`) comprueba el formato con `swift format lint` y rechaza comentarios en el código. Se activa una vez con `scripts/install-hooks.sh`.
 - No commitear `.build/`, `.DS_Store`, claves ni certificados de firma.
 - Alcance: no añadir funciones fuera del MVP sin actualizar antes `MVP.md`.

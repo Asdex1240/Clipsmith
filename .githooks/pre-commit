@@ -1,0 +1,20 @@
+#!/bin/zsh
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+if ! swift format lint --strict --configuration .swift-format -r Sources Tests; then
+    echo "pre-commit: formatting errors. Run: swift format format --configuration .swift-format -i -r Sources Tests" >&2
+    exit 1
+fi
+
+STAGED_SWIFT="$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.swift$' || true)"
+if [[ -n "$STAGED_SWIFT" ]]; then
+    COMMENTS="$(echo "$STAGED_SWIFT" | xargs grep -nE '^\s*//' | grep -v 'MARK' || true)"
+    if [[ -n "$COMMENTS" ]]; then
+        echo "pre-commit: comments are not allowed (CODE_RULES.md, section 9):" >&2
+        echo "$COMMENTS" >&2
+        exit 1
+    fi
+fi
