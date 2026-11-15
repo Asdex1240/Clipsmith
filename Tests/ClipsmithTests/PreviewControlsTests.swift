@@ -57,6 +57,13 @@ final class PreviewControlsTests: XCTestCase {
         XCTAssertTrue(ControlsVisibility(isPlaying: true, pointerIsIdle: false).isVisible)
     }
 
+    func testControlsStayVisibleWhileThePointerRestsOnThem() {
+        let visibility = ControlsVisibility(
+            isPlaying: true, pointerIsIdle: true, pointerIsOverControls: true)
+
+        XCTAssertTrue(visibility.isVisible)
+    }
+
     // MARK: SafeAreaGuides
 
     func testGuidesAreCenteredInsideTheFrame() {

@@ -5,8 +5,9 @@ struct ControlsVisibility: Equatable {
 
     var isPlaying: Bool
     var pointerIsIdle: Bool
+    var pointerIsOverControls = false
 
     var isVisible: Bool {
-        !isPlaying || !pointerIsIdle
+        !isPlaying || !pointerIsIdle || pointerIsOverControls
     }
 }
