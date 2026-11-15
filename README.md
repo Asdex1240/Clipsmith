@@ -55,11 +55,6 @@ What is next for the editor:
 - **A signed and notarized app** — a Developer ID build that opens on any Mac without extra steps (today the packaged app is ad-hoc signed and runs on the Mac that built it).
 - **Polish from real-world use** — adjustments to the newest features (background removal, stabilization, vertical framing) once they have been tried on real vlogs and different kinds of footage.
 - **Screenshots and a short demo** in this README.
-
-Ideas under consideration, not committed yet:
-
-- **Built-in music** — royalty-free tracks to drop under a vlog (this depends on finding material with a suitable license).
-- **Stickers and emoji** — overlays with the same entrance and exit animations as the titles.
 - **Custom GPU effects** — extra looks and effects beyond the current color controls.
 
 ## Requirements
