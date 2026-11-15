@@ -385,3 +385,6 @@
 "preview.external" = "External display";
 "preview.external.help" = "Shows the preview full screen on another display";
 "preview.external.stop" = "Stop showing the preview on the external display";
+"library.layout" = "Layout";
+"library.layout.grid" = "Grid";
+"library.layout.list" = "List";

@@ -9,6 +9,7 @@ struct LibraryView: View {
     @State private var isImporterPresented = false
     @State private var isDropTargeted = false
     @State private var query = MediaQuery()
+    @AppStorage("library.layout") private var layout = LibraryLayout.grid
 
     private static let importableTypes: [UTType] = [.movie, .audio, .image]
     private static let cardMinimumWidth: CGFloat = 120
@@ -65,20 +66,42 @@ struct LibraryView: View {
             .background(
                 Color.primary.opacity(Design.Opacity.chipFill),
                 in: RoundedRectangle(cornerRadius: Design.Radius.medium))
-            Picker(localized("library.filter.all"), selection: $query.filter) {
-                ForEach(MediaFilter.allCases) { filter in
-                    Label(
-                        localized(String.LocalizationValue(filter.titleKey)),
-                        systemImage: filter.systemImage
-                    )
-                    .tag(filter)
-                }
+            HStack(spacing: Design.Spacing.regular) {
+                filterPicker
+                layoutPicker
             }
-            .pickerStyle(.segmented)
-            .labelsHidden()
         }
         .padding(.horizontal, Design.Spacing.regular)
         .padding(.bottom, Design.Spacing.regular)
+    }
+
+    private var filterPicker: some View {
+        Picker(localized("library.filter.all"), selection: $query.filter) {
+            ForEach(MediaFilter.allCases) { filter in
+                Label(
+                    localized(String.LocalizationValue(filter.titleKey)),
+                    systemImage: filter.systemImage
+                )
+                .tag(filter)
+            }
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+    }
+
+    private var layoutPicker: some View {
+        Picker(localized("library.layout"), selection: $layout) {
+            ForEach(LibraryLayout.allCases) { layout in
+                Image(systemName: layout.systemImage)
+                    .accessibilityLabel(localized(String.LocalizationValue(layout.titleKey)))
+                    .help(localized(String.LocalizationValue(layout.titleKey)))
+                    .tag(layout)
+            }
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .fixedSize()
+        .help(localized("library.layout"))
     }
 
     private var sortMenu: some View {
@@ -109,7 +132,15 @@ struct LibraryView: View {
         } else if visibleItems.isEmpty {
             noResults
         } else {
-            grid
+            ScrollView { items }
+        }
+    }
+
+    @ViewBuilder
+    private var items: some View {
+        switch layout {
+        case .grid: grid
+        case .list: list
         }
     }
 
@@ -125,38 +156,50 @@ struct LibraryView: View {
     }
 
     private var grid: some View {
-        ScrollView {
-            LazyVGrid(
-                columns: [
-                    GridItem(
-                        .adaptive(minimum: Self.cardMinimumWidth), spacing: Design.Spacing.cozy)
-                ],
-                spacing: Design.Spacing.cozy
-            ) {
-                ForEach(visibleItems) { item in
-                    card(for: item)
-                }
+        LazyVGrid(
+            columns: [
+                GridItem(.adaptive(minimum: Self.cardMinimumWidth), spacing: Design.Spacing.cozy)
+            ],
+            alignment: .leading,
+            spacing: Design.Spacing.cozy
+        ) {
+            ForEach(visibleItems) { item in
+                interactive(
+                    MediaCard(
+                        item: item, thumbnails: thumbnails, isSelected: selection == item.id,
+                        onAdd: { onAddToTimeline(item) }),
+                    item: item)
             }
-            .padding(Design.Spacing.regular)
         }
+        .padding(Design.Spacing.regular)
     }
 
-    private func card(for item: MediaItem) -> some View {
-        MediaCard(
-            item: item, thumbnails: thumbnails, isSelected: selection == item.id,
-            onAdd: { onAddToTimeline(item) }
-        )
-        .onTapGesture(count: 2) { onAddToTimeline(item) }
-        .onTapGesture { selection = item.id }
-        .onDrag {
-            library.draggedItemID = item.id
-            return NSItemProvider(object: item.id.uuidString as NSString)
-        } preview: {
-            MediaDragPreview(item: item, thumbnails: thumbnails)
+    private var list: some View {
+        LazyVStack(spacing: Design.Spacing.hairline) {
+            ForEach(visibleItems) { item in
+                interactive(
+                    MediaRow(
+                        item: item, thumbnails: thumbnails, isSelected: selection == item.id,
+                        onAdd: { onAddToTimeline(item) }),
+                    item: item)
+            }
         }
-        .contextMenu {
-            Button(localized("library.addToTimeline")) { onAddToTimeline(item) }
-        }
+        .padding(Design.Spacing.regular)
+    }
+
+    private func interactive(_ view: some View, item: MediaItem) -> some View {
+        view
+            .onTapGesture(count: 2) { onAddToTimeline(item) }
+            .onTapGesture { selection = item.id }
+            .onDrag {
+                library.draggedItemID = item.id
+                return NSItemProvider(object: item.id.uuidString as NSString)
+            } preview: {
+                MediaDragPreview(item: item, thumbnails: thumbnails)
+            }
+            .contextMenu {
+                Button(localized("library.addToTimeline")) { onAddToTimeline(item) }
+            }
     }
 
     @ViewBuilder
