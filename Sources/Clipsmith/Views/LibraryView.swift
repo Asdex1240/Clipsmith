@@ -6,9 +6,11 @@ struct LibraryView: View {
     let thumbnails: ThumbnailGenerating
     @Binding var selection: MediaItem.ID?
     let onAddToTimeline: (MediaItem) -> Void
+    var clipCount: (MediaItem) -> Int = { _ in 0 }
     @State private var isImporterPresented = false
     @State private var isDropTargeted = false
     @State private var query = MediaQuery()
+    @State private var itemPendingRemoval: MediaItem?
     @AppStorage("library.layout") private var layout = LibraryLayout.grid
 
     private static let importableTypes: [UTType] = [.movie, .audio, .image]
@@ -31,6 +33,38 @@ struct LibraryView: View {
             onCompletion: handleImporterResult
         )
         .onDrop(of: [.fileURL], isTargeted: $isDropTargeted, perform: handleDrop)
+        .alert(
+            removalTitle, isPresented: removalIsPresented, presenting: itemPendingRemoval
+        ) { item in
+            Button(localized("library.remove.confirm"), role: .destructive) { remove(item) }
+            Button(localized("alert.cancel"), role: .cancel) {}
+        } message: { item in
+            Text(String(format: localized("library.remove.message"), clipCount(item)))
+        }
+    }
+
+    private var removalTitle: String {
+        String(format: localized("library.remove.title"), itemPendingRemoval?.name ?? "")
+    }
+
+    private var removalIsPresented: Binding<Bool> {
+        Binding(
+            get: { itemPendingRemoval != nil },
+            set: { if !$0 { itemPendingRemoval = nil } }
+        )
+    }
+
+    private func requestRemoval(of item: MediaItem) {
+        guard clipCount(item) > 0 else {
+            remove(item)
+            return
+        }
+        itemPendingRemoval = item
+    }
+
+    private func remove(_ item: MediaItem) {
+        if selection == item.id { selection = nil }
+        library.removeItem(item.id)
     }
 
     private var visibleItems: [MediaItem] {
@@ -199,6 +233,10 @@ struct LibraryView: View {
             }
             .contextMenu {
                 Button(localized("library.addToTimeline")) { onAddToTimeline(item) }
+                Divider()
+                Button(localized("library.remove"), role: .destructive) {
+                    requestRemoval(of: item)
+                }
             }
     }
 

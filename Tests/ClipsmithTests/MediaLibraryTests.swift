@@ -39,6 +39,26 @@ final class MediaLibraryTests: XCTestCase {
         XCTAssertNil(library.lastErrorMessage)
     }
 
+    func testRemovingAnItemKeepsTheOthers() async {
+        let library = MediaLibrary(loader: StubLoader())
+        await library.importMedia(from: [url("a.mp4"), url("b.mp4")])
+        let first = library.items[0]
+
+        library.removeItem(first.id)
+
+        XCTAssertEqual(library.items.map(\.name), ["b.mp4"])
+    }
+
+    func testRemovedFilesCanBeImportedAgain() async {
+        let library = MediaLibrary(loader: StubLoader())
+        await library.importMedia(from: [url("a.mp4")])
+
+        library.removeItem(library.items[0].id)
+        await library.importMedia(from: [url("a.mp4")])
+
+        XCTAssertEqual(library.items.map(\.name), ["a.mp4"])
+    }
+
     private func url(_ name: String) -> URL {
         URL(fileURLWithPath: "/tmp/\(name)")
     }

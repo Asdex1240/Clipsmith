@@ -388,3 +388,8 @@
 "library.layout" = "Layout";
 "library.layout.grid" = "Grid";
 "library.layout.list" = "List";
+"alert.cancel" = "Cancel";
+"library.remove" = "Remove from Library";
+"library.remove.title" = "Remove “%@” from the library?";
+"library.remove.message" = "It is used by %d clips on the timeline. Those clips stay where they are, and the file is not deleted from your Mac.";
+"library.remove.confirm" = "Remove";

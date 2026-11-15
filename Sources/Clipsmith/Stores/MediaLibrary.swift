@@ -23,6 +23,10 @@ final class MediaLibrary {
         items = newItems
     }
 
+    func removeItem(_ id: MediaItem.ID) {
+        items.removeAll { $0.id == id }
+    }
+
     func remapSources(_ replacements: [URL: URL]) {
         items = items.map { $0.remapped(replacements) }
     }

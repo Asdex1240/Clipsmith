@@ -78,6 +78,7 @@ struct ContentView: View {
             Text(document.errorMessage ?? "")
         }
         .onChange(of: selection, selectionDidChange)
+        .onChange(of: library.items.map(\.id), leaveRemovedSource)
         .onChange(of: previewSettings.quality) {
             previewer.qualityDidChange()
             highlightPreview.projectDidChange()
@@ -150,6 +151,12 @@ struct ContentView: View {
     private func selectionDidChange() {
         guard let item = library.items.first(where: { $0.id == selection }) else { return }
         player.showSource(item)
+    }
+
+    private func leaveRemovedSource() {
+        guard player.mode == .source, let source = player.sourceItem else { return }
+        guard !library.items.contains(where: { $0.id == source.id }) else { return }
+        showTimeline()
     }
 
     private func showTimeline() {
