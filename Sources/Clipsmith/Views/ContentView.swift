@@ -15,6 +15,7 @@ struct ContentView: View {
     let waveforms: WaveformStore
     let filmstrips: FilmstripStore
     let previewSettings: PreviewSettings
+    var externalPreview: ExternalPreviewController?
     @State private var selection: MediaItem.ID?
     @State private var isExportPresented = false
     @State private var relinkDismissed = false
@@ -36,7 +37,8 @@ struct ContentView: View {
                 if isSidebarVisible { sidebar }
                 PreviewView(
                     controller: player, store: store, proxies: previewer.proxies,
-                    highlightPreview: highlightPreview, settings: previewSettings,
+                    highlightPreview: highlightPreview, externalPreview: externalPreview,
+                    settings: previewSettings,
                     onSelectTimeline: showTimeline
                 )
                 .frame(minWidth: Layout.previewMinWidth)

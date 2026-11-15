@@ -5,6 +5,7 @@ struct PreviewView: View {
     let store: ProjectStore
     var proxies: ProxyStore?
     var highlightPreview: HighlightPreviewController?
+    var externalPreview: ExternalPreviewController?
     let settings: PreviewSettings
     let onSelectTimeline: () -> Void
     @AppStorage("preview.guides") private var showsGuides = false
@@ -25,7 +26,8 @@ struct PreviewView: View {
                 .task(id: pointerActivity) { await waitForPointerToRest() }
             Divider()
             PreviewOptionsBar(
-                controller: controller, store: store, proxies: proxies, settings: settings,
+                controller: controller, store: store, proxies: proxies,
+                externalPreview: externalPreview, settings: settings,
                 showsGuides: $showsGuides, onSelectTimeline: onSelectTimeline)
         }
         .motion(.easeInOut(duration: Design.Motion.standard), value: controller.mode)
@@ -142,7 +144,7 @@ struct PreviewView: View {
         if controller.hasTimeline {
             PlayerSurface(
                 player: controller.player,
-                overlay: liveOverlay,
+                overlay: LiveTextOverlay.timeline(of: store, in: controller),
                 time: store.playheadInSeconds
             )
             .background(.black)
@@ -156,12 +158,6 @@ struct PreviewView: View {
         } else {
             emptyState("film.stack", localized("preview.timelineEmpty"))
         }
-    }
-
-    private var liveOverlay: TextOverlay? {
-        guard let renderSize = controller.timelineOverlay?.renderSize else { return nil }
-        let clips = store.project.tracks.filter { $0.role == .text }.flatMap(\.clips)
-        return TextOverlay(clips: clips, renderSize: renderSize)
     }
 
     @ViewBuilder

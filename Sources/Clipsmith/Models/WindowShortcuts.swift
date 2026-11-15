@@ -11,6 +11,7 @@ enum WindowShortcuts {
         WindowShortcut(titleKey: "export.open", keys: "⌘E"),
         WindowShortcut(titleKey: "toolbar.sidebar", keys: "⌥⌘1"),
         WindowShortcut(titleKey: "toolbar.inspector", keys: "⌥⌘2"),
+        WindowShortcut(titleKey: "menu.externalPreview", keys: "⌥⌘P"),
         WindowShortcut(titleKey: "menu.shortcuts", keys: "⌘/"),
     ]
 }

@@ -4,6 +4,7 @@ struct PreviewOptionsBar: View {
     let controller: PlayerController
     let store: ProjectStore
     var proxies: ProxyStore?
+    var externalPreview: ExternalPreviewController?
     let settings: PreviewSettings
     @Binding var showsGuides: Bool
     let onSelectTimeline: () -> Void
@@ -15,6 +16,9 @@ struct PreviewOptionsBar: View {
             if controller.mode != .highlight, let proxies { fastPreview(proxies) }
             qualityMenu
             guidesToggle
+            if let externalPreview, externalPreview.isAvailable {
+                ExternalPreviewButton(controller: externalPreview)
+            }
             if controller.mode != .highlight { CanvasPicker(store: store) }
         }
         .padding(Design.Spacing.regular)
