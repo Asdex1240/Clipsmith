@@ -4,32 +4,60 @@ A fast, local video editor for macOS, inspired by CapCut and built for editing v
 
 > **Status:** early development. The features below are implemented, but the app is still evolving and may change between versions.
 
-## Features
+## What the editor has today
 
-What it does:
-
+### Projects and media
 - **Projects** — create, save and open projects (`.clipsmith` files, JSON), with undo/redo, autosave recovery and relinking of moved or missing media.
-- **Media library** — import video, audio and images with thumbnails and durations.
-- **Timeline** — move, trim, split and delete clips (select several with `⇧`/`⌘`-click and group them), with as many video, audio and text tracks as you need (the higher a video track, the more on top), zoom, a draggable playhead and snapping.
-- **Canvas** — the project's work area: presets (16:9, 9:16, 1:1, 4:5, 3:4, 4:3, 21:9), any custom width × height, a resolution shortcut (720p–4K) and automatic matching to the first clip you add. Each clip can be framed as *Fit* (bars), *Fill* (crop) or *Blur* (the whole clip over a blurred copy of itself).
-- **Preview** — real-time playback and scrubbing. Floating playback controls (step, scrub, timecode) fade away while you play, and optional guides show the safe areas. A quality menu renders the preview at half or quarter resolution when a project is heavy; the export always uses full quality. *Fast preview* plays a lighter 720p copy of videos larger than Full HD while you edit; the export always uses the originals.
-- **Text** — text layers with font, size, color and position.
-- **Audio** — per-clip volume, fade in/out, visible waveforms, one-click volume normalization, automatic lowering of music (or any audio clip) under the speech of the main track, and noise reduction for steady background noise such as wind, hum or hiss.
+- **Media library** — media cards with large thumbnails, durations, search, filter by kind (video, audio, images) and sorting; import by button or by dropping files on the panel.
+
+### Editing
+- **Timeline** — move, trim, split and delete clips (select several with `⇧`/`⌘`-click and group them), with as many video, audio and text tracks as you need (the higher a video track, the more on top), zoom, a draggable playhead and snapping. Clips show frame thumbnails and waveforms, and each track can be muted, hidden or locked.
+- **Silence removal** — find the silent stretches of a clip from its waveform (adjustable volume threshold and minimum length), review the proposed cuts, then cut them and close the gaps in one undoable step.
 - **Speed** — play a clip from 0.25× to 4×; its length on the timeline follows. A one-click *slow-motion moment* slows a stretch down smoothly and speeds back up.
-- **Animation** — keyframes for position, size, rotation and opacity, edited at the playhead.
 - **Transitions** — dissolve, fade through black or slide between touching clips.
-- **Titles** — a Titles tab with ready-made styles (title, lower third, location, chapter, caption) that add an animated title at the playhead.
+- **Animation** — keyframes for position, size, rotation and opacity, edited at the playhead, with easing curves.
+
+### Picture
+- **Canvas** — the project's work area: presets (16:9, 9:16, 1:1, 4:5, 3:4, 4:3, 21:9), any custom width × height, a resolution shortcut (720p–4K) and automatic matching to the first clip you add. Each clip can be framed as *Fit* (bars), *Fill* (crop) or *Blur* (the whole clip over a blurred copy of itself).
+- **Color and crop** — brightness, contrast, saturation, temperature, one-click looks and a per-side crop.
 - **Stabilization** — smooths hand-held shaking by analyzing the shot and reframing it slightly; light, normal and strong settings.
 - **Background** — find the people in a shot (Vision) and remove or blur everything behind them; removing shows the tracks below, such as B-roll.
-- **Color and crop** — brightness, contrast, saturation, temperature, one-click looks and a per-side crop.
+
+### Text and subtitles
+- **Text** — text layers with font, size, color, position, outline, background box, shadow and entrance/exit animations.
+- **Titles** — a Titles tab with ready-made styles (title, lower third, location, chapter, caption) that add an animated title at the playhead.
 - **Subtitles** — generate text clips from the speech in a clip, on device where the language allows (needs the packaged app, see below). Optionally highlight each word as it is spoken.
-- **Silence removal** — find the silent stretches of a clip from its waveform (adjustable volume threshold and minimum length), review the proposed cuts, then cut them and close the gaps in one undoable step.
-- **Highlights** — mark ranges of a vlog as clips (in/out points), reframe each one to vertical 9:16 (fill the screen by hand or following the face, or keep the whole shot over a blurred background) and export several at once as separate MP4 files, ready for TikTok, Reels and Shorts. Each highlight can be previewed in vertical before exporting. The framing can be animated with keyframes, or follow the face over time. Clipsmith can also suggest highlights from the most active stretches of a clip's audio.
+
+### Audio
+- **Audio** — per-clip volume, fade in/out, visible waveforms, one-click volume normalization, automatic lowering of music (or any audio clip) under the speech of the main track, and noise reduction for steady background noise such as wind, hum or hiss.
+
+### Short-form video (TikTok, Reels, Shorts)
+- **Highlights** — mark ranges of a vlog as clips (in/out points), reframe each one to vertical 9:16 (fill the screen by hand or following the face, or keep the whole shot over a blurred background) and export several at once as separate MP4 files. Each highlight can be previewed in vertical before exporting. The framing can be animated with keyframes, or follow the face over time. Clipsmith can also suggest highlights from the most active stretches of a clip's audio.
+
+### Preview and export
+- **Preview** — real-time playback and scrubbing. Floating playback controls (step, scrub, timecode) fade away while you play, and optional guides show the safe areas. A quality menu renders the preview at half or quarter resolution when a project is heavy; the export always uses full quality. *Fast preview* plays a lighter 720p copy of videos larger than Full HD while you edit; the export always uses the originals.
 - **Export** — MP4 (H.264 / HEVC) at 720p, 1080p, 1440p, 4K or exactly the canvas size, with configurable frame rate and 16:9 / 9:16 presets.
+
+### Interface
+A native macOS look (translucent materials, Liquid Glass on macOS 26) in light and dark mode, collapsible library and inspector panels, a grouped toolbar, illustrated empty states, text contrast checked against the system backgrounds, and support for the Reduce Motion and Reduce Transparency settings. Bilingual: English and Spanish.
 
 Everything runs locally; there is no backend and no account.
 
 Lighter copies of 4K videos and cleaned audio are cached so they are not made twice. Files unused for 30 days are removed automatically, the cache is capped at 5 GB, and **Clipsmith → Settings** (`⌘,`) shows its size and lets you clear it.
+
+## Coming soon
+
+What is next for the editor:
+
+- **A signed and notarized app** — a Developer ID build that opens on any Mac without extra steps (today the packaged app is ad-hoc signed and runs on the Mac that built it).
+- **Polish from real-world use** — adjustments to the newest features (background removal, stabilization, vertical framing) once they have been tried on real vlogs and different kinds of footage.
+- **Screenshots and a short demo** in this README.
+
+Ideas under consideration, not committed yet:
+
+- **Built-in music** — royalty-free tracks to drop under a vlog (this depends on finding material with a suitable license).
+- **Stickers and emoji** — overlays with the same entrance and exit animations as the titles.
+- **Custom GPU effects** — extra looks and effects beyond the current color controls.
 
 ## Requirements
 
