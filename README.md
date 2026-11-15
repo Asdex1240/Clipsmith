@@ -8,7 +8,7 @@ A fast, local video editor for macOS, inspired by CapCut and built for editing v
 
 ### Projects and media
 - **Projects** — create, save and open projects (`.clipsmith` files, JSON), with undo/redo, autosave recovery and relinking of moved or missing media.
-- **Media library** — import by button or by dropping files on the panel; search, filter by kind (video, audio, images) and sort. Show media as a grid of same-size cards or as a compact list; vertical and horizontal videos show in full and nothing is cropped. Clipsmith remembers which view you chose. **Remove from Library** (right-click) only removes the item from the list, never the file on disk. If the timeline uses the item, Clipsmith asks first and keeps those clips where they are.
+- **Media library** — import by button or by dropping files on the panel; search, filter by kind (video, audio, images) and sort. Show media as a grid of same-size cards or as a compact list; vertical and horizontal videos show in full and nothing is cropped. Clipsmith remembers which view you chose. **Remove from Library** (right-click) only removes the item from the list, never the file on disk, and `⌘Z` brings it back. If the timeline uses the item, Clipsmith asks first and keeps those clips where they are.
 
 ### Editing
 - **Timeline** — move, trim, split and delete clips (select several with `⇧`/`⌘`-click and group them), with as many video, audio and text tracks as you need (the higher a video track, the more on top), zoom, a draggable playhead and snapping. Clips show frame thumbnails and waveforms, and each track can be muted, hidden or locked.

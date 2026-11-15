@@ -26,8 +26,8 @@ final class ProjectStore {
     private(set) var highlightMarks = HighlightMarks()
     private(set) var isSnappingEnabled = true
     private(set) var pointsPerSecond = ProjectStore.defaultPointsPerSecond
-    private var undoStack: [Project] = []
-    private var redoStack: [Project] = []
+    private var undoStack: [UndoStep] = []
+    private var redoStack: [UndoStep] = []
     @ObservationIgnored private var lastMutationKey: String?
     @ObservationIgnored private var lastMutationDate = Date.distantPast
     @ObservationIgnored var clipboard: [ClipboardEntry] = []
@@ -101,15 +101,32 @@ final class ProjectStore {
     }
 
     func undo() {
-        guard let previous = undoStack.popLast() else { return }
-        redoStack.append(project)
-        restore(previous)
+        guard let step = undoStack.popLast() else { return }
+        switch step {
+        case .snapshot(let previous):
+            redoStack.append(.snapshot(project))
+            restore(previous)
+        case .action(let action):
+            action.undo()
+            redoStack.append(step)
+        }
     }
 
     func redo() {
-        guard let next = redoStack.popLast() else { return }
-        undoStack.append(project)
-        restore(next)
+        guard let step = redoStack.popLast() else { return }
+        switch step {
+        case .snapshot(let next):
+            undoStack.append(.snapshot(project))
+            restore(next)
+        case .action(let action):
+            action.redo()
+            undoStack.append(step)
+        }
+    }
+
+    func recordReversibleAction(_ action: ReversibleAction) {
+        lastMutationKey = nil
+        push(.action(action))
     }
 
     func setSelection(_ ids: Set<Clip.ID>, primary: Clip.ID?) {
@@ -208,7 +225,11 @@ final class ProjectStore {
         {
             return
         }
-        undoStack.append(project)
+        push(.snapshot(project))
+    }
+
+    private func push(_ step: UndoStep) {
+        undoStack.append(step)
         if undoStack.count > Self.maximumUndoSteps { undoStack.removeFirst() }
         redoStack.removeAll()
     }
