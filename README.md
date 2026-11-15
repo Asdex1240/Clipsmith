@@ -8,7 +8,7 @@ A fast, local video editor for macOS, inspired by CapCut and built for editing v
 
 ### Projects and media
 - **Projects** — create, save and open projects (`.clipsmith` files, JSON), with undo/redo, autosave recovery and relinking of moved or missing media.
-- **Media library** — media cards with large thumbnails, durations, search, filter by kind (video, audio, images) and sorting; import by button or by dropping files on the panel.
+- **Media library** — import by button or by dropping files on the panel; search, filter by kind (video, audio, images) and sort. Show media as a grid of same-size cards or as a compact list; vertical and horizontal videos show in full and nothing is cropped. Clipsmith remembers which view you chose. **Remove from Library** (right-click) only removes the item from the list, never the file on disk. If the timeline uses the item, Clipsmith asks first and keeps those clips where they are.
 
 ### Editing
 - **Timeline** — move, trim, split and delete clips (select several with `⇧`/`⌘`-click and group them), with as many video, audio and text tracks as you need (the higher a video track, the more on top), zoom, a draggable playhead and snapping. Clips show frame thumbnails and waveforms, and each track can be muted, hidden or locked.
@@ -35,7 +35,7 @@ A fast, local video editor for macOS, inspired by CapCut and built for editing v
 - **Highlights** — mark ranges of a vlog as clips (in/out points), reframe each one to vertical 9:16 (fill the screen by hand or following the face, or keep the whole shot over a blurred background) and export several at once as separate MP4 files. Each highlight can be previewed in vertical before exporting. The framing can be animated with keyframes, or follow the face over time. Clipsmith can also suggest highlights from the most active stretches of a clip's audio.
 
 ### Preview and export
-- **Preview** — real-time playback and scrubbing. Floating playback controls (step, scrub, timecode) fade away while you play, and optional guides show the safe areas. A quality menu renders the preview at half or quarter resolution when a project is heavy; the export always uses full quality. *Fast preview* plays a lighter 720p copy of videos larger than Full HD while you edit; the export always uses the originals.
+- **Preview** — real-time playback and scrubbing. Floating playback controls (step, scrub, timecode) fade away while you play and stay visible while the pointer is over them. Optional guides show the safe areas. A quality menu renders the preview at half or quarter resolution when a project is heavy; the export always uses full quality. *Fast preview* plays a lighter 720p copy of videos larger than Full HD while you edit; the export always uses the originals.
 - **External display preview** — with more than one display connected, a button in the preview bar (or **View → Preview on External Display**) shows the preview full screen on another display, in sync with the editor and without controls or guides. With three or more displays you pick which one. It closes on its own if that display is disconnected.
 - **Export** — MP4 (H.264 / HEVC) at 720p, 1080p, 1440p, 4K or exactly the canvas size, with configurable frame rate and 16:9 / 9:16 presets.
 
@@ -63,12 +63,12 @@ Ideas under consideration, not committed yet:
 ## Requirements
 
 - macOS 14 or later (Apple Silicon)
-- Swift 6 toolchain (Xcode 16 or later)
+- Swift 6 toolchain (Xcode 16 or later; the project is developed with Swift 6.3 / Xcode 26), which includes `swift format`
 
 ## Getting started
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Asdex1240/Clipsmith.git
 cd Clipsmith
 
 swift run          # build and launch the app
@@ -158,13 +158,20 @@ The project model is independent of the playback engine. Preview and export both
 
 ## Tech stack
 
-Swift, SwiftUI, AVFoundation, Metal / Core Image.
+Swift, SwiftUI and AppKit, AVFoundation (playback, composition, export), Core Image (color, blur, compositing), Vision (people, faces and stabilization) and Speech (subtitles). No third-party dependencies.
 
 The app is bilingual (English and Spanish). Coding conventions live in [CODE_RULES.md](CODE_RULES.md) (in Spanish).
 
 ## Contributing
 
-Issues and pull requests are welcome. Please run `swift test` before submitting changes.
+Issues and pull requests are welcome. Before submitting changes:
+
+- Enable the Git hooks once with `./scripts/install-hooks.sh`. Before each commit, they check the formatting and reject comments in the code.
+- Format with `swift format format --configuration .swift-format -i -r Sources Tests`.
+- Run `swift test`.
+- Add every new user-facing text to both `en.lproj` and `es.lproj`; a test checks that both files have the same keys.
+
+The full conventions are in [CODE_RULES.md](CODE_RULES.md).
 
 ## License
 
