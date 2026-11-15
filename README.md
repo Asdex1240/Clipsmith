@@ -1,5 +1,7 @@
 # Clipsmith
 
+[![CI](https://github.com/Asdex1240/Clipsmith/actions/workflows/ci.yml/badge.svg)](https://github.com/Asdex1240/Clipsmith/actions/workflows/ci.yml)
+
 A fast, local video editor for macOS, inspired by CapCut and built for editing vlogs: trim raw footage, cut silences and mistakes, arrange clips, add text and music, and export to MP4.
 
 > **Status:** early development. The features below are implemented, but the app is still evolving and may change between versions.
@@ -164,7 +166,7 @@ The app is bilingual (English and Spanish). Coding conventions live in [CODE_RUL
 
 ## Contributing
 
-Issues and pull requests are welcome. Before submitting changes:
+Issues and pull requests are welcome. Every pull request runs the CI (formatting, no comments in the code, build and tests). Before submitting changes:
 
 - Enable the Git hooks once with `./scripts/install-hooks.sh`. Before each commit, they check the formatting and reject comments in the code.
 - Format with `swift format format --configuration .swift-format -i -r Sources Tests`.
