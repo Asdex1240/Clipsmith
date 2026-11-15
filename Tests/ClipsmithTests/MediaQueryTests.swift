@@ -93,4 +93,10 @@ final class MediaQueryTests: XCTestCase {
             XCTAssertNotEqual(localized(String.LocalizationValue(sort.titleKey)), sort.titleKey)
         }
     }
+
+    func testEveryLibraryLayoutHasATranslatedTitle() {
+        for layout in LibraryLayout.allCases {
+            XCTAssertNotEqual(localized(String.LocalizationValue(layout.titleKey)), layout.titleKey)
+        }
+    }
 }

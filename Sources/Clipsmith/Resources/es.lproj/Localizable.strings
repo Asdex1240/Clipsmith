@@ -385,3 +385,11 @@
 "preview.external" = "Monitor externo";
 "preview.external.help" = "Muestra el preview a pantalla completa en otro monitor";
 "preview.external.stop" = "Dejar de mostrar el preview en el monitor externo";
+"library.layout" = "Vista";
+"library.layout.grid" = "Cuadrícula";
+"library.layout.list" = "Lista";
+"alert.cancel" = "Cancelar";
+"library.remove" = "Eliminar de la biblioteca";
+"library.remove.title" = "¿Eliminar «%@» de la biblioteca?";
+"library.remove.message" = "Lo usan %d clips del timeline. Esos clips se quedan donde están y el archivo no se borra de tu Mac.";
+"library.remove.confirm" = "Eliminar";

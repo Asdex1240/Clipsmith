@@ -36,7 +36,8 @@ struct SidebarView: View {
         case .media:
             LibraryView(
                 library: library, thumbnails: thumbnails, selection: $selection,
-                onAddToTimeline: onAddToTimeline)
+                onAddToTimeline: onAddToTimeline,
+                clipCount: { store.project.clipCount(using: $0.url) })
         case .titles:
             TitlesView(store: store)
         case .highlights:

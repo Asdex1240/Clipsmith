@@ -5,15 +5,11 @@ struct MediaCard: View {
     let thumbnails: ThumbnailGenerating
     let isSelected: Bool
     let onAdd: () -> Void
-    @State private var thumbnail: NSImage?
     @State private var isHovering = false
-
-    private static let aspectRatio = 16.0 / 9
 
     var body: some View {
         VStack(alignment: .leading, spacing: Design.Spacing.tight) {
-            thumbnailView
-                .aspectRatio(Self.aspectRatio, contentMode: .fit)
+            MediaThumbnail(item: item, thumbnails: thumbnails)
                 .overlay(alignment: .bottomTrailing) { durationBadge }
                 .overlay(alignment: .topLeading) { kindBadge }
                 .overlay(alignment: .topTrailing) { addButton }
@@ -31,23 +27,8 @@ struct MediaCard: View {
         .onHover { isHovering = $0 }
         .motion(value: isHovering)
         .motion(value: isSelected)
-        .task { thumbnail = await thumbnails.thumbnail(for: item) }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(traits)
-    }
-
-    @ViewBuilder
-    private var thumbnailView: some View {
-        if let thumbnail {
-            Image(nsImage: thumbnail).resizable().scaledToFill()
-        } else {
-            ZStack {
-                Rectangle().fill(.quaternary)
-                Image(systemName: item.kind.systemImage)
-                    .font(.title2)
-                    .foregroundStyle(.secondary)
-            }
-        }
     }
 
     private var durationBadge: some View {

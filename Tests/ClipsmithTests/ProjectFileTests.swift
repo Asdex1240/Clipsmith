@@ -75,4 +75,14 @@ final class ProjectFileTests: XCTestCase {
         XCTAssertEqual(item.url, replacement)
         XCTAssertNil(project.tracks[0].clips[0].sourceURL)
     }
+
+    func testClipCountCountsEveryClipOfThatSourceAcrossTracks() {
+        var project = Project(name: "Count")
+        project.tracks[0].clips = [TestClips.video(start: 0), TestClips.video(start: 10)]
+        project.tracks[1].clips = [TestClips.audio(start: 0, duration: 5)]
+
+        XCTAssertEqual(project.clipCount(using: URL(fileURLWithPath: "/tmp/video.mp4")), 2)
+        XCTAssertEqual(project.clipCount(using: URL(fileURLWithPath: "/tmp/music.m4a")), 1)
+        XCTAssertEqual(project.clipCount(using: URL(fileURLWithPath: "/tmp/other.mp4")), 0)
+    }
 }

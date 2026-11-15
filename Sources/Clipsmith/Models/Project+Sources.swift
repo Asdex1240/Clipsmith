@@ -5,6 +5,10 @@ extension Project {
         Set(tracks.flatMap(\.clips).compactMap(\.sourceURL))
     }
 
+    func clipCount(using url: URL) -> Int {
+        tracks.flatMap(\.clips).filter { $0.sourceURL == url }.count
+    }
+
     mutating func remapSources(_ replacements: [URL: URL]) {
         for trackIndex in tracks.indices {
             for clipIndex in tracks[trackIndex].clips.indices {
