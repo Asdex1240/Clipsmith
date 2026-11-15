@@ -31,7 +31,14 @@ struct ClipsmithApp: App {
         _library = State(initialValue: library)
         _document = State(initialValue: document)
         documentActions = DocumentActions(document: document)
-        let runner = EditorShortcutRunner(store: store, player: player)
+        let externalPreview = ExternalPreviewController(monitor: DisplayMonitor()) {
+            CursorHidingView(
+                content: NSHostingView(
+                    rootView: ExternalPreviewView(controller: player, store: store)))
+        }
+        _externalPreview = State(initialValue: externalPreview)
+        let runner = EditorShortcutRunner(
+            store: store, player: player, externalPreview: externalPreview)
         shortcutMonitor = KeyboardShortcutMonitor(perform: runner.perform)
         _player = State(initialValue: player)
         let previewSettings = PreviewSettings()
@@ -50,10 +57,6 @@ struct ClipsmithApp: App {
                 store: store, player: player, proxies: previewer.proxies,
                 denoise: previewer.denoise, settings: previewSettings))
         _subtitles = State(initialValue: SubtitleController(store: store))
-        _externalPreview = State(
-            initialValue: ExternalPreviewController(monitor: DisplayMonitor()) {
-                NSHostingView(rootView: ExternalPreviewView(controller: player, store: store))
-            })
     }
 
     var body: some Scene {

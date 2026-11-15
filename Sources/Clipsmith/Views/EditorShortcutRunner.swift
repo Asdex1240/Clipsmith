@@ -4,6 +4,7 @@ import Foundation
 struct EditorShortcutRunner {
     let store: ProjectStore
     let player: PlayerController
+    var externalPreview: ExternalPreviewController?
 
     func perform(_ action: EditorAction) {
         switch action {
@@ -36,7 +37,15 @@ struct EditorShortcutRunner {
         case .nextEdit: store.goToNextEdit()
         case .goToStart: store.goToStart()
         case .goToEnd: store.goToEnd()
-        case .deselect: store.selectClip(nil)
+        case .deselect: deselectOrLeaveExternalPreview()
         }
+    }
+
+    private func deselectOrLeaveExternalPreview() {
+        guard store.selectedClipIDs.isEmpty, let externalPreview, externalPreview.isShowing else {
+            store.selectClip(nil)
+            return
+        }
+        externalPreview.hide()
     }
 }
