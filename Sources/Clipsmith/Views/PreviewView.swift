@@ -11,6 +11,7 @@ struct PreviewView: View {
     @AppStorage("preview.guides") private var showsGuides = false
     @State private var pointerIsIdle = false
     @State private var pointerActivity = 0
+    @State private var pointerIsOverControls = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -42,14 +43,18 @@ struct PreviewView: View {
     }
 
     private var controlsAreVisible: Bool {
-        ControlsVisibility(isPlaying: controller.isPlaying, pointerIsIdle: pointerIsIdle)
-            .isVisible
+        ControlsVisibility(
+            isPlaying: controller.isPlaying, pointerIsIdle: pointerIsIdle,
+            pointerIsOverControls: pointerIsOverControls
+        )
+        .isVisible
     }
 
     @ViewBuilder
     private var floatingControls: some View {
         if canPlay {
             PreviewPlaybackControls(controller: controller, store: store)
+                .onHover { pointerIsOverControls = $0 }
                 .padding(Design.Spacing.spacious)
                 .opacity(controlsOpacity)
                 .animation(controlsAnimation, value: controlsAreVisible)
@@ -87,7 +92,11 @@ struct PreviewView: View {
     }
 
     private func waitForPointerToRest() async {
-        try? await Task.sleep(for: .seconds(ControlsVisibility.hideDelayInSeconds))
+        do {
+            try await Task.sleep(for: .seconds(ControlsVisibility.hideDelayInSeconds))
+        } catch {
+            return
+        }
         pointerIsIdle = true
     }
 
