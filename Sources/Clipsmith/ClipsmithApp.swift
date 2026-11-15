@@ -19,6 +19,7 @@ struct ClipsmithApp: App {
     @State private var waveforms = WaveformStore()
     @State private var filmstrips = FilmstripStore()
     @State private var previewSettings: PreviewSettings
+    @State private var externalPreview: ExternalPreviewController
     private let thumbnails = CachedThumbnailGenerator()
 
     init() {
@@ -49,6 +50,10 @@ struct ClipsmithApp: App {
                 store: store, player: player, proxies: previewer.proxies,
                 denoise: previewer.denoise, settings: previewSettings))
         _subtitles = State(initialValue: SubtitleController(store: store))
+        _externalPreview = State(
+            initialValue: ExternalPreviewController(monitor: DisplayMonitor()) {
+                NSHostingView(rootView: ExternalPreviewView(controller: player, store: store))
+            })
     }
 
     var body: some Scene {
@@ -59,7 +64,8 @@ struct ClipsmithApp: App {
                 highlightPreview: highlightPreview, subtitles: subtitles,
                 document: document,
                 documentActions: documentActions, thumbnails: thumbnails, waveforms: waveforms,
-                filmstrips: filmstrips, previewSettings: previewSettings
+                filmstrips: filmstrips, previewSettings: previewSettings,
+                externalPreview: externalPreview
             )
             .frame(minWidth: 1100, minHeight: 700)
             .onAppear {
@@ -79,6 +85,11 @@ struct ClipsmithApp: App {
                 Button(localized("menu.saveAs")) { documentActions.saveAs() }
                     .keyboardShortcut("s", modifiers: [.command, .shift])
             }
+            CommandGroup(after: .toolbar) {
+                Toggle(localized("menu.externalPreview"), isOn: externalPreviewIsShowing)
+                    .keyboardShortcut("p", modifiers: [.command, .option])
+                    .disabled(!externalPreview.isAvailable)
+            }
             CommandGroup(replacing: .help) {
                 Button(localized("menu.shortcuts")) { isShortcutsPresented = true }
                     .keyboardShortcut("/")
@@ -93,5 +104,9 @@ struct ClipsmithApp: App {
             }
         }
         Settings { CacheSettingsView(controller: caches) }
+    }
+
+    private var externalPreviewIsShowing: Binding<Bool> {
+        Binding(get: { externalPreview.isShowing }, set: { _ in externalPreview.toggle() })
     }
 }

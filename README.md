@@ -36,6 +36,7 @@ A fast, local video editor for macOS, inspired by CapCut and built for editing v
 
 ### Preview and export
 - **Preview** — real-time playback and scrubbing. Floating playback controls (step, scrub, timecode) fade away while you play, and optional guides show the safe areas. A quality menu renders the preview at half or quarter resolution when a project is heavy; the export always uses full quality. *Fast preview* plays a lighter 720p copy of videos larger than Full HD while you edit; the export always uses the originals.
+- **External display preview** — with more than one display connected, a button in the preview bar (or **View → Preview on External Display**) shows the preview full screen on another display, in sync with the editor and without controls or guides. With three or more displays you pick which one. It closes on its own if that display is disconnected.
 - **Export** — MP4 (H.264 / HEVC) at 720p, 1080p, 1440p, 4K or exactly the canvas size, with configurable frame rate and 16:9 / 9:16 presets.
 
 ### Interface
@@ -98,6 +99,7 @@ open Package.swift # open the project in Xcode
 | Undo / redo | `⌘Z` / `⇧⌘Z` |
 | Export | `⌘E` |
 | Show or hide the library / the inspector | `⌥⌘1` / `⌥⌘2` |
+| Preview on an external display | `⌥⌘P` |
 
 Ripple delete (`⇧⌫`) on a clip of the main track closes the gap on every track, so music, text and subtitles stay in sync (clips inside the removed stretch are cut out); on any other track it only moves that track.
 

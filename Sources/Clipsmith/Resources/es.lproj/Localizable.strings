@@ -381,3 +381,7 @@
 "inspector.background.remove" = "Quitar";
 "inspector.background.blur" = "Desenfocar";
 "inspector.background.hint" = "Detecta a las personas del plano y quita o desenfoca todo lo que hay detrás. Al quitarlo se ve lo que hay en las pistas de abajo (como el B-roll). Trabaja fotograma a fotograma, así que el preview y el export tardan más.";
+"menu.externalPreview" = "Preview en el monitor externo";
+"preview.external" = "Monitor externo";
+"preview.external.help" = "Muestra el preview a pantalla completa en otro monitor";
+"preview.external.stop" = "Dejar de mostrar el preview en el monitor externo";

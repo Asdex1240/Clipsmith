@@ -381,3 +381,7 @@
 "inspector.background.remove" = "Remove";
 "inspector.background.blur" = "Blur";
 "inspector.background.hint" = "Finds the people in the shot and removes or blurs everything behind them. Removing shows whatever is on the tracks below (such as B-roll). It works frame by frame, so previewing and exporting take longer.";
+"menu.externalPreview" = "Preview on External Display";
+"preview.external" = "External display";
+"preview.external.help" = "Shows the preview full screen on another display";
+"preview.external.stop" = "Stop showing the preview on the external display";
