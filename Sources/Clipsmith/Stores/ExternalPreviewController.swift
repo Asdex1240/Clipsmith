@@ -10,11 +10,17 @@ final class ExternalPreviewController {
     @ObservationIgnored private let monitor: DisplayMonitor
     @ObservationIgnored private let makeContentView: () -> NSView
     @ObservationIgnored private var window: NSWindow?
+    @ObservationIgnored private var screenObserver: NSObjectProtocol?
 
     init(monitor: DisplayMonitor, makeContentView: @escaping () -> NSView) {
         self.monitor = monitor
         self.makeContentView = makeContentView
         monitor.onDisplaysChange = { [weak self] in self?.displaysDidChange() }
+        screenObserver = NotificationCenter.default.addObserver(
+            forName: NSWindow.didChangeScreenNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.hideIfTheEditorCoversThePreview() }
+        }
     }
 
     var candidates: [ExternalDisplay] {
@@ -64,10 +70,14 @@ final class ExternalPreviewController {
         window.isReleasedWhenClosed = false
         window.backgroundColor = .black
         window.level = Self.aboveMenuBar
-        window.ignoresMouseEvents = true
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         window.contentView = makeContentView()
         return window
+    }
+
+    private func hideIfTheEditorCoversThePreview() {
+        guard let activeDisplay, editorDisplayID == activeDisplay.id else { return }
+        hide()
     }
 
     private func displaysDidChange() {

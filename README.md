@@ -38,7 +38,7 @@ A fast, local video editor for macOS, inspired by CapCut and built for editing v
 
 ### Preview and export
 - **Preview** — real-time playback and scrubbing. Floating playback controls (step, scrub, timecode) fade away while you play and stay visible while the pointer is over them. Optional guides show the safe areas. A quality menu renders the preview at half or quarter resolution when a project is heavy; the export always uses full quality. *Fast preview* plays a lighter 720p copy of videos larger than Full HD while you edit; the export always uses the originals.
-- **External display preview** — with more than one display connected, a button in the preview bar (or **View → Preview on External Display**) shows the preview full screen on another display, in sync with the editor and without controls or guides. With three or more displays you pick which one. It closes on its own if that display is disconnected.
+- **External display preview** — with more than one display connected, a button in the preview bar (or **View → Preview on External Display**) shows the preview full screen on another display, in sync with the editor and without controls or guides. With three or more displays you pick which one. The pointer hides after a moment of rest over that display. `Esc` closes it when no clip is selected (otherwise it deselects first). It also closes on its own if that display is disconnected or if you move the editor window onto it.
 - **Export** — MP4 (H.264 / HEVC) at 720p, 1080p, 1440p, 4K or exactly the canvas size, with configurable frame rate and 16:9 / 9:16 presets.
 
 ### Interface
@@ -92,7 +92,7 @@ open Package.swift # open the project in Xcode
 | Previous / next cut | `⌥←` / `⌥→` |
 | Go to start / end | `Home` / `End` |
 | Zoom in / out | `+` / `-` (or `⌘` + scroll over the timeline) |
-| Deselect | `Esc` |
+| Deselect (then close the external preview) | `Esc` |
 | Undo / redo | `⌘Z` / `⇧⌘Z` |
 | Export | `⌘E` |
 | Show or hide the library / the inspector | `⌥⌘1` / `⌥⌘2` |
