@@ -24,29 +24,33 @@ final class LivePreviewThrottleTests: XCTestCase {
         try? await Task.sleep(for: .milliseconds(50))
     }
 
-    private func dragASlider(for milliseconds: Int, every step: Int) async {
-        var elapsed = 0
+    @discardableResult
+    private func dragASlider(for milliseconds: Int, every step: Int) async -> Int {
+        let deadline = ContinuousClock.now + .milliseconds(milliseconds)
+        var edits = 0
         var brightness = 0.0
-        while elapsed < milliseconds {
+        while ContinuousClock.now < deadline {
             brightness += 0.001
             var color = ColorAdjustments()
             color.brightness = brightness
             store.setColor(of: clipID, to: color)
             previewer.projectDidChange()
+            edits += 1
             try? await Task.sleep(for: .milliseconds(step))
-            elapsed += step
         }
         try? await Task.sleep(for: .milliseconds(300))
+        return edits
     }
 
     func testRapidLookEditsDoNotRebuildOnEveryChange() async {
         let before = builder.times.count
 
-        await dragASlider(for: 500, every: 5)
+        let edits = await dragASlider(for: 500, every: 5)
 
         let builds = builder.times.count - before
         XCTAssertGreaterThan(builds, 0)
-        XCTAssertLessThan(builds, 25, "\(builds) rebuilds for about 100 edits")
+        XCTAssertLessThan(builds, edits, "\(builds) rebuilds for \(edits) edits")
+        XCTAssertLessThan(builds, 25, "\(builds) rebuilds in half a second")
     }
 
     func testLiveRebuildsAreSpacedByTheLiveInterval() async {
