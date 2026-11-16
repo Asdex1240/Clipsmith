@@ -393,3 +393,16 @@
 "library.remove.title" = "Remove “%@” from the library?";
 "library.remove.message" = "It is used by %d clips on the timeline. Those clips stay where they are, and the file is not deleted from your Mac.";
 "library.remove.confirm" = "Remove";
+"inspector.look.section" = "Film look";
+"inspector.look.grain" = "Grain";
+"inspector.look.vignette" = "Vignette";
+"inspector.look.sharpness" = "Sharpness";
+"inspector.look.reset" = "Reset look";
+"inspector.look.lut" = "LUT";
+"inspector.look.lut.choose" = "Choose LUT…";
+"inspector.look.lut.remove" = "Remove";
+"inspector.look.lut.intensity" = "LUT intensity";
+"inspector.look.lut.hint" = "Apply a color look from a .cube file, like the ones made in DaVinci Resolve or Lightroom. The file stays where it is.";
+"error.lut.missingSize" = "This .cube file does not say its size (LUT_3D_SIZE), or the size is not supported.";
+"error.lut.wrongEntryCount" = "This .cube file does not have the number of colors its size requires.";
+"error.lut.unreadable" = "This .cube file could not be read.";

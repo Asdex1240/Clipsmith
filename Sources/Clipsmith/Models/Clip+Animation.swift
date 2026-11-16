@@ -11,7 +11,8 @@ extension Clip {
     }
 
     var hasLookEffects: Bool {
-        !color.isIdentity || !crop.isNone || stabilization != nil || backgroundEffect != nil
+        !color.isIdentity || !look.isNone || !crop.isNone || stabilization != nil
+            || backgroundEffect != nil
     }
 
     var isAnimated: Bool { !keyframes.isEmpty }

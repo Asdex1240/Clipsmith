@@ -97,6 +97,14 @@ extension Project {
         }
     }
 
+    mutating func setLook(of id: Clip.ID, to look: LookEffects) {
+        updateClip(id) { clip in
+            var updated = clip
+            updated.look = look.clamped()
+            return updated
+        }
+    }
+
     mutating func setCrop(of id: Clip.ID, to insets: CropInsets) {
         updateClip(id) { clip in
             var updated = clip
@@ -165,6 +173,7 @@ extension Project {
         audio.offsetY = 0
         audio.opacity = 1
         audio.color = ColorAdjustments()
+        audio.look = LookEffects()
         audio.crop = CropInsets()
         audio.keyframes = []
         tracks[position.track].clips[position.clip].isAudioDetached = true

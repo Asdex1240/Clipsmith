@@ -13,6 +13,8 @@ enum LayerImage {
         }
         image = cropped(image, to: layer, sourceHeight: sourceHeight)
         image = colorCorrected(image, with: layer.clip.color)
+        image = LookRendering.apply(
+            layer.clip.look, to: image, at: time - layer.clip.startInSeconds)
         let flipSource = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: sourceHeight)
         let flipCanvas = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: renderHeight)
         let source = image

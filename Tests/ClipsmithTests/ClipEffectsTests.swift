@@ -156,6 +156,17 @@ final class ClipEffectsTests: XCTestCase {
         XCTAssertGreaterThan(center.g, Int(0.4 * 255) + 40)
     }
 
+    func testTheVignetteReachesTheComposedFrame() async throws {
+        let gray = try solidPNG(NSColor(white: 0.8, alpha: 1), named: "light.png")
+        addStill(gray) { $0.look = LookEffects(vignette: 1) }
+
+        let frame = try await render()
+        let center = try pixel(frame, x: 0.5, y: 0.5)
+        let corner = try pixel(frame, x: 0.02, y: 0.03)
+
+        XCTAssertLessThan(corner.g, center.g - 30)
+    }
+
     func testZeroSaturationTurnsColorIntoGray() async throws {
         let red = try solidPNG(NSColor(red: 1, green: 0, blue: 0, alpha: 1), named: "red.png")
         addStill(red)

@@ -393,3 +393,16 @@
 "library.remove.title" = "¿Eliminar «%@» de la biblioteca?";
 "library.remove.message" = "Lo usan %d clips del timeline. Esos clips se quedan donde están y el archivo no se borra de tu Mac.";
 "library.remove.confirm" = "Eliminar";
+"inspector.look.section" = "Look de cine";
+"inspector.look.grain" = "Grano";
+"inspector.look.vignette" = "Viñeta";
+"inspector.look.sharpness" = "Nitidez";
+"inspector.look.reset" = "Restablecer look";
+"inspector.look.lut" = "LUT";
+"inspector.look.lut.choose" = "Elegir LUT…";
+"inspector.look.lut.remove" = "Quitar";
+"inspector.look.lut.intensity" = "Intensidad del LUT";
+"inspector.look.lut.hint" = "Aplica un look de color desde un archivo .cube, como los que se crean en DaVinci Resolve o Lightroom. El archivo se queda donde está.";
+"error.lut.missingSize" = "Este archivo .cube no indica su tamaño (LUT_3D_SIZE) o el tamaño no es compatible.";
+"error.lut.wrongEntryCount" = "Este archivo .cube no tiene el número de colores que exige su tamaño.";
+"error.lut.unreadable" = "No se pudo leer este archivo .cube.";

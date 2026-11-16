@@ -118,6 +118,7 @@ final class TimelinePreviewer {
                 copy.tracks[track].clips[clip].opacity = 1
                 copy.tracks[track].clips[clip].keyframes = []
                 copy.tracks[track].clips[clip].color = ColorAdjustments()
+                copy.tracks[track].clips[clip].look = LookEffects()
                 copy.tracks[track].clips[clip].crop = CropInsets()
             }
         }
