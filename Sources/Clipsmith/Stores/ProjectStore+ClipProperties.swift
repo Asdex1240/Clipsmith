@@ -28,6 +28,10 @@ extension ProjectStore {
         mutate(coalescingKey: "color-\(id)") { $0.setColor(of: id, to: adjustments) }
     }
 
+    func setLook(of id: Clip.ID, to look: LookEffects) {
+        mutate(coalescingKey: "look-\(id)") { $0.setLook(of: id, to: look) }
+    }
+
     func setCrop(of id: Clip.ID, to insets: CropInsets) {
         mutate(coalescingKey: "crop-\(id)") { $0.setCrop(of: id, to: insets) }
     }

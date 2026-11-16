@@ -22,6 +22,7 @@ A fast, local video editor for macOS, inspired by CapCut and built for editing v
 ### Picture
 - **Canvas** — the project's work area: presets (16:9, 9:16, 1:1, 4:5, 3:4, 4:3, 21:9), any custom width × height, a resolution shortcut (720p–4K) and automatic matching to the first clip you add. Each clip can be framed as *Fit* (bars), *Fill* (crop) or *Blur* (the whole clip over a blurred copy of itself).
 - **Color and crop** — brightness, contrast, saturation, temperature, one-click looks and a per-side crop.
+- **Film look** — film grain that moves from frame to frame, a vignette, sharpening, and color looks from `.cube` LUT files (like those made in DaVinci Resolve or Lightroom) with adjustable intensity. All of it renders on the GPU with Core Image, in both the preview and the export.
 - **Stabilization** — smooths hand-held shaking by analyzing the shot and reframing it slightly; light, normal and strong settings.
 - **Background** — find the people in a shot (Vision) and remove or blur everything behind them; removing shows the tracks below, such as B-roll.
 
@@ -55,7 +56,7 @@ What is next for the editor:
 - **A signed and notarized app** — a Developer ID build that opens on any Mac without extra steps (today the packaged app is ad-hoc signed and runs on the Mac that built it).
 - **Polish from real-world use** — adjustments to the newest features (background removal, stabilization, vertical framing) once they have been tried on real vlogs and different kinds of footage.
 - **Screenshots and a short demo** in this README.
-- **Custom GPU effects** — extra looks and effects beyond the current color controls.
+- **More GPU effects** — a second set after the film look: glitch, VHS and chromatic aberration.
 
 ## Requirements
 

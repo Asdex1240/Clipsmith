@@ -1,7 +1,8 @@
 import Foundation
 
 enum InspectorSectionID: String, CaseIterable {
-    case framing, keyframes, color, crop, text, textStyle, textAnimation, speed, audio, silences,
+    case framing, keyframes, color, look, crop, text, textStyle, textAnimation, speed, audio,
+        silences,
         subtitles, stabilization, background
 
     var storageKey: String {
@@ -11,7 +12,8 @@ enum InspectorSectionID: String, CaseIterable {
     var isExpandedByDefault: Bool {
         switch self {
         case .framing, .color, .text, .speed, .audio: return true
-        case .keyframes, .crop, .textStyle, .textAnimation, .silences, .subtitles, .stabilization,
+        case .keyframes, .look, .crop, .textStyle, .textAnimation, .silences, .subtitles,
+            .stabilization,
             .background:
             return false
         }
@@ -22,6 +24,7 @@ enum InspectorSectionID: String, CaseIterable {
         case .framing: return "inspector.visual.section"
         case .keyframes: return "inspector.keyframes.section"
         case .color: return "inspector.effects.section"
+        case .look: return "inspector.look.section"
         case .crop: return "inspector.crop.section"
         case .text: return "inspector.text.section"
         case .textStyle: return "inspector.textStyle.section"
@@ -40,6 +43,7 @@ enum InspectorSectionID: String, CaseIterable {
         case .framing: return "arrow.up.left.and.arrow.down.right"
         case .keyframes: return "diamond"
         case .color: return "paintpalette"
+        case .look: return "camera.filters"
         case .crop: return "crop"
         case .text: return "textformat"
         case .textStyle: return "textformat.size"

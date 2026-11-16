@@ -28,6 +28,7 @@ struct Clip: Codable, Identifiable, Equatable {
     var keyframes: [Keyframe] = []
     var transition: ClipTransition?
     var color = ColorAdjustments()
+    var look = LookEffects()
     var crop = CropInsets()
     var groupID: UUID?
     var ducking: ClipDucking?
@@ -201,7 +202,7 @@ extension Clip {
         case id, sourceURL, mediaKind, startInSeconds, sourceStartInSeconds, sourceEndInSeconds
         case sourceDurationInSeconds, volume, fadeInDurationInSeconds, fadeOutDurationInSeconds
         case textLayer, fitMode, offsetX, offsetY, isAudioDetached, scale, rotationInDegrees, speed,
-            opacity, keyframes, transition, color, crop, groupID, ducking, noiseReduction,
+            opacity, keyframes, transition, color, look, crop, groupID, ducking, noiseReduction,
             stabilization, backgroundEffect
     }
 
@@ -237,6 +238,7 @@ extension Clip {
         color =
             try container.decodeIfPresent(ColorAdjustments.self, forKey: .color)
             ?? ColorAdjustments()
+        look = try container.decodeIfPresent(LookEffects.self, forKey: .look) ?? LookEffects()
         crop = try container.decodeIfPresent(CropInsets.self, forKey: .crop) ?? CropInsets()
         groupID = try container.decodeIfPresent(UUID.self, forKey: .groupID)
         ducking = try container.decodeIfPresent(ClipDucking.self, forKey: .ducking)
@@ -273,6 +275,7 @@ extension Clip {
         if !keyframes.isEmpty { try container.encode(keyframes, forKey: .keyframes) }
         try container.encodeIfPresent(transition, forKey: .transition)
         if !color.isIdentity { try container.encode(color, forKey: .color) }
+        if !look.isNone { try container.encode(look, forKey: .look) }
         if !crop.isNone { try container.encode(crop, forKey: .crop) }
         try container.encodeIfPresent(groupID, forKey: .groupID)
         try container.encodeIfPresent(ducking, forKey: .ducking)
