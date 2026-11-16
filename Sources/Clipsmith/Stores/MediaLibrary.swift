@@ -23,8 +23,16 @@ final class MediaLibrary {
         items = newItems
     }
 
-    func removeItem(_ id: MediaItem.ID) {
-        items.removeAll { $0.id == id }
+    @discardableResult
+    func removeItem(_ id: MediaItem.ID) -> Int? {
+        guard let index = items.firstIndex(where: { $0.id == id }) else { return nil }
+        items.remove(at: index)
+        return index
+    }
+
+    func insert(_ item: MediaItem, at index: Int) {
+        guard !contains(item.url) else { return }
+        items.insert(item, at: min(index, items.count))
     }
 
     func remapSources(_ replacements: [URL: URL]) {

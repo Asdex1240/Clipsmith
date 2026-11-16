@@ -37,7 +37,8 @@ struct SidebarView: View {
             LibraryView(
                 library: library, thumbnails: thumbnails, selection: $selection,
                 onAddToTimeline: onAddToTimeline,
-                clipCount: { store.project.clipCount(using: $0.url) })
+                clipCount: { store.project.clipCount(using: $0.url) },
+                onRemove: { store.remove($0, from: library) })
         case .titles:
             TitlesView(store: store)
         case .highlights:

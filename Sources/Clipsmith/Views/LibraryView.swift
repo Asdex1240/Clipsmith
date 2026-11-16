@@ -7,6 +7,7 @@ struct LibraryView: View {
     @Binding var selection: MediaItem.ID?
     let onAddToTimeline: (MediaItem) -> Void
     var clipCount: (MediaItem) -> Int = { _ in 0 }
+    var onRemove: (MediaItem) -> Void = { _ in }
     @State private var isImporterPresented = false
     @State private var isDropTargeted = false
     @State private var query = MediaQuery()
@@ -64,7 +65,7 @@ struct LibraryView: View {
 
     private func remove(_ item: MediaItem) {
         if selection == item.id { selection = nil }
-        library.removeItem(item.id)
+        onRemove(item)
     }
 
     private var visibleItems: [MediaItem] {
